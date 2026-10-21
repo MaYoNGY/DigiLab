@@ -4,7 +4,7 @@
   "description": "Simulador de Sistemas Digitales: Compuertas Lógicas, Circuitos Aritméticos, Comparadores, Multiplexores y CIs Comerciales (NestJS + HTML/CSS/JS)",
   "private": true,
   "scripts": {
-    "build": "cd backend && npm run build",
+    "build": "cd backend && npm install && npm run build",
     "start": "cd backend && npm run start:prod"
   },
   "dependencies": {
