@@ -81,23 +81,24 @@ class DigitalSimulator {
     this.renderCatalog();
     this.populatePresetsDropdown();
 
-    // Restaurar pestañas abiertas si el usuario recargó la página, o abrir el Sumador Completo por defecto
-    const restored = this.restoreWorkspaceTabsFromSession();
-    if (!restored) {
-      const defaultPreset = this.presets.find((p) => p.id === 'full-adder') || this.presets[0];
-      if (defaultPreset) {
-        this.openCircuitInNewTab(defaultPreset, true);
-      } else {
-        this.createNewBlankTab();
-      }
-    }
-
-    // Si hay token o estaba en el simulador al recargar (F5), mantener el simulador sin parpadeo
+    // Si hay token guardado, PRIMERO verificar la sesión para autenticar y aislar las pestañas del usuario correcto
     if (this.authToken) {
       this.enterSimulatorWorkspace(false);
       await this.verifySavedSession();
-    } else if (sessionStorage.getItem('digilab_workspace_active') === '1') {
-      this.enterSimulatorWorkspace(false);
+    } else {
+      // Si es usuario invitado o no hay sesión, restaurar sus pestañas o abrir plantilla base
+      const restored = this.restoreWorkspaceTabsFromSession();
+      if (!restored) {
+        const defaultPreset = this.presets.find((p) => p.id === 'full-adder') || this.presets[0];
+        if (defaultPreset) {
+          this.openCircuitInNewTab(defaultPreset, true);
+        } else {
+          this.createNewBlankTab();
+        }
+      }
+      if (sessionStorage.getItem('digilab_workspace_active') === '1') {
+        this.enterSimulatorWorkspace(false);
+      }
     }
 
     this.renderMathInElementSafe(document.body);
@@ -755,8 +756,22 @@ class DigitalSimulator {
     this.tabs = [];
     this.activeTabId = null;
 
-    const restored = this.restoreWorkspaceTabsFromSession();
-    if (!restored) {
+    this.restoreWorkspaceTabsFromSession();
+
+    // Filtro de seguridad estricto: eliminar cualquier pestaña que pertenezca a otra cuenta
+    if (this.tabs.length > 0) {
+      this.tabs = this.tabs.filter((t) => {
+        if (!t.circuitId || t.presetId) return true;
+        return this.userCircuits.some((uc) => uc.id === t.circuitId);
+      });
+      if (this.tabs.length > 0) {
+        const stillActive = this.tabs.find((t) => t.tabId === this.activeTabId) || this.tabs[0];
+        this.switchToTab(stillActive.tabId, false);
+      }
+    }
+
+    // Si no quedaron pestañas válidas para este usuario, abrir su propio circuito o uno nuevo
+    if (this.tabs.length === 0) {
       if (this.userCircuits.length > 0) {
         this.openCircuitInNewTab(this.userCircuits[0], false);
       } else {
@@ -769,6 +784,8 @@ class DigitalSimulator {
       }
     }
 
+    this.renderTabsBar();
+    this.renderAll();
     this.enterSimulatorWorkspace(true);
 
     if (showWelcomeToast) {
