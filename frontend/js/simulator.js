@@ -220,10 +220,20 @@ class DigitalSimulator {
     this.authToken = null;
     this.currentUser = null;
     this.userCircuits = [];
+    this.tabs = [];
+    this.activeTabId = null;
+    this.nodes = [];
+    this.wires = [];
+    this.currentCircuitId = null;
+    this.selectedNodeId = null;
+    sessionStorage.removeItem('digilab_workspace_active');
+    sessionStorage.removeItem('digilab_open_tabs_state');
     document.documentElement.classList.remove('in-workspace-mode');
     this.simulatorView.classList.add('hidden');
     this.landingView.classList.remove('hidden');
     this.updateUserHeaderUI();
+    this.renderTabsBar();
+    this.renderAll();
     this.renderUserCanvasesLists();
   }
 
@@ -279,6 +289,10 @@ class DigitalSimulator {
     this.persistWorkspaceTabsToSession();
   }
 
+  getTabStorageKey() {
+    return this.currentUser ? `digilab_open_tabs_${this.currentUser.id}` : 'digilab_open_tabs_guest';
+  }
+
   persistWorkspaceTabsToSession() {
     try {
       const minimalTabs = this.tabs.map((t) => ({
@@ -295,7 +309,7 @@ class DigitalSimulator {
         panY: t.panY || 0
       }));
       sessionStorage.setItem(
-        'digilab_open_tabs_state',
+        this.getTabStorageKey(),
         JSON.stringify({
           activeTabId: this.activeTabId,
           tabCounter: this.tabCounter,
@@ -307,7 +321,7 @@ class DigitalSimulator {
 
   restoreWorkspaceTabsFromSession() {
     try {
-      const raw = sessionStorage.getItem('digilab_open_tabs_state');
+      const raw = sessionStorage.getItem(this.getTabStorageKey());
       if (!raw) return false;
       const parsed = JSON.parse(raw);
       if (!parsed || !Array.isArray(parsed.tabs) || parsed.tabs.length === 0) return false;
@@ -698,9 +712,7 @@ class DigitalSimulator {
 
     // ÚNICO BOTÓN QUE CIERRA LA SESIÓN Y REGRESA AL LOGIN (CON BLOQUEO DE FLECHA ATRÁS)
     document.getElementById('btnLogout').addEventListener('click', () => {
-      this.authToken = null;
-      this.currentUser = null;
-      this.userCircuits = [];
+      this.forceLoggedOutLandingState();
       localStorage.removeItem('digilab_token');
       sessionStorage.removeItem('digilab_workspace_active');
       sessionStorage.removeItem('digilab_open_tabs_state');
@@ -709,7 +721,6 @@ class DigitalSimulator {
       document.getElementById('registerForm')?.reset();
       document.getElementById('authAlert')?.classList.add('hidden');
 
-      this.forceLoggedOutLandingState();
       history.replaceState({ view: 'landing', loggedOut: true }, '', window.location.pathname);
       history.pushState({ view: 'landing', loggedOut: true }, '', window.location.pathname);
       this.showToast('Sesión cerrada correctamente.');
@@ -739,11 +750,29 @@ class DigitalSimulator {
     sessionStorage.setItem('digilab_workspace_active', '1');
     this.updateUserHeaderUI();
     await this.fetchUserCircuits();
+
+    // Limpiar pestañas del usuario anterior para aislamiento total entre cuentas
+    this.tabs = [];
+    this.activeTabId = null;
+
+    const restored = this.restoreWorkspaceTabsFromSession();
+    if (!restored) {
+      if (this.userCircuits.length > 0) {
+        this.openCircuitInNewTab(this.userCircuits[0], false);
+      } else {
+        const defaultPreset = this.presets.find((p) => p.id === 'full-adder') || this.presets[0];
+        if (defaultPreset) {
+          this.openCircuitInNewTab(defaultPreset, true);
+        } else {
+          this.createNewBlankTab();
+        }
+      }
+    }
+
     this.enterSimulatorWorkspace(true);
 
     if (showWelcomeToast) {
       if (this.userCircuits.length > 0) {
-        this.openCircuitInNewTab(this.userCircuits[0], false);
         this.showToast(`¡Hola ${user.name}! Se abrió tu lienzo guardado.`);
       } else {
         this.showToast(`¡Bienvenido, ${user.name}!`);
