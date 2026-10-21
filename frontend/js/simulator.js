@@ -227,8 +227,10 @@ class DigitalSimulator {
     this.wires = [];
     this.currentCircuitId = null;
     this.selectedNodeId = null;
-    sessionStorage.removeItem('digilab_workspace_active');
-    sessionStorage.removeItem('digilab_open_tabs_state');
+    try {
+      sessionStorage.clear();
+      localStorage.removeItem('digilab_guest_circuits');
+    } catch {}
     document.documentElement.classList.remove('in-workspace-mode');
     this.simulatorView.classList.add('hidden');
     this.landingView.classList.remove('hidden');
@@ -752,35 +754,27 @@ class DigitalSimulator {
     this.updateUserHeaderUI();
     await this.fetchUserCircuits();
 
-    // Limpiar pestañas del usuario anterior para aislamiento total entre cuentas
+    // VACIAR PESTAÑAS Y MEMORIA: Aislamiento total absoluto entre cuentas
     this.tabs = [];
     this.activeTabId = null;
+    this.nodes = [];
+    this.wires = [];
 
-    this.restoreWorkspaceTabsFromSession();
-
-    // Filtro de seguridad estricto: eliminar cualquier pestaña que pertenezca a otra cuenta
-    if (this.tabs.length > 0) {
-      this.tabs = this.tabs.filter((t) => {
-        if (!t.circuitId || t.presetId) return true;
-        return this.userCircuits.some((uc) => uc.id === t.circuitId);
+    // ÚNICAMENTE abrir los circuitos que le pertenecen a ESTE usuario autenticado
+    if (this.userCircuits.length > 0) {
+      this.userCircuits.forEach((circuit) => {
+        this.openCircuitInNewTab(circuit, false);
       });
       if (this.tabs.length > 0) {
-        const stillActive = this.tabs.find((t) => t.tabId === this.activeTabId) || this.tabs[0];
-        this.switchToTab(stillActive.tabId, false);
+        this.switchToTab(this.tabs[0].tabId, false);
       }
-    }
-
-    // Si no quedaron pestañas válidas para este usuario, abrir su propio circuito o uno nuevo
-    if (this.tabs.length === 0) {
-      if (this.userCircuits.length > 0) {
-        this.openCircuitInNewTab(this.userCircuits[0], false);
+    } else {
+      // Si el usuario es nuevo y no tiene circuitos, abrir un lienzo inicial limpio
+      const defaultPreset = this.presets.find((p) => p.id === 'full-adder') || this.presets[0];
+      if (defaultPreset) {
+        this.openCircuitInNewTab(defaultPreset, true);
       } else {
-        const defaultPreset = this.presets.find((p) => p.id === 'full-adder') || this.presets[0];
-        if (defaultPreset) {
-          this.openCircuitInNewTab(defaultPreset, true);
-        } else {
-          this.createNewBlankTab();
-        }
+        this.createNewBlankTab('Circuito 1');
       }
     }
 
@@ -790,7 +784,7 @@ class DigitalSimulator {
 
     if (showWelcomeToast) {
       if (this.userCircuits.length > 0) {
-        this.showToast(`¡Hola ${user.name}! Se abrió tu lienzo guardado.`);
+        this.showToast(`¡Hola ${user.name}! Se abrieron tus circuitos guardados.`);
       } else {
         this.showToast(`¡Bienvenido, ${user.name}!`);
       }
