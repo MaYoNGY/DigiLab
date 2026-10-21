@@ -1764,10 +1764,29 @@ class DigitalSimulator {
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', d);
       path.setAttribute('class', `wire-path ${isHigh ? 'high' : ''}`);
-      path.setAttribute('title', 'Clic o clic derecho para eliminar conexión');
+      path.setAttribute('title', 'Clic para eliminar | Shift+Clic para sacar derivación | Si vienes de una entrada, clic aquí para bifurcar');
 
       path.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (this.wiringStart) {
+          // Si estamos tendiendo un cable desde una entrada hacia una señal existente (bifurcación / derivación en T)
+          if (!this.wiringStart.isOutput) {
+            this.completeWiringOnPin(wire.fromNode, wire.fromPin, true);
+            this.showToast('🔗 Conexión bifurcada añadida a la línea.');
+            return;
+          }
+          this.showToast('Para conectar esta señal, haz clic en el pin de entrada de la compuerta.');
+          return;
+        }
+
+        // Si se presiona Shift o Alt sobre un cable existente, iniciar una nueva derivación desde esa señal
+        if (e.shiftKey || e.altKey) {
+          this.startOrCompleteWiring(wire.fromNode, wire.fromPin, true, e);
+          this.showToast('🔗 Derivando nueva conexión desde este cable...');
+          return;
+        }
+
+        // Clic normal sobre el cable para eliminarlo
         this.deleteWire(wire.id);
       });
 
@@ -1786,8 +1805,21 @@ class DigitalSimulator {
         const jDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         jDot.setAttribute('cx', String(bendX));
         jDot.setAttribute('cy', String(p1.y));
-        jDot.setAttribute('r', '4');
+        jDot.setAttribute('r', '4.5');
         jDot.setAttribute('class', `wire-junction ${isHigh ? 'high' : ''}`);
+        jDot.setAttribute('title', 'Punto de unión / bifurcación (Clic para derivar otra conexión)');
+
+        jDot.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (this.wiringStart && !this.wiringStart.isOutput) {
+            this.completeWiringOnPin(wire.fromNode, wire.fromPin, true);
+            this.showToast('🔗 Conectado al punto de unión.');
+            return;
+          }
+          this.startOrCompleteWiring(wire.fromNode, wire.fromPin, true, e);
+          this.showToast('🔗 Derivando nueva conexión desde el nodo...');
+        });
+
         this.wiresSvg.appendChild(jDot);
       }
     });
