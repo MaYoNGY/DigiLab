@@ -1,0 +1,87 @@
+# =============================================================================
+# DIGILAB STUDIO - ARCHIVO .GITIGNORE (FRONTEND + BACKEND + DOCKER + VERCEL)
+# =============================================================================
+
+# 1. Variables de entorno y credenciales delicadas (NUNCA subir a Git)
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+!.env.example
+!backend/.env.example
+
+# 2. Dependencias de Node.js
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+.pnp
+.pnp.js
+
+# 3. Archivos compilados y artefactos de construcción (NestJS / TypeScript)
+dist/
+backend/dist/
+build/
+out/
+*.tsbuildinfo
+backend/*.tsbuildinfo
+backend/dist/tsconfig.tsbuildinfo
+
+# 4. Archivos de despliegue en la nube (Vercel)
+.vercel/
+.now/
+
+# 5. Datos locales de bases de datos (PostgreSQL / Docker Volumes / SQLite)
+pgdata/
+postgres-data/
+docker-data/
+*.sqlite
+*.sqlite3
+*.db
+*.sql.gz
+dump.sql
+
+# 6. Llaves privadas, certificados y secretos
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
+credentials.json
+
+# 7. Registros de ejecución y depuración (Logs)
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 8. Cobertura de pruebas y cachés
+coverage/
+.nyc_output/
+.eslintcache
+.cache/
+
+# 9. Configuraciones locales de IDEs y Sistema Operativo
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# 10. Archivos temporales o documentos pesados de referencia
+tmp/
+temp/
+*.pdf

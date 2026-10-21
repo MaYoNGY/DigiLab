@@ -1,0 +1,12 @@
+{
+  "name": "digital-logic-simulator",
+  "version": "1.0.0",
+  "description": "Simulador de Sistemas Digitales: Compuertas Lógicas, Circuitos Aritméticos, Comparadores, Multiplexores y CIs Comerciales (NestJS + HTML/CSS/JS)",
+  "private": true,
+  "scripts": {
+    "install:all": "cd backend && npm install",
+    "build": "cd backend && npm run build",
+    "start": "cd backend && npm run start",
+    "start:dev": "cd backend && npm run start:dev"
+  }
+}

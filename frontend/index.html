@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DigiLab Studio | Ciencia de Circuitos Digitales</title>
+  <!-- Script síncrono anti-parpadeo: mantiene la vista del simulador al recargar si hay sesión activa -->
+  <script>
+    (function () {
+      try {
+        var hasToken = !!localStorage.getItem('digilab_token');
+        var inWorkspace = sessionStorage.getItem('digilab_workspace_active') === '1';
+        if (hasToken || inWorkspace) {
+          document.documentElement.classList.add('in-workspace-mode');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Librería KaTeX para renderizado tipográfico de Expresiones Algebraicas y Booleanas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+
+  <!-- =========================================================================
+       VISTA 1: LANDING PAGE EDITORIAL CON MOCKUP INTERACTIVO Y PALETA ROSA
+       ========================================================================= -->
+  <div id="landingView" class="landing-view">
+    <div class="bg-decor-circle c1"></div>
+    <div class="bg-decor-circle c2"></div>
+    <div class="bg-dots-matrix m1"></div>
+    <div class="bg-dots-matrix m2"></div>
+
+    <!-- Barra de Navegación Superior -->
+    <nav class="landing-nav">
+      <div class="nav-brand">
+        <div class="nav-gate-icon">
+          <svg width="34" height="28" viewBox="0 0 38 30" fill="none">
+            <line x1="2" y1="9" x2="10" y2="9" stroke="#db2777" stroke-width="2.4" stroke-linecap="round"/>
+            <line x1="2" y1="21" x2="10" y2="21" stroke="#db2777" stroke-width="2.4" stroke-linecap="round"/>
+            <path d="M10 4 H21 A11 11 0 0 1 21 26 H10 Z" fill="#fce7f3" stroke="#db2777" stroke-width="2.4"/>
+            <line x1="32" y1="15" x2="37" y2="15" stroke="#db2777" stroke-width="2.4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="brand-title">DigiLab <span class="brand-accent">Studio</span></span>
+        <span class="brand-Pipe">|</span>
+        <span class="brand-sub-pill">Ciencia de Circuitos Digitales</span>
+      </div>
+
+      <div class="nav-links">
+        <a href="#featuresSection">Módulos</a>
+        <a href="#chipsSection">Familia 74LS</a>
+        <a href="#featuresSection">Recursos</a>
+        <button id="btnGuestEnterNav" class="btn btn-rose-solid">Explorar Simulador →</button>
+      </div>
+    </nav>
+
+    <!-- Sección Hero Principal -->
+    <div class="landing-hero">
+      <div class="hero-content">
+        <div class="hero-pill">
+          <span class="pulse-dot"></span>
+          <span>Simulación en tiempo real · PostgreSQL Cloud</span>
+        </div>
+
+        <h1 class="hero-serif-title">
+          Convierte ideas<br />en circuitos
+        </h1>
+
+        <h2 class="hero-serif-subtitle">
+          <strong>Diseña, simula y sintetiza</strong><br />
+          circuitos digitales interactivos.
+        </h2>
+
+        <p class="hero-description">
+          Un entorno profesional para construir arquitecturas lógicas combinacionales con símbolos esquemáticos IEEE puros, sumadores, comparadores, multiplexores y circuitos de la familia 74LS. Guarda todos tus diseños en tu cuenta personal y continúa cuando quieras.
+        </p>
+
+        <div class="hero-actions">
+          <button id="btnGuestEnterHero" class="btn btn-lg btn-rose-solid">
+            <span>Abrir Laboratorio Digital</span>
+            <span>→</span>
+          </button>
+          <a href="#featuresSection" class="hero-underline-link">
+            Explorar Componentes
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-item">
+            <strong>20+</strong>
+            <span>Puertas & CIs 74LS</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <strong>2ⁿ</strong>
+            <span>Tablas de Verdad Automáticas</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <strong>SOP</strong>
+            <span>Ecuaciones Minitérminos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna Derecha: Composición Visual con Mockup del Simulador + Tarjeta de Login -->
+      <div class="hero-visual-stage">
+        
+        <div class="simulator-preview-window">
+          <div class="preview-topbar">
+            <div class="preview-brand">
+              <svg width="20" height="16" viewBox="0 0 34 24" fill="none">
+                <path d="M8 4 H18 A8 8 0 0 1 18 20 H8 Z" fill="#fce7f3" stroke="#db2777" stroke-width="2.2"/>
+                <line x1="2" y1="8" x2="8" y2="8" stroke="#db2777" stroke-width="2"/>
+                <line x1="2" y1="16" x2="8" y2="16" stroke="#db2777" stroke-width="2"/>
+                <line x1="26" y1="12" x2="32" y2="12" stroke="#db2777" stroke-width="2"/>
+              </svg>
+              <strong>DigiLab <span>Studio</span></strong>
+            </div>
+            <div class="preview-nav-tabs">
+              <span class="active">Simulador</span>
+              <span>Componentes</span>
+              <span>Ver Tabla</span>
+              <span>Exportar</span>
+            </div>
+            <span class="preview-save-pill">Guardar</span>
+          </div>
+
+          <div class="preview-body">
+            <div class="preview-sidebar">
+              <div class="preview-side-title">⊞ Componentes</div>
+              <div class="preview-search">🔍 Buscar componente...</div>
+              <div class="preview-cat-label">▾ Puertas Lógicas</div>
+              <div class="preview-gates-grid">
+                <div class="mini-gate-box">
+                  <svg width="26" height="18" viewBox="0 0 34 24"><path d="M8 4 H18 A8 8 0 0 1 18 20 H8 Z" fill="#fce7f3" stroke="#be185d" stroke-width="2"/></svg>
+                  <span>AND</span>
+                </div>
+                <div class="mini-gate-box">
+                  <svg width="26" height="18" viewBox="0 0 34 24"><path d="M6 4 Q16 4 26 12 Q16 20 6 20 Q11 12 6 4 Z" fill="#fce7f3" stroke="#be185d" stroke-width="2"/></svg>
+                  <span>OR</span>
+                </div>
+                <div class="mini-gate-box">
+                  <svg width="26" height="18" viewBox="0 0 34 24"><polygon points="8,4 22,12 8,20" fill="#fce7f3" stroke="#be185d" stroke-width="2"/><circle cx="25" cy="12" r="2.2" fill="#fff" stroke="#be185d" stroke-width="1.8"/></svg>
+                  <span>NOT</span>
+                </div>
+                <div class="mini-gate-box">
+                  <svg width="26" height="18" viewBox="0 0 34 24"><path d="M7 4 H16 A8 8 0 0 1 16 20 H7 Z" fill="#fce7f3" stroke="#be185d" stroke-width="2"/><circle cx="25.5" cy="12" r="2.2" fill="#fff" stroke="#be185d" stroke-width="1.8"/></svg>
+                  <span>NAND</span>
+                </div>
+                <div class="mini-gate-box">
+                  <svg width="26" height="18" viewBox="0 0 34 24"><path d="M5 4 Q14 4 23 12 Q14 20 5 20 Q10 12 5 4 Z" fill="#fce7f3" stroke="#be185d" stroke-width="2"/><circle cx="26" cy="12" r="2.2" fill="#fff" stroke="#be185d" stroke-width="1.8"/></svg>
+                  <span>NOR</span>
+                </div>
+                <div class="mini-gate-box">
+                  <svg width="26" height="18" viewBox="0 0 34 24"><path d="M4 4 Q9 12 4 20" fill="none" stroke="#be185d" stroke-width="1.8"/><path d="M8 4 Q17 4 26 12 Q17 20 8 20 Q13 12 8 4 Z" fill="#fce7f3" stroke="#be185d" stroke-width="2"/></svg>
+                  <span>XOR</span>
+                </div>
+              </div>
+              <div class="preview-cat-label">▾ Familia 74LS</div>
+              <div class="preview-gates-grid">
+                <div class="mini-gate-box"><span>74LS00</span></div>
+                <div class="mini-gate-box"><span>74LS32</span></div>
+                <div class="mini-gate-box"><span>74LS08</span></div>
+              </div>
+              <div class="preview-collapsed-item">› Entradas y Salidas</div>
+              <div class="preview-collapsed-item">› Circuitos Combinacionales</div>
+            </div>
+
+            <div class="preview-canvas">
+              <svg width="100%" height="230" viewBox="0 0 360 220" fill="none">
+                <text x="18" y="54" fill="#4a2c40" font-weight="700" font-size="12">A</text>
+                <circle cx="36" cy="50" r="4.5" fill="#fce7f3" stroke="#be185d" stroke-width="2"/>
+                <text x="18" y="109" fill="#4a2c40" font-weight="700" font-size="12">B</text>
+                <circle cx="36" cy="105" r="4.5" fill="#fce7f3" stroke="#be185d" stroke-width="2"/>
+                <text x="18" y="164" fill="#4a2c40" font-weight="700" font-size="12">C</text>
+                <circle cx="36" cy="160" r="4.5" fill="#fce7f3" stroke="#be185d" stroke-width="2"/>
+
+                <path d="M41 50 H95" stroke="#be185d" stroke-width="2"/>
+                <path d="M41 105 H72 V68 H95" stroke="#be185d" stroke-width="2"/>
+                <circle cx="72" cy="105" r="3" fill="#be185d"/>
+                <path d="M72 105 V142 H95" stroke="#be185d" stroke-width="2"/>
+                <path d="M41 160 H95" stroke="#be185d" stroke-width="2"/>
+
+                <path d="M95 38 H122 A21 21 0 0 1 122 80 H95 Z" fill="#fff" stroke="#be185d" stroke-width="2.4"/>
+                <path d="M95 130 H122 A21 21 0 0 1 122 172 H95 Z" fill="#fff" stroke="#be185d" stroke-width="2.4"/>
+
+                <path d="M143 59 H182 V94 H212" stroke="#10b981" stroke-width="2.4"/>
+                <path d="M143 151 H182 V116 H212" stroke="#be185d" stroke-width="2"/>
+
+                <path d="M205 84 Q232 84 260 105 Q232 126 205 126 Q218 105 205 84 Z" fill="#fce7f3" stroke="#be185d" stroke-width="2.4"/>
+
+                <path d="M260 105 H302" stroke="#10b981" stroke-width="2.6"/>
+                <circle cx="307" cy="105" r="5" fill="#10b981" stroke="#059669" stroke-width="2"/>
+                <text x="320" y="109" fill="#be185d" font-weight="800" font-size="13">Y</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="floating-realtime-card">
+          <div class="fr-header">
+            <span>Simulación en Tiempo Real</span>
+            <span class="mini-switch-on"></span>
+          </div>
+          <div class="fr-row"><span>A</span><span class="dot-on"></span><b>1</b></div>
+          <div class="fr-row"><span>B</span><span class="dot-off"></span><b>0</b></div>
+          <div class="fr-row"><span>C</span><span class="dot-on"></span><b>1</b></div>
+          <div class="fr-row result"><span>Y</span><span class="dot-green"></span><b class="val-green">1</b></div>
+        </div>
+
+        <div class="handwritten-note">
+          <span>De la teoría<br/>a la práctica</span>
+          <svg width="34" height="24" viewBox="0 0 40 28" fill="none">
+            <path d="M2 22 Q20 24 34 6" stroke="#db2777" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M28 5 L35 5 L35 12" stroke="#db2777" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <!-- Tarjeta Flotante Derecha: Tu Cuenta de Laboratorio (Login / Registro con Validaciones) -->
+        <div class="auth-floating-card">
+          <div class="auth-cap-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            </svg>
+          </div>
+          <h3>Tu Cuenta de Laboratorio</h3>
+          <p class="auth-sub">Accede a tus lienzos guardados en PostgreSQL.</p>
+
+          <div id="authAlert" class="auth-alert hidden"></div>
+
+          <!-- Formulario Iniciar Sesión -->
+          <form id="loginForm" class="auth-form">
+            <div class="input-with-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9d174d" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <input type="text" id="loginUsername" placeholder="Nombre de usuario" required minlength="3" maxlength="24" autocomplete="username" />
+            </div>
+            <div class="input-with-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9d174d" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input type="password" id="loginPassword" placeholder="••••••••••" required minlength="4" autocomplete="current-password" />
+            </div>
+            <button type="submit" class="btn btn-rose-solid btn-block">
+              Iniciar Sesión →
+            </button>
+            <div class="auth-divider"><span>o</span></div>
+            <button type="button" id="btnSwitchToRegister" class="btn btn-outline-soft btn-block">
+              Crear Usuario Nuevo
+            </button>
+          </form>
+
+          <!-- Formulario Crear Usuario -->
+          <form id="registerForm" class="auth-form hidden">
+            <div class="input-with-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9d174d" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <input type="text" id="regName" placeholder="Tu nombre completo" required minlength="2" />
+            </div>
+            <div class="input-with-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9d174d" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg>
+              <input type="text" id="regUsername" placeholder="Usuario único (sin espacios)" required minlength="3" maxlength="24" autocomplete="username" />
+            </div>
+            <div class="input-with-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9d174d" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input type="password" id="regPassword" placeholder="Contraseña (mín. 4 caracteres)" required minlength="4" autocomplete="new-password" />
+            </div>
+            <button type="submit" class="btn btn-rose-solid btn-block">
+              Registrar y Entrar →
+            </button>
+            <div class="auth-divider"><span>o</span></div>
+            <button type="button" id="btnSwitchToLogin" class="btn btn-outline-soft btn-block">
+              Ya tengo cuenta
+            </button>
+          </form>
+
+          <div class="auth-cloud-note">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+            <span>Validación de usuario único y sincronización automática en PostgreSQL.</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Sección Inferior de Funcionalidades -->
+    <section id="featuresSection" class="landing-bottom-features">
+      <div class="features-intro-col">
+        <span class="features-kicker">/ FUNCIONALIDADES</span>
+        <h3>Todo lo que necesitas para experimentar, aprender y crear.</h3>
+        <p>Un laboratorio digital completo, intuitivo y diseñado para estudiantes, docentes y entusiastas de la electrónica digital.</p>
+      </div>
+
+      <div class="feature-box-card" data-open-preset="full-adder">
+        <div class="fbox-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+        </div>
+        <h4>Aritmética Binaria</h4>
+        <p>Diseña con semisumadores, sumadores completos y el integrado 74LS283 de 4 bits con símbolos esquemáticos IEEE.</p>
+        <span class="fbox-arrow">→</span>
+      </div>
+
+      <div class="feature-box-card" data-open-preset="comparator-7485">
+        <div class="fbox-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h4>Comparadores de Magnitud</h4>
+        <p>Evalúa condiciones con circuitos integrados como el 74LS85. Visualiza tablas de verdad y analiza en tiempo real.</p>
+        <span class="fbox-arrow">→</span>
+      </div>
+
+      <div class="feature-box-card" data-open-preset="mux-4-1">
+        <div class="fbox-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </div>
+        <h4>Multiplexores y Síntesis SOP</h4>
+        <p>Experimenta con selectores trapezoidales 74LS153 (4:1), 74LS151 (8:1) y decodificadores 3:8.</p>
+        <span class="fbox-arrow">→</span>
+      </div>
+
+      <div class="feature-box-card" id="featureCardMyDesigns">
+        <div class="fbox-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h4>Tus Diseños Siempre a Mano</h4>
+        <p>Guarda, organiza en pestañas y exporta tus circuitos en formato JSON o en tu cuenta PostgreSQL.</p>
+        <span class="fbox-arrow">→</span>
+      </div>
+    </section>
+
+    <section id="chipsSection" class="landing-chips-strip">
+      <span>Circuitos Integrados de la Familia 74LS incluidos:</span>
+      <div class="chip-badges-row">
+        <span class="chip-pill">74LS00 NAND</span>
+        <span class="chip-pill">74LS02 NOR</span>
+        <span class="chip-pill">74LS04 NOT</span>
+        <span class="chip-pill">74LS08 AND</span>
+        <span class="chip-pill">74LS32 OR</span>
+        <span class="chip-pill">74LS86 XOR</span>
+        <span class="chip-pill">74LS266 XNOR</span>
+        <span class="chip-pill">74LS283 Adder</span>
+        <span class="chip-pill">74LS85 Comp</span>
+        <span class="chip-pill">74LS151 MUX</span>
+        <span class="chip-pill">74LS153 MUX</span>
+      </div>
+    </section>
+  </div>
+
+  <!-- =========================================================================
+       VISTA 2: ESTACIÓN DE TRABAJO DEL SIMULADOR INTERACTIVO
+       ========================================================================= -->
+  <div id="simulatorView" class="simulator-view hidden">
+    
+    <!-- FILA SUPERIOR 1: BARRA DE MENÚ CON DESPLEGABLES FUNCIONALES (SIN SALIR A LOGIN SALVO CERRAR SESIÓN) -->
+    <header class="app-menubar">
+      <div class="menubar-left">
+        <button id="btnToggleLeftSidebar" class="btn-icon-only mobile-only" title="Componentes">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+
+        <div class="app-brand" style="cursor:default;">
+          <div class="app-logo-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4">
+              <path d="M5 6h6a6 6 0 0 1 0 12H5V6z"/>
+              <circle cx="19" cy="12" r="2" fill="#fff"/>
+            </svg>
+          </div>
+          <div class="app-brand-text">
+            <strong>DigiLab</strong>
+            <span>Ciencia de Circuitos Digitales</span>
+          </div>
+        </div>
+
+        <!-- MENÚ DESPLEGABLE DE APLICACIÓN -->
+        <nav class="app-menu-links hide-md">
+          <div class="dropdown-menu-wrap">
+            <button class="menu-link" data-dropdown="dropArchivo">Archivo ▾</button>
+            <div id="dropArchivo" class="menu-dropdown hidden">
+              <button id="menuFileNew">➕ Nueva Pestaña en Blanco</button>
+              <button id="menuFileSave">☁️ Guardar en mi Cuenta</button>
+              <button id="menuFileOpen">📁 Abrir Mis Lienzos Guardados</button>
+              <div class="menu-sep"></div>
+              <button id="menuFileImport">📂 Importar Circuito (.JSON)</button>
+              <button id="menuFileExport">⬇️ Exportar Circuito (.JSON)</button>
+            </div>
+          </div>
+
+          <div class="dropdown-menu-wrap">
+            <button class="menu-link" data-dropdown="dropEditar">Editar ▾</button>
+            <div id="dropEditar" class="menu-dropdown hidden">
+              <button id="menuEditUndo">↶ Deshacer (Ctrl+Z)</button>
+              <button id="menuEditRedo">↷ Rehacer (Ctrl+Y)</button>
+              <div class="menu-sep"></div>
+              <button id="menuEditDuplicate">📋 Duplicar Componente Seleccionado</button>
+              <button id="menuEditRotate">↻ Rotar Componente 90°</button>
+              <button id="menuEditDelete">🗑️ Eliminar Seleccionado (Supr)</button>
+              <div class="menu-sep"></div>
+              <button id="menuEditClear">🧹 Limpiar Lienzo Actual</button>
+            </div>
+          </div>
+
+          <div class="dropdown-menu-wrap">
+            <button class="menu-link" data-dropdown="dropSimular">Simular ▾</button>
+            <div id="dropSimular" class="menu-dropdown hidden">
+              <button id="menuSimToggle">▶️ Ejecutar / Pausar Simulación</button>
+              <button id="menuSimStep">⏭️ Evaluar Paso / Ciclo Único</button>
+              <button id="menuSimResetInputs">🔄 Reiniciar Entradas a 0</button>
+              <div class="menu-sep"></div>
+              <button id="menuSimTruth">📊 Recalcular Tabla de Verdad</button>
+            </div>
+          </div>
+
+          <div class="dropdown-menu-wrap">
+            <button class="menu-link" data-dropdown="dropHerramientas">Herramientas ▾</button>
+            <div id="dropHerramientas" class="menu-dropdown hidden">
+              <button id="menuToolSynth">⚡ Sintetizador Booleano (MUX / SOP)</button>
+              <button id="menuToolPinout">🔲 Encapsulados DIP Familia 74LS</button>
+            </div>
+          </div>
+
+          <button class="menu-link" id="menuVerGuiaBtn">Guía Teórica</button>
+        </nav>
+      </div>
+
+      <div class="menubar-right">
+        <div id="simStatusIndicator" class="realtime-indicator active">
+          <span class="status-dot" id="backendStatusDot"></span>
+          <span id="backendStatusText">Simulación en tiempo real</span>
+        </div>
+
+        <div class="user-profile-pill">
+          <span class="user-avatar" id="userAvatarLetter">I</span>
+          <span class="user-name" id="userNameDisplay">Invitado</span>
+          <button id="btnLogout" class="btn-link-rose" title="Cerrar sesión activa">Cerrar Sesión</button>
+        </div>
+
+        <button id="btnToggleRightSidebar" class="btn-icon-only mobile-only" title="Inspector">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- FILA SUPERIOR 2: BARRA DE HERRAMIENTAS PRINCIPAL -->
+    <div class="app-toolbar">
+      <div class="toolbar-group">
+        <div class="preset-select-wrapper">
+          <span class="preset-prefix">Ejemplo:</span>
+          <select id="presetSelect" class="toolbar-select">
+            <option value="">-- Seleccionar circuito --</option>
+          </select>
+        </div>
+
+        <div class="toolbar-divider"></div>
+
+        <button id="btnNewTabToolbar" class="tool-action-btn" title="Abrir un nuevo circuito en una nueva pestaña">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          <span>Nuevo</span>
+        </button>
+
+        <button id="btnSaveCloud" class="tool-action-btn primary-rose" title="Guardar lienzo actual en tu cuenta PostgreSQL">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <span>Guardar</span>
+        </button>
+
+        <button id="btnMyCanvases" class="tool-action-btn" title="Ver y gestionar mis lienzos guardados">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span>Mis Lienzos</span>
+          <b id="myCanvasesCountBadge" class="badge-rose-pill">0</b>
+        </button>
+
+        <button id="btnImportCircuit" class="tool-action-btn" title="Importar archivo JSON en una pestaña">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Importar</span>
+        </button>
+        <input type="file" id="fileImportInput" accept=".json" style="display:none" />
+
+        <button id="btnExportJson" class="tool-action-btn" title="Exportar lienzo actual a JSON">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>Exportar</span>
+        </button>
+      </div>
+
+      <!-- CONTROLES CENTRALES DE SIMULACIÓN Y EDICIÓN -->
+      <div class="toolbar-group">
+        <button id="btnUndoToolbar" class="tool-action-btn" title="Deshacer último cambio en el lienzo (Ctrl+Z)">
+          <span>↶ Deshacer</span>
+        </button>
+        <button id="btnRedoToolbar" class="tool-action-btn" title="Rehacer cambio en el lienzo (Ctrl+Y)">
+          <span>↷</span>
+        </button>
+
+        <div class="toolbar-divider"></div>
+
+        <div class="sim-control-cluster">
+          <button id="btnToggleSimulation" class="tool-action-btn simulate-btn running" title="Iniciar o Pausar la propagación de señales en el simulador">
+            <span id="simBtnIcon">▶</span>
+            <span id="simBtnLabel">Simular</span>
+          </button>
+          <button id="btnStepSimulation" class="tool-action-btn" title="Ejecutar un paso de evaluación lógica">
+            <span>⏭ Paso</span>
+          </button>
+          <button id="btnResetInputs" class="tool-action-btn" title="Poner todas las entradas en 0">
+            <span>↺ Reset 0</span>
+          </button>
+        </div>
+
+        <div class="toolbar-divider"></div>
+
+        <button id="btnSynthesis" class="tool-action-btn primary-rose" title="Sintetizar circuito desde Tabla de Verdad / Minitérminos">
+          <span>⚡ Sintetizar</span>
+        </button>
+
+        <button id="btnICPinout" class="tool-action-btn" title="Ver encapsulados DIP de la serie 74LS">
+          <span>🔲 Pines 74LS</span>
+        </button>
+
+        <button id="btnClearCanvas" class="tool-action-btn danger-soft" title="Vaciar los componentes del lienzo actual (puedes deshacer con Ctrl+Z)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span>Limpiar</span>
+        </button>
+
+        <div class="zoom-controls-group">
+          <button id="btnZoomOut" class="btn-icon-only" title="Alejar">－</button>
+          <span id="zoomLabel" class="zoom-badge">100%</span>
+          <button id="btnZoomIn" class="btn-icon-only" title="Acercar">＋</button>
+          <button id="btnResetView" class="btn-icon-only" title="Centrar vista">🎯</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUERPO CENTRAL DE 3 COLUMNAS -->
+    <main class="eda-workspace">
+      
+      <!-- COLUMNA IZQUIERDA: COMPONENTES Y MIS LIENZOS -->
+      <aside id="leftSidebar" class="eda-sidebar-left">
+        <div class="sidebar-top-tabs">
+          <button class="side-tab active" data-lefttab="leftCatalog">Componentes</button>
+          <button class="side-tab" data-lefttab="leftMyWork">Mis Lienzos</button>
+        </div>
+
+        <!-- TAB 1: CATÁLOGO DE COMPONENTES -->
+        <div id="leftCatalog" class="left-tab-body active">
+          <div class="search-box-wrap">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9d174d" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchComponent" placeholder="Buscar componente..." class="search-input-clean" />
+          </div>
+          <div id="componentCatalog" class="catalog-scroll"></div>
+        </div>
+
+        <!-- TAB 2: MIS LIENZOS GUARDADOS -->
+        <div id="leftMyWork" class="left-tab-body">
+          <div class="mywork-header">
+            <span>Guardados en tu lista</span>
+            <button id="btnNewBlankFromList" class="btn-xs-rose" title="Crear un nuevo lienzo directamente en esta lista">+ Nuevo</button>
+          </div>
+          <div id="sidebarCanvasesList" class="catalog-scroll"></div>
+        </div>
+      </aside>
+
+      <!-- COLUMNA CENTRAL: BARRA MULTIPESTAÑA + SUB-BARRA + LIENZO + DOCK INFERIOR -->
+      <section class="eda-center-area">
+        
+        <!-- BARRA DE PESTAÑAS REALES -->
+        <div class="canvas-tabs-bar">
+          <div id="activeWorkTabs" class="work-tabs-list"></div>
+          <button id="btnQuickNewTab" class="btn-add-tab" title="Abrir nueva pestaña de circuito (+)">+</button>
+          <div class="canvas-QuickHint">
+            <span id="bannerModuleTag" class="module-pill">Aritmética Binaria</span>
+            <input id="activeCircuitTitleInput" type="text" class="work-tab-title-inline" value="Sumador Completo (1 bit)" title="Renombrar el circuito de la pestaña activa" />
+            <span id="bannerDesc" class="desc-inline">Haz clic en los terminales de entrada (A, B, Cin) para alternar entre 0 y 1.</span>
+          </div>
+        </div>
+
+        <!-- Sub-barra de herramientas flotante sobre el lienzo (Todos los botones auditados y funcionales) -->
+        <div class="canvas-subtoolbar">
+          <button class="subtool-btn active" id="subtoolSelectMode" title="Modo Selección y Movimiento de Nodos (V)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M4 3l16 9-7 2-3 7L4 3z"/></svg>
+          </button>
+          <button class="subtool-btn" id="subtoolPanMode" title="Modo Mano: Arrastrar para desplazar el lienzo (H)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+          </button>
+          <div class="subtool-sep"></div>
+          <button class="subtool-btn" id="subtoolAddInput" title="Añadir Terminal de Entrada Binaria (A, B...)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="10" cy="12" r="5"/><line x1="15" y1="12" x2="22" y2="12"/></svg>
+          </button>
+          <button class="subtool-btn" id="subtoolAddOutput" title="Añadir Terminal LED de Salida (S, Y...)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="2" y1="12" x2="9" y2="12"/><circle cx="14" cy="12" r="5" fill="currentColor"/></svg>
+          </button>
+          <div class="subtool-sep"></div>
+          <button class="subtool-btn" id="subtoolRotateNode" title="Rotar Componente Seleccionado 90° (R)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </button>
+          <button class="subtool-btn" id="subtoolDuplicateNode" title="Duplicar Componente Seleccionado (Ctrl+D)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+          <button class="subtool-btn" id="subtoolDeleteNode" title="Eliminar Componente Seleccionado (Supr)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div class="subtool-sep"></div>
+          <div id="bannerFormulas" class="subtool-formulas"></div>
+        </div>
+
+        <!-- LIENZO INTERACTIVO -->
+        <div id="canvasViewport" class="canvas-viewport">
+          <div id="canvasWorld" class="canvas-world">
+            <svg id="wiresSvg" class="wires-layer"></svg>
+            <div id="nodesLayer" class="nodes-layer"></div>
+          </div>
+        </div>
+
+        <!-- PANEL INFERIOR ACOPLADO: TABLA DE VERDAD, EXPRESIONES SOP, RESULTADOS Y NOTAS -->
+        <div id="bottomDock" class="bottom-dock">
+          <div class="dock-tabs-bar">
+            <div class="dock-tabs-left">
+              <button class="dock-tab active" data-docktab="dockTruthAndSop">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                <span>Tabla de Verdad & Expresiones Booleanas</span>
+              </button>
+              <button class="dock-tab" data-docktab="dockSimResults">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <span>Resultados de Simulación</span>
+              </button>
+              <button class="dock-tab" data-docktab="dockReference">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <span>Notas & Guía</span>
+              </button>
+            </div>
+            <div class="dock-actions-right">
+              <button id="btnRefreshTruth" class="btn-xs-rose">🔄 Recalcular Tabla</button>
+              <button id="btnToggleDockSize" class="btn-icon-only" title="Minimizar/Expandir panel inferior">▾</button>
+            </div>
+          </div>
+
+          <!-- PESTAÑA DOCK 1: TABLA DE VERDAD + EXPRESIONES SOP -->
+          <div id="dockTruthAndSop" class="dock-content active">
+            <div class="dock-split-grid">
+              <div class="dock-truth-col">
+                <div class="dock-col-header">
+                  <strong id="truthTableTitle">Tabla de Verdad</strong>
+                  <span id="truthTableHintText">Haz clic en cualquier fila para inyectar esa combinación en el circuito</span>
+                </div>
+                <div id="truthTableContainer" class="truth-table-wrapper"></div>
+              </div>
+
+              <div class="dock-sop-col">
+                <div class="dock-col-header">
+                  <strong>Expresiones Booleanas (SOP)</strong>
+                  <span class="notation-badge">Suma de Productos (Σm)</span>
+                </div>
+                <div id="booleanExpressionsBox" class="expressions-box"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PESTAÑA DOCK 2: RESULTADOS DE SIMULACIÓN EN TIEMPO REAL -->
+          <div id="dockSimResults" class="dock-content">
+            <div id="simResultsLiveBox" class="sim-results-grid"></div>
+          </div>
+
+          <!-- PESTAÑA DOCK 3: NOTAS Y GUÍA -->
+          <div id="dockReference" class="dock-content">
+            <div class="reference-cards-grid math-render-zone">
+              <div class="ref-card">
+                <span class="ref-tag">Familia TTL 74LS</span>
+                <h4>Compuertas Lógicas Estándar</h4>
+                <p><b>74LS00</b> ($\overline{A \cdot B}$), <b>74LS02</b> ($\overline{A + B}$), <b>74LS04</b> ($\overline{A}$), <b>74LS08</b> ($A \cdot B$), <b>74LS32</b> ($A + B$), <b>74LS86</b> ($A \oplus B$), <b>74LS266</b> ($\overline{A \oplus B}$).</p>
+              </div>
+              <div class="ref-card">
+                <span class="ref-tag">Circuitos Aritméticos</span>
+                <h4>Sumadores Binarios</h4>
+                <p><b>Semisumador:</b> $S = A \oplus B$, $C = A \cdot B$.<br/><b>Sumador Completo:</b> $S = A \oplus B \oplus C_{\text{in}}$, $C_{\text{out}} = AB + AC_{\text{in}} + BC_{\text{in}}$.<br/><b>CI 74LS283:</b> Sumador binario de 4 bits.</p>
+              </div>
+              <div class="ref-card">
+                <span class="ref-tag">Comparadores</span>
+                <h4>Comparadores de Magnitud</h4>
+                <p>Compara números binarios $A$ y $B$ activando una única salida: $(A > B)$, $(A = B)$ o $(A < B)$. El integrado <b>74LS85</b> compara palabras de 4 bits con entradas de cascada.</p>
+              </div>
+              <div class="ref-card">
+                <span class="ref-tag">Ruteo y Síntesis SOP</span>
+                <h4>Multiplexores y Decodificadores</h4>
+                <p><b>MUX 4:1 (74LS153)</b> y <b>MUX 8:1 (74LS151)</b> seleccionan un canal según $S_n$. Un <b>Decodificador 3:8 (74LS138)</b> sintetiza cualquier función $F = \sum m_i$.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUMNA DERECHA: INSPECTOR Y PROPIEDADES -->
+      <aside id="rightSidebar" class="eda-sidebar-right">
+        <div class="inspector-tabs-header">
+          <span class="inspector-tab-title active">Inspector</span>
+          <span class="inspector-tab-sub">Propiedades</span>
+        </div>
+        <div id="inspectorContent" class="inspector-body"></div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- MODAL 1: SINTETIZADOR DE CIRCUITOS -->
+  <div id="modalSynthesis" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚡ Sintetizador Automático de Funciones Booleanas</h3>
+        <button class="modal-close" data-close="modalSynthesis">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Genera automáticamente en una nueva pestaña un circuito funcional de 3 variables ($A, B, C$) seleccionando los minitérminos donde la salida vale <b>1</b>:</p>
+        <div class="minterm-grid" id="synthMintermGrid"></div>
+        <div class="synth-method-box">
+          <label style="font-weight:700;color:#831843;">Arquitectura de Implementación:</label>
+          <div class="radio-cards">
+            <label class="radio-card active">
+              <input type="radio" name="synthMethod" value="MUX" checked />
+              <div>
+                <strong>Con Multiplexor 8:1 (CI 74LS151)</strong>
+                <small>Conecta automáticamente +Vcc (1) y GND (0) a las entradas de datos E0..E7</small>
+              </div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="synthMethod" value="DECO" />
+              <div>
+                <strong>Con Decodificador 3:8 + Compuerta OR (SOP)</strong>
+                <small>Suma los minitérminos activos mediante una compuerta OR de múltiples entradas</small>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-soft" data-close="modalSynthesis">Cancelar</button>
+        <button id="btnBuildSynthesized" class="btn btn-rose-solid">Construir en Nueva Pestaña</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: ENCAPSULADOS DIP Y PINOUT -->
+  <div id="modalPinout" class="modal-backdrop hidden">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <h3>🔲 Encapsulados DIP y Pines de CIs Comerciales (Familia 74LS)</h3>
+        <button class="modal-close" data-close="modalPinout">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="pinout-selector-bar">
+          <button class="chip-select-btn active" data-chip="74LS00">74LS00 (NAND)</button>
+          <button class="chip-select-btn" data-chip="74LS02">74LS02 (NOR)</button>
+          <button class="chip-select-btn" data-chip="74LS04">74LS04 (NOT)</button>
+          <button class="chip-select-btn" data-chip="74LS08">74LS08 (AND)</button>
+          <button class="chip-select-btn" data-chip="74LS32">74LS32 (OR)</button>
+          <button class="chip-select-btn" data-chip="74LS86">74LS86 (XOR)</button>
+          <button class="chip-select-btn" data-chip="74LS283">74LS283 (Sumador 4B)</button>
+          <button class="chip-select-btn" data-chip="74LS85">74LS85 (Comp 4B)</button>
+          <button class="chip-select-btn" data-chip="74LS151">74LS151 (MUX 8:1)</button>
+        </div>
+        <div id="chipDiagramContainer" class="chip-diagram-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: GESTOR DE MIS LIENZOS GUARDADOS -->
+  <div id="modalMyCanvases" class="modal-backdrop hidden">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <h3>📁 Mis Lienzos Guardados</h3>
+        <button class="modal-close" data-close="modalMyCanvases">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="myCanvasesSubtitle">Selecciona cualquiera de tus circuitos para abrirlo en una pestaña o descargarlo:</p>
+        <div id="modalCanvasesGrid" class="canvases-grid-modal"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-soft" data-close="modalMyCanvases">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notificación Toast Flotante (soporta botones de acción como "↶ Deshacer") -->
+  <div id="toastNotification" class="toast-notification hidden"></div>
+
+  <!-- Librería KaTeX para renderizar ecuaciones algebraicas y expresiones booleanas -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+  <script src="./js/components.js"></script>
+  <script src="./js/presets.js"></script>
+  <script src="./js/simulator.js"></script>
+</body>
+</html>

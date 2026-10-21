@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: digilab_postgres
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-digilab_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - digilab_pgdata:/var/lib/postgresql/data
+
+volumes:
+  digilab_pgdata:
