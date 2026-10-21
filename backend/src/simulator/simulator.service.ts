@@ -343,6 +343,7 @@ export class SimulatorService implements OnModuleInit {
             { type: 'XOR', name: 'XOR', ic: '74LS86', desc: 'Puerta lógica XOR (2 entradas)' },
             { type: 'XNOR', name: 'XNOR', ic: '74LS266', desc: 'Puerta lógica XNOR (Equivalencia)' },
             { type: 'AND3', name: 'AND 3-In', ic: '74LS11', desc: 'Triple AND de 3 entradas' },
+            { type: 'NAND3', name: 'NAND 3-In', ic: '74LS10', desc: 'Triple NAND de 3 entradas' },
             { type: 'NAND4', name: 'NAND 4-In', ic: '74LS20', desc: 'Dual NAND de 4 entradas' },
             { type: 'OR5', name: 'OR 5-In (SOP)', ic: 'SOP-OR', desc: 'OR de 5 entradas para minitérminos' }
           ]

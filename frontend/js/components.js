@@ -233,6 +233,24 @@ window.COMPONENT_DEFS = {
     desc: 'Salida en 1 cuando las 3 entradas son 1.',
     evaluate: (inVals) => [(inVals[0] & inVals[1] & inVals[2]) ? 1 : 0]
   },
+  NAND3: {
+    name: 'Compuerta NAND 3-In',
+    sub: 'Triple NAND de 3 entradas',
+    ic: '74LS10',
+    kind: 'gate',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-14',
+    inputs: ['A', 'B', 'C'],
+    outputs: ['Y'],
+    width: 100,
+    height: 72,
+    pinYInputs: [16, 36, 56],
+    pinYOutputs: [36],
+    formula: "Y = (A · B · C)'",
+    desc: 'Salida en 0 únicamente cuando las 3 entradas son 1 (TTL 74LS10).',
+    evaluate: (inVals) => [(inVals[0] & inVals[1] & inVals[2]) ? 0 : 1]
+  },
   NAND4: {
     name: 'Compuerta NAND 4-In',
     sub: 'Dual NAND de 4 entradas',
@@ -582,6 +600,7 @@ window.getCatalogIconSvg = function (type) {
         <line x1="29" y1="12" x2="36" y2="12" stroke="${stroke}" stroke-width="1.8"/>
       </svg>`;
     case 'NAND':
+    case 'NAND3':
     case 'NAND4':
     case 'NAND8':
       return `<svg width="36" height="24" viewBox="0 0 38 24">
@@ -687,7 +706,7 @@ window.renderSchematicNodeSvg = function (node, inVals, outVals) {
       `;
     }
 
-    if (node.type === 'NAND' || node.type === 'NAND4') {
+    if (node.type === 'NAND' || node.type === 'NAND3' || node.type === 'NAND4') {
       const leadEndX = 20;
       const bodyRightStraight = 48;
       const r = (h - 12) / 2;
