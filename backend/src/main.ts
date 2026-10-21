@@ -15,14 +15,23 @@ async function bootstrap() {
 
 // Soporte para Serverless en Vercel y ejecución local
 export default async function handler(req: any, res: any) {
-  if (!cachedApp) {
-    const app = await NestFactory.create(AppModule);
-    app.enableCors();
-    app.setGlobalPrefix('api');
-    await app.init();
-    cachedApp = app.getHttpAdapter().getInstance();
+  try {
+    if (!cachedApp) {
+      const app = await NestFactory.create(AppModule);
+      app.enableCors();
+      app.setGlobalPrefix('api');
+      await app.init();
+      cachedApp = app.getHttpAdapter().getInstance();
+    }
+    return cachedApp(req, res);
+  } catch (err: any) {
+    console.error('Error inicializando NestJS en Vercel Serverless:', err);
+    return res.status(500).json({
+      statusCode: 500,
+      message: 'Error al inicializar el backend en Vercel',
+      error: err?.message || String(err),
+    });
   }
-  return cachedApp(req, res);
 }
 
 if (!process.env.VERCEL) {

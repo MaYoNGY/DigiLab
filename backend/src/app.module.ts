@@ -45,16 +45,24 @@ const dbImports = isVercelWithoutCloudDb
       }),
     ];
 
+// En Vercel Serverless, los archivos estáticos los sirve directamente Vercel mediante vercel.json.
+// Solo montar ServeStaticModule en local para evitar errores ENOENT en la lambda de Vercel.
+const staticImports = process.env.VERCEL
+  ? []
+  : [
+      ServeStaticModule.forRoot({
+        rootPath: join(__dirname, '..', '..', 'frontend'),
+        exclude: ['/api/(.*)'],
+      }),
+    ];
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: [join(__dirname, '..', '.env'), '.env'],
     }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', '..', 'frontend'),
-      exclude: ['/api/(.*)'],
-    }),
+    ...staticImports,
     ...dbImports,
     AuthModule,
     SimulatorModule,
