@@ -2554,9 +2554,8 @@ class DigitalSimulator {
       });
     });
 
-    document.getElementById('btnToggleDockSize').addEventListener('click', () => {
-      document.getElementById('bottomDock').classList.toggle('collapsed');
-    });
+    // Inicializar barra interactiva de redimensión para alzar o bajar la tabla de verdad libremente
+    this.initDockResizer();
 
     // Sub-barra flotante sobre el lienzo (Todos los botones auditados)
     document.getElementById('subtoolSelectMode').addEventListener('click', () => this.setInteractionMode('select'));
@@ -2748,6 +2747,110 @@ class DigitalSimulator {
       };
       reader.readAsText(file);
     });
+  }
+
+  // =========================================================================
+  // CONTROLADOR DE REDIMENSIÓN VERTICAL DEL PANEL INFERIOR (ALZAR O BAJAR LIBREMENTE)
+  // =========================================================================
+  initDockResizer() {
+    const handle = document.getElementById('dockResizeHandle');
+    const dock = document.getElementById('bottomDock');
+    const btnMax = document.getElementById('btnMaximizeDock');
+    const btnToggle = document.getElementById('btnToggleDockSize');
+    if (!handle || !dock) return;
+
+    // Restaurar altura preferida del usuario guardada en este navegador
+    const savedHeight = localStorage.getItem('digilab_dock_height');
+    if (savedHeight && !isNaN(Number(savedHeight))) {
+      const h = Math.min(window.innerHeight * 0.85, Math.max(130, Number(savedHeight)));
+      dock.style.height = `${h}px`;
+    }
+
+    let isResizing = false;
+    let startY = 0;
+    let startH = 0;
+
+    handle.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      isResizing = true;
+      startY = e.clientY;
+      startH = dock.getBoundingClientRect().height;
+      dock.classList.remove('collapsed');
+      dock.style.transition = 'none';
+      handle.classList.add('resizing');
+      document.body.style.cursor = 'row-resize';
+      document.body.style.userSelect = 'none';
+    });
+
+    handle.addEventListener('touchstart', (e) => {
+      if (!e.touches || !e.touches[0]) return;
+      isResizing = true;
+      startY = e.touches[0].clientY;
+      startH = dock.getBoundingClientRect().height;
+      dock.classList.remove('collapsed');
+      dock.style.transition = 'none';
+      handle.classList.add('resizing');
+    }, { passive: true });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      const dy = e.clientY - startY;
+      const newH = Math.min(window.innerHeight * 0.85, Math.max(130, startH - dy));
+      dock.style.height = `${newH}px`;
+    });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!isResizing || !e.touches || !e.touches[0]) return;
+      const dy = e.touches[0].clientY - startY;
+      const newH = Math.min(window.innerHeight * 0.85, Math.max(130, startH - dy));
+      dock.style.height = `${newH}px`;
+    }, { passive: true });
+
+    const stopResizing = () => {
+      if (!isResizing) return;
+      isResizing = false;
+      dock.style.transition = '';
+      handle.classList.remove('resizing');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      const finalH = dock.getBoundingClientRect().height;
+      if (finalH > 100) {
+        localStorage.setItem('digilab_dock_height', String(Math.round(finalH)));
+      }
+    };
+
+    window.addEventListener('mouseup', stopResizing);
+    window.addEventListener('touchend', stopResizing);
+
+    // Doble clic sobre la barrita de redimensión: alternar altura rápida (240px <-> 480px)
+    handle.addEventListener('dblclick', () => {
+      dock.classList.remove('collapsed');
+      const currentH = dock.getBoundingClientRect().height;
+      const targetH = currentH > 320 ? 240 : 480;
+      dock.style.height = `${targetH}px`;
+      localStorage.setItem('digilab_dock_height', String(targetH));
+      if (btnMax) btnMax.innerHTML = targetH > 320 ? '⤡' : '⤢';
+      this.showToast(`📏 Altura de panel ajustada a ${targetH}px.`);
+    });
+
+    if (btnMax) {
+      btnMax.addEventListener('click', () => {
+        dock.classList.remove('collapsed');
+        const currentH = dock.getBoundingClientRect().height;
+        const targetH = currentH > 340 ? 240 : 490;
+        dock.style.height = `${targetH}px`;
+        localStorage.setItem('digilab_dock_height', String(targetH));
+        btnMax.innerHTML = targetH > 340 ? '⤡' : '⤢';
+        this.showToast(targetH > 340 ? '⤢ Vista de tabla ampliada' : '⤡ Vista estándar restaurada');
+      });
+    }
+
+    if (btnToggle) {
+      btnToggle.addEventListener('click', () => {
+        const isCollapsed = dock.classList.toggle('collapsed');
+        btnToggle.textContent = isCollapsed ? '▴' : '▾';
+      });
+    }
   }
 }
 

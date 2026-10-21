@@ -612,6 +612,10 @@
 
         <!-- PANEL INFERIOR ACOPLADO: TABLA DE VERDAD, EXPRESIONES SOP, RESULTADOS Y NOTAS -->
         <div id="bottomDock" class="bottom-dock">
+          <!-- Agarradera interactiva para subir o bajar la altura arrastrando libremente -->
+          <div id="dockResizeHandle" class="dock-resize-handle" title="Arrastra hacia arriba o hacia abajo para alzar o bajar la tabla (Doble clic para alternar altura rápida)">
+            <div class="dock-resize-pill"></div>
+          </div>
           <div class="dock-tabs-bar">
             <div class="dock-tabs-left">
               <button class="dock-tab active" data-docktab="dockTruthAndSop">
@@ -629,6 +633,7 @@
             </div>
             <div class="dock-actions-right">
               <button id="btnRefreshTruth" class="btn-xs-rose">🔄 Recalcular Tabla</button>
+              <button id="btnMaximizeDock" class="btn-icon-only" title="Alzar a pantalla amplia / Restaurar">⤢</button>
               <button id="btnToggleDockSize" class="btn-icon-only" title="Minimizar/Expandir panel inferior">▾</button>
             </div>
           </div>
@@ -784,6 +789,6 @@
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
   <script src="./js/components.js"></script>
   <script src="./js/presets.js"></script>
-  <script src="./js/simulator.js?v=4.1.0"></script>
+  <script src="./js/simulator.js?v=4.2.0"></script>
 </body>
 </html>
