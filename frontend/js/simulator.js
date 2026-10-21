@@ -611,8 +611,15 @@ class DigitalSimulator {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
-        const data = await res.json();
+        let data = null;
+        try {
+          data = await res.json();
+        } catch {}
+
         if (!res.ok) {
+          if (res.status === 404 || !data) {
+            throw new Error('El backend NestJS no está activo en esta URL (/api). Si subiste solo el Frontend, usa el botón "Explorar Simulador" o despliega el Backend.');
+          }
           throw new Error(data.message || 'Usuario o contraseña incorrectos.');
         }
         await this.onAuthSuccess(data.token, data.user);
@@ -647,8 +654,15 @@ class DigitalSimulator {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, username, password })
         });
-        const data = await res.json();
+        let data = null;
+        try {
+          data = await res.json();
+        } catch {}
+
         if (!res.ok) {
+          if (res.status === 404 || !data) {
+            throw new Error('El backend NestJS no está activo en esta URL (/api). Si subiste solo el Frontend, usa el botón "Explorar Simulador" o despliega el Backend.');
+          }
           throw new Error(data.message || 'Ese nombre de usuario ya está ocupado.');
         }
         await this.onAuthSuccess(data.token, data.user);
