@@ -302,18 +302,41 @@ html.in-workspace-mode #simulatorView {
 .hero-actions {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 16px;
   margin-top: 4px;
   flex-wrap: wrap;
+}
+
+.hero-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #ffffff;
+  border: 1.5px solid #fbcfe8;
+  color: #9d174d;
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 11px 20px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+
+.hero-secondary-btn:hover {
+  background: #fdf2f8;
+  border-color: #f472b6;
+  color: #831843;
+  transform: translateY(-1px);
 }
 
 .hero-underline-link {
   color: var(--text-dark);
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   text-decoration: none;
-  border-bottom: 2.5px solid var(--rose-primary);
-  padding-bottom: 3px;
+  border-bottom: 2px solid var(--rose-primary);
+  padding-bottom: 2px;
 }
 .hero-underline-link:hover {
   color: var(--rose-primary);
@@ -350,30 +373,31 @@ html.in-workspace-mode #simulatorView {
 }
 
 /* =========================================================================
-   COLUMNA DERECHA DE LA LANDING: VENTANA MOCKUP + MONITOR + LOGIN FLOTANTE
+   COLUMNA DERECHA DE LA LANDING: SHOWCASE PANORÁMICO DEL SIMULADOR INTERACTIVO
    ========================================================================= */
 .hero-visual-stage {
   position: relative;
-  min-height: 440px;
+  width: 100%;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
 }
 
 .simulator-preview-window {
-  width: 78%;
+  width: 100%;
   background: #ffffff;
   border: 2px solid #f3d1e4;
   border-radius: 16px;
   box-shadow: 0 24px 55px rgba(131, 24, 67, 0.12);
   overflow: hidden;
+  position: relative;
   z-index: 2;
 }
 
 .preview-topbar {
-  height: 38px;
+  height: 42px;
   background: #fff9fc;
   border-bottom: 1px solid #f3d1e4;
-  padding: 0 12px;
+  padding: 0 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -383,37 +407,73 @@ html.in-workspace-mode #simulatorView {
 .preview-brand {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   color: var(--text-dark);
 }
-.preview-brand span {
+.preview-brand strong span {
   color: var(--rose-bright);
 }
 
-.preview-nav-tabs {
-  display: flex;
-  gap: 14px;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-.preview-nav-tabs .active {
-  color: var(--rose-primary);
-  border-bottom: 2px solid var(--rose-primary);
-  padding-bottom: 8px;
+.preview-tab-pill {
+  background: #fce7f3;
+  border: 1px solid #fbcfe8;
+  color: #9d174d;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
 }
 
-.preview-save-pill {
-  background: var(--rose-primary);
-  color: #fff;
-  padding: 3px 10px;
-  border-radius: 6px;
-  font-weight: 700;
+.preview-status-cluster {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.preview-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
   font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 99px;
+}
+
+.preview-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
+  animation: pulseGlow 1.8s infinite;
+}
+
+.preview-launch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--rose-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.preview-launch-btn:hover {
+  background: var(--rose-deep);
+  transform: translateY(-1px);
 }
 
 .preview-body {
   display: grid;
-  grid-template-columns: 165px 1fr;
+  grid-template-columns: 140px 1fr;
   min-height: 290px;
 }
 
@@ -450,7 +510,7 @@ html.in-workspace-mode #simulatorView {
 
 .preview-gates-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 4px;
 }
 
@@ -468,12 +528,21 @@ html.in-workspace-mode #simulatorView {
   color: var(--text-body);
 }
 
-.preview-collapsed-item {
-  font-size: 0.63rem;
+.preview-chips-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mini-chip-tag {
+  background: #fdf2f8;
+  border: 1px solid #fce7f3;
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 0.62rem;
+  font-family: var(--font-mono);
   font-weight: 700;
-  color: var(--text-muted);
-  padding: 3px 0;
-  border-top: 1px solid #fce7f3;
+  color: var(--text-dark);
 }
 
 .preview-canvas {
@@ -483,21 +552,64 @@ html.in-workspace-mode #simulatorView {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: 6px;
+  overflow: hidden;
 }
 
-/* Tarjeta Flotante Superior Derecha: Simulación en Tiempo Real */
+.preview-interactive-bar {
+  background: #ffffff;
+  border-top: 1px solid #f3d1e4;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preview-hint-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fdf2f8;
+  border: 1px solid #fbcfe8;
+  color: #9d174d;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.hero-formula-live {
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-live-pin {
+  cursor: pointer;
+  transition: transform 0.12s ease;
+  user-select: none;
+}
+.hero-live-pin:hover {
+  filter: brightness(1.05);
+}
+
+/* Tarjeta Flotante: Monitor Lógico en Tiempo Real */
 .floating-realtime-card {
   position: absolute;
-  top: 28px;
-  right: 8px;
-  width: 175px;
-  background: #ffffff;
+  top: 10px;
+  right: 14px;
+  width: 180px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
   border: 1.5px solid #f3d1e4;
   border-radius: 12px;
   padding: 10px 12px;
   box-shadow: 0 12px 28px rgba(131, 24, 67, 0.12);
-  z-index: 4;
+  z-index: 10;
   font-size: 0.7rem;
 }
 
@@ -515,7 +627,7 @@ html.in-workspace-mode #simulatorView {
   width: 22px;
   height: 12px;
   border-radius: 99px;
-  background: var(--rose-primary);
+  background: #10b981;
   position: relative;
 }
 .mini-switch-on::after {
@@ -535,28 +647,26 @@ html.in-workspace-mode #simulatorView {
   justify-content: space-between;
   padding: 3px 6px;
   border-radius: 5px;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
 }
 
 .fr-row.result {
   background: #ecfdf5;
   margin-top: 4px;
 }
-
-.dot-on, .dot-off, .dot-green {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+.fr-row b {
+  font-family: var(--font-mono);
+  font-weight: 800;
 }
-.dot-on { background: var(--rose-bright); }
-.dot-off { background: #cbd5e1; }
-.dot-green { background: #10b981; }
-.val-green { color: #059669; }
+.fr-row.result b {
+  color: #059669;
+}
 
 .handwritten-note {
   position: absolute;
-  bottom: 25px;
-  left: 42%;
+  bottom: 45px;
+  left: 155px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -564,37 +674,34 @@ html.in-workspace-mode #simulatorView {
   font-style: italic;
   font-size: 0.78rem;
   color: var(--text-muted);
-  z-index: 3;
+  z-index: 5;
+  pointer-events: none;
 }
 
-/* Tarjeta Flotante Derecha: Tu Cuenta de Laboratorio */
-.auth-floating-card {
-  position: absolute;
-  top: 145px;
-  right: 0;
-  width: 285px;
+/* Modal de Autenticación de Laboratorio (Login / Registro) */
+.modal-auth-dialog {
+  max-width: 420px;
+  width: 100%;
   background: #ffffff;
-  border: 2px solid #f472b6;
   border-radius: 16px;
-  padding: 18px;
-  box-shadow: 0 22px 50px rgba(131, 24, 67, 0.18);
-  z-index: 6;
+  border: 1.5px solid #fbcfe8;
+  box-shadow: 0 24px 60px rgba(131, 24, 67, 0.22);
+  overflow: hidden;
 }
 
-.auth-cap-icon {
-  margin-bottom: 4px;
+.auth-cap-icon-modal {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fdf2f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.auth-floating-card h3 {
-  font-family: var(--font-serif);
-  font-size: 1.05rem;
-  color: var(--text-dark);
-}
-
-.auth-sub {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  margin-bottom: 12px;
+.auth-modal-body {
+  padding: 18px 22px 22px;
 }
 
 .auth-alert {
@@ -3073,21 +3180,33 @@ html.in-workspace-mode #simulatorView {
 
 .toast-notification {
   position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--berry-dark);
+  top: 24px;
+  right: 24px;
+  z-index: 1200;
+  background: rgba(43, 14, 28, 0.95);
+  backdrop-filter: blur(8px);
   border: 1.5px solid #f472b6;
   color: #ffffff;
   padding: 10px 20px;
   border-radius: 99px;
   font-size: 0.82rem;
   font-weight: 700;
-  box-shadow: 0 12px 28px rgba(131, 24, 67, 0.35);
-  z-index: 200;
+  box-shadow: 0 14px 32px rgba(131, 24, 67, 0.35), 0 0 15px rgba(219, 39, 119, 0.2);
   display: flex;
   align-items: center;
   gap: 12px;
+  animation: toastSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes toastSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .toast-undo-btn {
@@ -3101,6 +3220,7 @@ html.in-workspace-mode #simulatorView {
   cursor: pointer;
   font-family: var(--font-sans);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: background 0.15s;
 }
 .toast-undo-btn:hover {
   background: #db2777;
@@ -3290,21 +3410,13 @@ kbd {
 @media (max-width: 1160px) {
   .landing-hero {
     grid-template-columns: 1fr;
+    gap: 28px;
   }
   .hero-visual-stage {
-    flex-direction: column;
-    gap: 20px;
     min-height: auto;
   }
   .simulator-preview-window {
     width: 100%;
-  }
-  .auth-floating-card {
-    position: relative;
-    top: 0;
-    width: 100%;
-    max-width: 420px;
-    margin: 0 auto;
   }
   .floating-realtime-card, .handwritten-note {
     display: none;

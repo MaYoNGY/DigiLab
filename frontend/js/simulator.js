@@ -111,6 +111,9 @@ class DigitalSimulator {
       await this.verifySavedSession();
     }
 
+    // Inicializar demostrador interactivo en vivo en la landing page
+    this.initHeroInteractiveDemo();
+
     this.renderMathInElementSafe(document.body);
   }
 
@@ -704,12 +707,31 @@ class DigitalSimulator {
       }
     });
 
+    // Botones para abrir el modal de inicio de sesión / registro desde la landing
+    const openAuthModal = () => {
+      document.getElementById('modalAuthLanding')?.classList.remove('hidden');
+    };
+    document.getElementById('btnLandingOpenLogin')?.addEventListener('click', openAuthModal);
+    document.getElementById('btnHeroOpenLogin')?.addEventListener('click', openAuthModal);
+
+    // Botones para entrar al simulador desde la landing page
     document.getElementById('btnGuestEnterNav')?.addEventListener('click', () => {
       this.enterSimulatorWorkspace(true);
     });
 
     document.getElementById('btnGuestEnterHero')?.addEventListener('click', () => {
       this.enterSimulatorWorkspace(true);
+    });
+
+    document.getElementById('btnPreviewOpenWorkspace')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.enterSimulatorWorkspace(true);
+    });
+
+    document.getElementById('simulatorPreviewWindow')?.addEventListener('click', (e) => {
+      if (!e.target.closest('.hero-live-pin') && !e.target.closest('button')) {
+        this.enterSimulatorWorkspace(true);
+      }
     });
 
     document.getElementById('btnLandingHelp')?.addEventListener('click', () => {
@@ -750,6 +772,100 @@ class DigitalSimulator {
     });
   }
 
+  // =========================================================================
+  // DEMOSTRADOR INTERACTIVO EN VIVO EN LA LANDING PAGE (SUMADOR COMPLETO IEEE)
+  // =========================================================================
+  initHeroInteractiveDemo() {
+    const state = { A: 1, B: 0, Cin: 1 };
+
+    const updateHeroCircuit = () => {
+      const s1 = state.A ^ state.B;
+      const S = s1 ^ state.Cin;
+      const c1 = state.A & state.B;
+      const c2 = s1 & state.Cin;
+      const Cout = c1 | c2;
+
+      // Actualizar terminales de entrada interactivos A, B, Cin
+      ['A', 'B', 'Cin'].forEach((pin) => {
+        const val = state[pin];
+        const badge = document.getElementById(`heroPinBadge${pin}`);
+        const text = document.getElementById(`heroPinVal${pin}`);
+        if (badge) badge.setAttribute('fill', val ? '#10b981' : '#64748b');
+        if (text) text.textContent = String(val);
+
+        document.querySelectorAll(`.hero-wire-${pin.toLowerCase()}`).forEach((w) => {
+          w.setAttribute('stroke', val ? '#10b981' : '#475569');
+          w.setAttribute('stroke-width', val ? '2.8' : '2.2');
+        });
+      });
+
+      // Actualizar señales intermedias
+      document.querySelectorAll('.hero-wire-s1').forEach((w) => {
+        w.setAttribute('stroke', s1 ? '#10b981' : '#475569');
+      });
+      document.querySelectorAll('.hero-wire-c1').forEach((w) => {
+        w.setAttribute('stroke', c1 ? '#10b981' : '#475569');
+      });
+      document.querySelectorAll('.hero-wire-c2').forEach((w) => {
+        w.setAttribute('stroke', c2 ? '#10b981' : '#475569');
+      });
+
+      // Actualizar señales y LEDs de salida S y Cout
+      document.querySelectorAll('.hero-wire-s').forEach((w) => {
+        w.setAttribute('stroke', S ? '#10b981' : '#475569');
+        w.setAttribute('stroke-width', S ? '3' : '2.2');
+      });
+      document.querySelectorAll('.hero-wire-cout').forEach((w) => {
+        w.setAttribute('stroke', Cout ? '#10b981' : '#475569');
+        w.setAttribute('stroke-width', Cout ? '3' : '2.2');
+      });
+
+      const ledS = document.getElementById('heroLedS');
+      const ledCout = document.getElementById('heroLedCout');
+      if (ledS) {
+        ledS.setAttribute('fill', S ? '#10b981' : '#cbd5e1');
+        ledS.setAttribute('stroke', S ? '#059669' : '#94a3b8');
+        ledS.style.filter = S ? 'drop-shadow(0 0 6px rgba(16, 185, 129, 0.75))' : 'none';
+      }
+      if (ledCout) {
+        ledCout.setAttribute('fill', Cout ? '#10b981' : '#cbd5e1');
+        ledCout.setAttribute('stroke', Cout ? '#059669' : '#94a3b8');
+        ledCout.style.filter = Cout ? 'drop-shadow(0 0 6px rgba(16, 185, 129, 0.75))' : 'none';
+      }
+
+      // Actualizar monitor flotante
+      const liveRowA = document.getElementById('frValA');
+      const liveRowB = document.getElementById('frValB');
+      const liveRowC = document.getElementById('frValCin');
+      const liveRowS = document.getElementById('frValS');
+      const liveRowCout = document.getElementById('frValCout');
+      if (liveRowA) liveRowA.textContent = state.A;
+      if (liveRowB) liveRowB.textContent = state.B;
+      if (liveRowC) liveRowC.textContent = state.Cin;
+      if (liveRowS) liveRowS.textContent = S;
+      if (liveRowCout) liveRowCout.textContent = Cout;
+
+      // Actualizar barra de ecuaciones en tiempo real
+      const formulaText = document.getElementById('heroLiveFormulaState');
+      if (formulaText) {
+        formulaText.innerHTML = `A=<b>${state.A}</b>, B=<b>${state.B}</b>, C<sub>in</sub>=<b>${state.Cin}</b> ➔ S=<b>${S}</b>, C<sub>out</sub>=<b>${Cout}</b>`;
+      }
+    };
+
+    ['A', 'B', 'Cin'].forEach((pin) => {
+      const el = document.getElementById(`heroInput${pin}`);
+      if (el) {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          state[pin] = state[pin] === 1 ? 0 : 1;
+          updateHeroCircuit();
+        });
+      }
+    });
+
+    updateHeroCircuit();
+  }
+
   async verifySavedSession() {
     try {
       const res = await fetch('/api/auth/me', {
@@ -771,6 +887,7 @@ class DigitalSimulator {
     this.currentUser = user;
     localStorage.setItem('digilab_token', token);
     sessionStorage.setItem('digilab_workspace_active', '1');
+    document.getElementById('modalAuthLanding')?.classList.add('hidden');
     this.updateUserHeaderUI();
     await this.fetchUserCircuits();
 
