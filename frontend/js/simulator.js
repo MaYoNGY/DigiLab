@@ -56,13 +56,10 @@ class DigitalSimulator {
     // Catálogo y Plantillas Base
     this.catalog = window.FALLBACK_CATALOG;
     this.presets = window.FALLBACK_PRESETS;
-    try {
-      this.collapsedCategories = new Set(
-        JSON.parse(localStorage.getItem('digilab_collapsed_cats') || '[]')
-      );
-    } catch (e) {
-      this.collapsedCategories = new Set();
-    }
+    // Por defecto, TODAS las viñetas de componentes inician CERRADAS para que el usuario no tenga que hacer scroll
+    this.collapsedCategories = new Set(
+      (this.catalog?.categories || []).map((c) => c.id)
+    );
     this.searchHighlightedIndex = -1;
 
     // Referencias DOM
@@ -243,6 +240,7 @@ class DigitalSimulator {
     this.simulatorView.classList.add('hidden');
     this.landingView.classList.remove('hidden');
     this.updateUserHeaderUI();
+    this.resetCategoriesToCollapsed();
     this.renderTabsBar();
     this.renderAll();
     this.renderUserCanvasesLists();
@@ -461,6 +459,7 @@ class DigitalSimulator {
     this.renderAll();
     this.generateTruthTable();
     this.updateInspector();
+    this.resetCategoriesToCollapsed();
     this.renderUserCanvasesLists();
     this.persistWorkspaceTabsToSession();
   }
@@ -788,6 +787,7 @@ class DigitalSimulator {
 
     this.renderTabsBar();
     this.renderAll();
+    this.resetCategoriesToCollapsed();
     this.enterSimulatorWorkspace(true);
 
     if (showWelcomeToast) {
@@ -831,6 +831,7 @@ class DigitalSimulator {
     this.renderAll();
     this.generateTruthTable();
     this.updateInspector();
+    this.resetCategoriesToCollapsed();
   }
 
   // =========================================================================
@@ -1240,7 +1241,7 @@ class DigitalSimulator {
 
       await this.fetchUserCircuits();
       if (!silent) {
-        this.showToast(`💾 Lienzo "${title}" guardado en PostgreSQL.`);
+        this.showToast(`💾 Lienzo "${title}" guardado en tu cuenta.`);
       }
     } catch {
       this.showToast('No se pudo guardar en el servidor.');
@@ -1291,7 +1292,7 @@ class DigitalSimulator {
           });
           if (res.ok) {
             await this.fetchUserCircuits();
-            this.showToast(`✅ Lienzo "${backup.title}" restaurado en PostgreSQL.`);
+            this.showToast(`✅ Lienzo "${backup.title}" restaurado en tu cuenta.`);
           }
         } catch {
           this.showToast('No se pudo restaurar el lienzo.');
@@ -1321,6 +1322,18 @@ class DigitalSimulator {
     a.download = `${title.toLowerCase().replace(/[^a-z0-9-_]+/g, '-')}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  collapseAllCategories() {
+    this.collapsedCategories = new Set(
+      (this.catalog?.categories || []).map((c) => c.id)
+    );
+  }
+
+  resetCategoriesToCollapsed() {
+    this.collapseAllCategories();
+    const searchInput = document.getElementById('searchComponent');
+    this.renderCatalog(searchInput ? searchInput.value : '');
   }
 
   // =========================================================================
@@ -1371,9 +1384,6 @@ class DigitalSimulator {
         } else {
           this.collapsedCategories.add(cat.id);
         }
-        try {
-          localStorage.setItem('digilab_collapsed_cats', JSON.stringify([...this.collapsedCategories]));
-        } catch (e) {}
         this.renderCatalog(filterText);
       });
 
@@ -1631,10 +1641,6 @@ class DigitalSimulator {
           if (iconSpan) iconSpan.textContent = '▸';
           if (textSpan) textSpan.textContent = 'Expandir todo';
         }
-
-        try {
-          localStorage.setItem('digilab_collapsed_cats', JSON.stringify([...this.collapsedCategories]));
-        } catch (e) {}
 
         this.renderCatalog(searchInput.value);
       });
@@ -2959,7 +2965,14 @@ class DigitalSimulator {
       this.showToast('Tabla de verdad actualizada.');
     });
 
-    // Modales
+    // Modales y Guía de Ayuda
+    const openHelpModal = () => {
+      document.getElementById('modalHelp')?.classList.remove('hidden');
+    };
+    document.getElementById('btnHeaderHelp')?.addEventListener('click', openHelpModal);
+    document.getElementById('btnToolbarHelp')?.addEventListener('click', openHelpModal);
+    document.getElementById('btnLandingHelp')?.addEventListener('click', openHelpModal);
+
     document.getElementById('btnSynthesis').addEventListener('click', () => {
       document.getElementById('modalSynthesis').classList.remove('hidden');
     });

@@ -53,7 +53,7 @@
       <div class="nav-links">
         <a href="#featuresSection">Módulos</a>
         <a href="#chipsSection">Familia 74LS</a>
-        <a href="#featuresSection">Recursos</a>
+        <button id="btnLandingHelp" class="btn btn-outline-soft" style="padding:6px 14px;">¿Cómo funciona?</button>
         <button id="btnGuestEnterNav" class="btn btn-rose-solid">Explorar Simulador →</button>
       </div>
     </nav>
@@ -63,7 +63,7 @@
       <div class="hero-content">
         <div class="hero-pill">
           <span class="pulse-dot"></span>
-          <span>Simulación en tiempo real · PostgreSQL Cloud</span>
+          <span>Simulación en tiempo real · Espacio de trabajo personal</span>
         </div>
 
         <h1 class="hero-serif-title">
@@ -230,7 +230,7 @@
             </svg>
           </div>
           <h3>Tu Cuenta de Laboratorio</h3>
-          <p class="auth-sub">Accede a tus lienzos guardados en PostgreSQL.</p>
+          <p class="auth-sub">Accede a tus lienzos y circuitos guardados en tu cuenta personal.</p>
 
           <div id="authAlert" class="auth-alert hidden"></div>
 
@@ -278,7 +278,7 @@
 
           <div class="auth-cloud-note">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
-            <span>Validación de usuario único y sincronización automática en PostgreSQL.</span>
+            <span>Validación de usuario único y sincronización en la nube.</span>
           </div>
         </div>
 
@@ -288,7 +288,7 @@
     <!-- Sección Inferior de Funcionalidades -->
     <section id="featuresSection" class="landing-bottom-features">
       <div class="features-intro-col">
-        <span class="features-kicker">/ FUNCIONALIDADES</span>
+        <span class="features-kicker">FUNCIONALIDADES</span>
         <h3>Todo lo que necesitas para experimentar, aprender y crear.</h3>
         <p>Un laboratorio digital completo, intuitivo y diseñado para estudiantes, docentes y entusiastas de la electrónica digital.</p>
       </div>
@@ -325,7 +325,7 @@
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
         </div>
         <h4>Tus Diseños Siempre a Mano</h4>
-        <p>Guarda, organiza en pestañas y exporta tus circuitos en formato JSON o en tu cuenta PostgreSQL.</p>
+        <p>Guarda, organiza en pestañas y exporta tus circuitos en formato JSON o en tu cuenta personal.</p>
         <span class="fbox-arrow">→</span>
       </div>
     </section>
@@ -420,7 +420,10 @@
             </div>
           </div>
 
-          <button class="menu-link" id="menuVerGuiaBtn">Guía Teórica</button>
+          <button class="menu-link btn-menu-help" id="btnHeaderHelp" title="Ver guía de uso y tutorial interactivo">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:4px;"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span>Ayuda</span>
+          </button>
         </nav>
       </div>
 
@@ -459,7 +462,7 @@
           <span>Nuevo</span>
         </button>
 
-        <button id="btnSaveCloud" class="tool-action-btn primary-rose" title="Guardar lienzo actual en tu cuenta PostgreSQL">
+        <button id="btnSaveCloud" class="tool-action-btn primary-rose" title="Guardar lienzo actual en tu cuenta personal">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           <span>Guardar</span>
         </button>
@@ -513,7 +516,13 @@
         </button>
 
         <button id="btnICPinout" class="tool-action-btn" title="Ver encapsulados DIP de la serie 74LS">
-          <span>🔲 Pines 74LS</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="8" y1="2" x2="8" y2="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="16" y1="2" x2="16" y2="4"/><line x1="8" y1="20" x2="8" y2="22"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="16" y1="20" x2="16" y2="22"/></svg>
+          <span>Pines 74LS</span>
+        </button>
+
+        <button id="btnToolbarHelp" class="tool-action-btn primary-soft" title="Guía de uso y tutorial interactivo">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Ayuda</span>
         </button>
 
         <button id="btnClearCanvas" class="tool-action-btn danger-soft" title="Vaciar los componentes del lienzo actual (puedes deshacer con Ctrl+Z)">
@@ -522,10 +531,23 @@
         </button>
 
         <div class="zoom-controls-group">
-          <button id="btnZoomOut" class="btn-icon-only" title="Alejar">－</button>
+          <button id="btnZoomOut" class="btn-icon-only" title="Alejar (Zoom Out)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
           <span id="zoomLabel" class="zoom-badge">100%</span>
-          <button id="btnZoomIn" class="btn-icon-only" title="Acercar">＋</button>
-          <button id="btnResetView" class="btn-icon-only" title="Centrar vista">🎯</button>
+          <button id="btnZoomIn" class="btn-icon-only" title="Acercar (Zoom In)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button id="btnResetView" class="btn-icon-only" title="Restablecer vista (100% y centrar)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <line x1="12" y1="3" x2="12" y2="7"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+              <line x1="3" y1="12" x2="7" y2="12"/>
+              <line x1="17" y1="12" x2="21" y2="12"/>
+              <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -641,8 +663,21 @@
               </button>
             </div>
             <div class="dock-actions-right">
-              <button id="btnRefreshTruth" class="btn-xs-rose">🔄 Recalcular Tabla</button>
-              <button id="btnMaximizeDock" class="btn-icon-only" title="Alzar a pantalla amplia / Restaurar">⤢</button>
+              <button id="btnRefreshTruth" class="btn-xs-rose" title="Recalcular tabla de verdad con el estado actual">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;">
+                  <path d="M21.5 2v6h-6"/>
+                  <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                </svg>
+                <span>Recalcular Tabla</span>
+              </button>
+              <button id="btnMaximizeDock" class="btn-icon-only" title="Alzar a pantalla amplia / Restaurar">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 3 21 3 21 9"/>
+                  <polyline points="9 21 3 21 3 15"/>
+                  <line x1="21" y1="3" x2="14" y2="10"/>
+                  <line x1="3" y1="21" x2="10" y2="14"/>
+                </svg>
+              </button>
               <button id="btnToggleDockSize" class="btn-icon-only" title="Minimizar/Expandir panel inferior">▾</button>
             </div>
           </div>
@@ -790,14 +825,93 @@
     </div>
   </div>
 
+  <!-- MODAL 4: GUÍA Y AYUDA INTERACTIVA (CÓMO FUNCIONA) -->
+  <div id="modalHelp" class="modal-backdrop hidden">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:#fce7f3;color:#db2777;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:900;">💡</div>
+          <div>
+            <h3 style="margin:0;font-size:1.1rem;color:#831843;">Guía de Uso · ¿Cómo funciona DigiLab Studio?</h3>
+            <span style="font-size:0.75rem;color:var(--text-muted);">Aprende a diseñar, conectar y simular circuitos digitales paso a paso</span>
+          </div>
+        </div>
+        <button class="modal-close" data-close="modalHelp">✕</button>
+      </div>
+      <div class="modal-body help-guide-body">
+        <div class="help-cards-grid">
+          
+          <div class="help-step-card">
+            <div class="help-step-badge">1</div>
+            <div class="help-step-content">
+              <h4>Añadir Componentes al Lienzo</h4>
+              <p>Haz clic en cualquier compuerta o CI del <b>catálogo lateral izquierdo</b>. Puedes desplegar cada sección haciendo clic en su título o usar el <b>buscador desplegable</b> escribiendo <code>NAND 3</code>, <code>74LS10</code>, <code>OR 4</code> o <code>Sumador</code> y pulsar <kbd>Enter</kbd>.</p>
+            </div>
+          </div>
+
+          <div class="help-step-card">
+            <div class="help-step-badge">2</div>
+            <div class="help-step-content">
+              <h4>Conectar Pines y Crear Derivaciones</h4>
+              <p>Haz clic en el <b>pin de salida</b> (lado derecho) de una compuerta y luego en el <b>pin de entrada</b> (lado izquierdo) de otra. Para derivar una misma señal a múltiples entradas, haz clic sobre el <b>punto de unión circular</b> o sobre la línea para sacar una bifurcación en "T".</p>
+            </div>
+          </div>
+
+          <div class="help-step-card">
+            <div class="help-step-badge">3</div>
+            <div class="help-step-content">
+              <h4>Simulación Interactiva en Tiempo Real</h4>
+              <p>Coloca terminales de <b>Entrada Binaria (A, B...)</b> y <b>Salidas LED (S, Y...)</b>. Haz clic directamente sobre cualquier entrada en el lienzo para alternar entre <b>0</b> y <b>1</b>. Los cables activos con nivel alto se iluminarán en <b>verde esmeralda brillante</b>.</p>
+            </div>
+          </div>
+
+          <div class="help-step-card">
+            <div class="help-step-badge">4</div>
+            <div class="help-step-content">
+              <h4>Tabla de Verdad y Expresiones SOP</h4>
+              <p>El panel inferior calcula automáticamente todas las combinaciones ($2^n$) y genera las expresiones algebraicas de minitérminos. <b>Haz clic en cualquier fila de la tabla</b> para inyectar automáticamente esos bits al circuito, o alza la barra inferior arrastrándola para ver más filas.</p>
+            </div>
+          </div>
+
+          <div class="help-step-card">
+            <div class="help-step-badge">5</div>
+            <div class="help-step-content">
+              <h4>Pestañas y Guardado en tu Cuenta</h4>
+              <p>Trabaja con múltiples circuitos independientes abriendo nuevas pestañas con el botón <b>+ Nuevo</b>. Guarda tus circuitos en tu cuenta para retomarlos cuando quieras o descárgalos como archivo <b>JSON</b> para tus informes de laboratorio.</p>
+            </div>
+          </div>
+
+          <div class="help-step-card">
+            <div class="help-step-badge">⌨️</div>
+            <div class="help-step-content">
+              <h4>Atajos de Teclado del Laboratorio</h4>
+              <ul class="help-shortcuts-list">
+                <li><kbd>Ctrl</kbd> + <kbd>Z</kbd> : Deshacer última acción</li>
+                <li><kbd>Ctrl</kbd> + <kbd>Y</kbd> : Rehacer acción</li>
+                <li><kbd>Supr</kbd> / <kbd>Backspace</kbd> : Eliminar elemento seleccionado</li>
+                <li><kbd>R</kbd> : Rotar componente seleccionado 90°</li>
+                <li><kbd>Ctrl</kbd> + <kbd>D</kbd> : Duplicar componente</li>
+                <li><kbd>Espacio</kbd> + Arrastre : Moverte por el lienzo en modo panorámico</li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-rose-solid" data-close="modalHelp">¡Entendido, volver al simulador!</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Notificación Toast Flotante (soporta botones de acción como "↶ Deshacer") -->
   <div id="toastNotification" class="toast-notification hidden"></div>
 
   <!-- Librería KaTeX para renderizar ecuaciones algebraicas y expresiones booleanas -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
-  <script src="./js/components.js?v=4.4.0"></script>
-  <script src="./js/presets.js?v=4.4.0"></script>
-  <script src="./js/simulator.js?v=4.4.0"></script>
+  <script src="./js/components.js?v=4.5.0"></script>
+  <script src="./js/presets.js?v=4.5.0"></script>
+  <script src="./js/simulator.js?v=4.5.0"></script>
 </body>
 </html>

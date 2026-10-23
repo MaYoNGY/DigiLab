@@ -2826,6 +2826,121 @@ html.in-workspace-mode #simulatorView {
   border-bottom: 1px dashed #f9ebf3;
 }
 
+/* ESTILOS DEL MODAL DE AYUDA Y GUÍA RÁPIDA */
+.help-guide-body {
+  max-height: 68vh;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+
+.help-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.help-step-card {
+  background: #ffffff;
+  border: 1px solid #fce7f3;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  transition: all 0.16s ease;
+  box-shadow: 0 2px 6px rgba(157, 23, 77, 0.04);
+}
+
+.help-step-card:hover {
+  border-color: #f472b6;
+  background: #fffbfe;
+  box-shadow: 0 6px 16px rgba(219, 39, 119, 0.08);
+  transform: translateY(-1px);
+}
+
+.help-step-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: #fce7f3;
+  color: var(--rose-primary);
+  font-size: 0.88rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid #f9a8d4;
+}
+
+.help-step-content {
+  flex: 1;
+}
+
+.help-step-content h4 {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--rose-deep);
+  margin-bottom: 5px;
+}
+
+.help-step-content p {
+  font-size: 0.76rem;
+  color: #4a1d35;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.help-step-content code {
+  background: #fce7f3;
+  color: var(--rose-deep);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.help-shortcuts-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.help-shortcuts-list li {
+  font-size: 0.74rem;
+  color: #4a1d35;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+kbd {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-bottom: 2px solid #94a3b8;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: #1e293b;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-menu-help {
+  color: var(--rose-primary) !important;
+  font-weight: 700 !important;
+}
+
+.btn-menu-help:hover {
+  background: #fce7f3 !important;
+  color: var(--rose-deep) !important;
+}
+
 /* RESPONSIVE */
 @media (max-width: 1160px) {
   .landing-hero {
@@ -2894,7 +3009,7 @@ html.in-workspace-mode #simulatorView {
 }
 
 @media (max-width: 680px) {
-  .landing-bottom-features, .reference-cards-grid {
+  .landing-bottom-features, .reference-cards-grid, .help-cards-grid {
     grid-template-columns: 1fr;
   }
   .nav-links a {
