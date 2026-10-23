@@ -30,7 +30,12 @@ class DigitalSimulator {
 
     // Estado de Autenticación
     this.authToken = localStorage.getItem('digilab_token') || null;
-    this.currentUser = null;
+    try {
+      const savedUser = localStorage.getItem('digilab_user');
+      this.currentUser = savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      this.currentUser = null;
+    }
     this.userCircuits = [];
 
     // Estado de vista / lienzo
@@ -81,6 +86,9 @@ class DigitalSimulator {
     this.bindEvents();
     this.initSynthesisModal();
     this.initPinoutModal();
+
+    // Actualizar interfaz de usuario (avatar y nombre) de inmediato para evitar parpadeos
+    this.updateUserHeaderUI();
 
     // Verificación inmediata anti-parpadeo sincrónica antes de cualquier petición de red:
     const hasWorkspaceFlag = sessionStorage.getItem('digilab_workspace_active') === '1' ||
@@ -242,6 +250,9 @@ class DigitalSimulator {
     this.selectedNodeId = null;
     try {
       sessionStorage.clear();
+      localStorage.removeItem('digilab_token');
+      localStorage.removeItem('digilab_user');
+      localStorage.removeItem('digilab_workspace_active');
       localStorage.removeItem('digilab_guest_circuits');
     } catch {}
     document.documentElement.classList.remove('in-workspace-mode');
@@ -882,11 +893,39 @@ class DigitalSimulator {
       });
       if (!res.ok) throw new Error('Sesión expirada');
       const user = await res.json();
-      await this.onAuthSuccess(this.authToken, user, false);
+      this.currentUser = user;
+      localStorage.setItem('digilab_user', JSON.stringify(user));
+      this.updateUserHeaderUI();
+      await this.fetchUserCircuits();
+
+      // Si por alguna razón no había pestañas restauradas en la sesión activa, abrir sus circuitos
+      if (this.tabs.length === 0) {
+        if (this.userCircuits.length > 0) {
+          this.userCircuits.forEach((circuit) => {
+            this.openCircuitInNewTab(circuit, false);
+          });
+          if (this.tabs.length > 0) {
+            this.switchToTab(this.tabs[0].tabId, false);
+          }
+        } else {
+          const defaultPreset = this.presets.find((p) => p.id === 'full-adder') || this.presets[0];
+          if (defaultPreset) {
+            this.openCircuitInNewTab(defaultPreset, true);
+          } else {
+            this.createNewBlankTab('Circuito 1');
+          }
+        }
+      }
+      this.renderTabsBar();
+      this.renderAll();
+      this.renderUserCanvasesLists();
     } catch {
       this.authToken = null;
+      this.currentUser = null;
       localStorage.removeItem('digilab_token');
+      localStorage.removeItem('digilab_user');
       sessionStorage.removeItem('digilab_workspace_active');
+      localStorage.removeItem('digilab_workspace_active');
       this.forceLoggedOutLandingState();
     }
   }
@@ -895,7 +934,9 @@ class DigitalSimulator {
     this.authToken = token;
     this.currentUser = user;
     localStorage.setItem('digilab_token', token);
+    localStorage.setItem('digilab_user', JSON.stringify(user));
     sessionStorage.setItem('digilab_workspace_active', '1');
+    localStorage.setItem('digilab_workspace_active', '1');
     document.getElementById('modalAuthLanding')?.classList.add('hidden');
     this.updateUserHeaderUI();
     await this.fetchUserCircuits();
