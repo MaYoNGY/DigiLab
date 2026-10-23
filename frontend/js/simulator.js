@@ -1347,8 +1347,12 @@ class DigitalSimulator {
         </div>
         <div class="canvas-modal-actions">
           <button class="btn btn-rose-solid btn-open-c" style="flex:1;justify-content:center;padding:6px 10px;font-size:0.75rem;">Abrir en Pestaña</button>
-          <button class="btn btn-outline-soft btn-dl-c" style="padding:6px 10px;font-size:0.75rem;" title="Exportar JSON">⬇️</button>
-          <button class="btn btn-outline-soft btn-rm-c" style="padding:6px 10px;font-size:0.75rem;color:var(--danger);" title="Eliminar (con opción Deshacer)">🗑️</button>
+          <button class="btn btn-outline-soft btn-dl-c" style="padding:6px 10px;display:inline-flex;align-items:center;justify-content:center;" title="Exportar JSON (Descargar)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+          <button class="btn btn-outline-soft btn-rm-c" style="padding:6px 10px;color:var(--danger);display:inline-flex;align-items:center;justify-content:center;" title="Eliminar (con opción Deshacer)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
         </div>
       `;
 
@@ -1417,7 +1421,7 @@ class DigitalSimulator {
       this.saveCurrentTabState();
       this.renderUserCanvasesLists();
       if (!silent) {
-        this.showToast(`💾 Lienzo "${title}" guardado en Mis Lienzos.`);
+        this.showToast(`Lienzo "${title}" guardado en Mis Lienzos.`);
       }
       return;
     }
@@ -1441,7 +1445,7 @@ class DigitalSimulator {
 
       await this.fetchUserCircuits();
       if (!silent) {
-        this.showToast(`💾 Lienzo "${title}" guardado en tu cuenta.`);
+        this.showToast(`Lienzo "${title}" guardado en tu cuenta.`);
       }
     } catch {
       this.showToast('No se pudo guardar en el servidor.');
@@ -1449,7 +1453,7 @@ class DigitalSimulator {
   }
 
   /**
-   * Elimina un lienzo de "Mis Lienzos" ofreciendo un botón "↶ Deshacer" por si el usuario se equivocó
+   * Elimina un lienzo de "Mis Lienzos" ofreciendo un botón "Deshacer" por si el usuario se equivocó
    */
   async deleteUserCircuitWithUndo(circuitObj) {
     const backup = JSON.parse(JSON.stringify(circuitObj));
@@ -1473,13 +1477,13 @@ class DigitalSimulator {
     }
     this.renderUserCanvasesLists();
 
-    // Mostrar notificación con botón "↶ Deshacer"
-    this.showToast(`🗑️ Lienzo "${backup.title}" eliminado.`, '↶ Deshacer', async () => {
+    // Mostrar notificación con botón "Deshacer"
+    this.showToast(`Lienzo "${backup.title}" eliminado.`, 'Deshacer', async () => {
       if (!this.authToken) {
         this.userCircuits.unshift(backup);
         localStorage.setItem('digilab_guest_circuits', JSON.stringify(this.userCircuits));
         this.renderUserCanvasesLists();
-        this.showToast(`✅ Lienzo "${backup.title}" restaurado.`);
+        this.showToast(`Lienzo "${backup.title}" restaurado.`);
       } else {
         try {
           const res = await fetch('/api/simulator/circuits', {
@@ -1492,7 +1496,7 @@ class DigitalSimulator {
           });
           if (res.ok) {
             await this.fetchUserCircuits();
-            this.showToast(`✅ Lienzo "${backup.title}" restaurado en tu cuenta.`);
+            this.showToast(`Lienzo "${backup.title}" restaurado en tu cuenta.`);
           }
         } catch {
           this.showToast('No se pudo restaurar el lienzo.');
