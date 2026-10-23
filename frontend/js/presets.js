@@ -42,8 +42,10 @@ window.FALLBACK_CATALOG = {
       id: 'arithmetic',
       name: 'Sumadores y Comparadores',
       items: [
-        { type: 'HALF_ADDER', name: 'Medio Sumador (Half-Adder)', ic: 'HA', desc: 'Suma 2 bits (A, B) -> S y C' },
-        { type: 'FULL_ADDER', name: 'Sumador Completo (Full-Adder)', ic: 'FA', desc: 'Suma A, B y Cin -> S y Cout' },
+        { type: 'BLOCK_MS', name: 'Medio Sumador (M.S.)', ic: 'M.S.', desc: 'Bloque modular 1 bit (A, B -> S, Cout)' },
+        { type: 'BLOCK_SC', name: 'Sumador Completo (S.C.)', ic: 'S.C.', desc: 'Bloque modular 1 bit (A, B, Cin -> S, Cout)' },
+        { type: 'HALF_ADDER', name: 'Medio Sumador IC', ic: 'HA', desc: 'Suma 2 bits (A, B) -> S y C' },
+        { type: 'FULL_ADDER', name: 'Sumador Completo IC', ic: 'FA', desc: 'Suma A, B y Cin -> S y Cout' },
         { type: 'IC_74283', name: 'Sumador 4 bits (74LS283)', ic: '74LS283', desc: 'Sumador binario de 4 bits con acarreo' },
         { type: 'COMP_1BIT', name: 'Comparador 1 bit', ic: 'COMP', desc: 'Compara A y B -> A>B, A=B, A<B' },
         { type: 'IC_7485', name: 'Comparador 4 bits (74LS85)', ic: '74LS85', desc: 'Comparador de magnitud de 4 bits con cascada' }
@@ -75,6 +77,65 @@ window.FALLBACK_CATALOG = {
 };
 
 window.FALLBACK_PRESETS = [
+  {
+    id: 'adder-4bit-modular',
+    title: 'Sumador de 4 bits en Cascada (M.S. + 3 S.C.)',
+    category: 'Sumadores y Comparadores',
+    moduleTag: 'Ripple Carry Adder',
+    description: 'Sumador binario de 4 bits formado por 1 Medio Sumador (M.S.) para el bit 0 y 3 Sumadores Completos (S.C.) para los bits 1 a 3 en cascada de acarreo horizontal.',
+    formulas: [
+      'S = A + B \\pmod{16}',
+      'C_{out} = \\text{Acarreo bit 4}'
+    ],
+    isPreset: true,
+    nodes: [
+      // Entradas Bus A (de bit 3 a bit 0, ordenados de izquierda a derecha sobre cada bloque)
+      { id: 'inA3', type: 'INPUT', label: 'A3', x: 120, y: 50, state: [0] },
+      { id: 'inB3', type: 'INPUT', label: 'B3', x: 210, y: 50, state: [0] },
+      { id: 'inA2', type: 'INPUT', label: 'A2', x: 280, y: 50, state: [1] },
+      { id: 'inB2', type: 'INPUT', label: 'B2', x: 370, y: 50, state: [0] },
+      { id: 'inA1', type: 'INPUT', label: 'A1', x: 440, y: 50, state: [0] },
+      { id: 'inB1', type: 'INPUT', label: 'B1', x: 530, y: 50, state: [1] },
+      { id: 'inA0', type: 'INPUT', label: 'A0', x: 600, y: 50, state: [1] },
+      { id: 'inB0', type: 'INPUT', label: 'B0', x: 690, y: 50, state: [1] },
+
+      // Bloques Modulares (bit 3 a la izquierda hasta bit 0 a la derecha, alineados en Y=170)
+      { id: 'sc3', type: 'BLOCK_SC', label: 'SC3', x: 150, y: 170 },
+      { id: 'sc2', type: 'BLOCK_SC', label: 'SC2', x: 310, y: 170 },
+      { id: 'sc1', type: 'BLOCK_SC', label: 'SC1', x: 470, y: 170 },
+      { id: 'ms0', type: 'BLOCK_MS', label: 'MS0', x: 630, y: 170 },
+
+      // Salidas: Cout a la izquierda y S3..S0 debajo de cada bloque en Y=310
+      { id: 'outCout', type: 'OUTPUT', label: 'Cout', x: 40, y: 310 },
+      { id: 'outS3', type: 'OUTPUT', label: 'S3', x: 165, y: 310 },
+      { id: 'outS2', type: 'OUTPUT', label: 'S2', x: 325, y: 310 },
+      { id: 'outS1', type: 'OUTPUT', label: 'S1', x: 485, y: 310 },
+      { id: 'outS0', type: 'OUTPUT', label: 'S0', x: 645, y: 310 }
+    ],
+    wires: [
+      // Conexiones de Entradas A y B a pines superiores (0 y 1) de cada bloque
+      { id: 'wA3', fromNode: 'inA3', fromPin: 0, toNode: 'sc3', toPin: 0 },
+      { id: 'wB3', fromNode: 'inB3', fromPin: 0, toNode: 'sc3', toPin: 1 },
+      { id: 'wA2', fromNode: 'inA2', fromPin: 0, toNode: 'sc2', toPin: 0 },
+      { id: 'wB2', fromNode: 'inB2', fromPin: 0, toNode: 'sc2', toPin: 1 },
+      { id: 'wA1', fromNode: 'inA1', fromPin: 0, toNode: 'sc1', toPin: 0 },
+      { id: 'wB1', fromNode: 'inB1', fromPin: 0, toNode: 'sc1', toPin: 1 },
+      { id: 'wA0', fromNode: 'inA0', fromPin: 0, toNode: 'ms0', toPin: 0 },
+      { id: 'wB0', fromNode: 'inB0', fromPin: 0, toNode: 'ms0', toPin: 1 },
+
+      // Cascada de Acarreo (Ripple Carry: Cout pin 1 [izquierda] -> Cin pin 2 [derecha])
+      { id: 'wC0', fromNode: 'ms0', fromPin: 1, toNode: 'sc1', toPin: 2 },
+      { id: 'wC1', fromNode: 'sc1', fromPin: 1, toNode: 'sc2', toPin: 2 },
+      { id: 'wC2', fromNode: 'sc2', fromPin: 1, toNode: 'sc3', toPin: 2 },
+      { id: 'wC3', fromNode: 'sc3', fromPin: 1, toNode: 'outCout', toPin: 0 },
+
+      // Salidas de Suma (S pin 0 [inferior] -> Salidas LED outS0..outS3)
+      { id: 'wS0', fromNode: 'ms0', fromPin: 0, toNode: 'outS0', toPin: 0 },
+      { id: 'wS1', fromNode: 'sc1', fromPin: 0, toNode: 'outS1', toPin: 0 },
+      { id: 'wS2', fromNode: 'sc2', fromPin: 0, toNode: 'outS2', toPin: 0 },
+      { id: 'wS3', fromNode: 'sc3', fromPin: 0, toNode: 'outS3', toPin: 0 }
+    ]
+  },
   {
     id: 'full-adder',
     title: 'Sumador Completo (1 bit)',

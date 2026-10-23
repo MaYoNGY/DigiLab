@@ -2099,15 +2099,29 @@ class DigitalSimulator {
 
     const w = def.width;
     const h = def.height;
-    const rawX = isOutput ? w : 0;
-    const rawY = window.getPinOffsetY(node.type, pinIndex, isOutput);
+    let rawX = isOutput ? w : 0;
+    let rawY = window.getPinOffsetY(node.type, pinIndex, isOutput);
+    let defaultOrientation = isOutput ? 'east' : 'west';
+
+    // Soporte para componentes modulares con pines en bordes personalizados (arriba, abajo, izquierda, derecha)
+    if (def.pins) {
+      const pinList = isOutput ? def.pins.outputs : def.pins.inputs;
+      if (pinList && pinList[pinIndex]) {
+        rawX = pinList[pinIndex].x;
+        rawY = pinList[pinIndex].y;
+        defaultOrientation = pinList[pinIndex].orientation ||
+          (pinList[pinIndex].side === 'top' ? 'north' :
+           pinList[pinIndex].side === 'bottom' ? 'south' :
+           pinList[pinIndex].side === 'right' ? 'east' : 'west');
+      }
+    }
 
     const rot = ((node.rotation || 0) % 360 + 360) % 360;
     if (rot === 0) {
       return {
         x: node.x + rawX,
         y: node.y + rawY,
-        orientation: isOutput ? 'east' : 'west'
+        orientation: defaultOrientation
       };
     }
 
@@ -2119,21 +2133,23 @@ class DigitalSimulator {
 
     let rx = dx;
     let ry = dy;
-    let orientation = isOutput ? 'east' : 'west';
 
     if (rot === 90) {
       rx = -dy;
       ry = dx;
-      orientation = isOutput ? 'south' : 'north';
     } else if (rot === 180) {
       rx = -dx;
       ry = -dy;
-      orientation = isOutput ? 'west' : 'east';
     } else if (rot === 270) {
       rx = dy;
       ry = -dx;
-      orientation = isOutput ? 'north' : 'south';
     }
+
+    const dirAngles = { north: 0, east: 90, south: 180, west: 270 };
+    const dirsList = ['north', 'east', 'south', 'west'];
+    const baseAngle = dirAngles[defaultOrientation] !== undefined ? dirAngles[defaultOrientation] : (isOutput ? 90 : 270);
+    const finalAngle = (baseAngle + rot) % 360;
+    const orientation = dirsList[Math.round(finalAngle / 90) % 4];
 
     return {
       x: Math.round(node.x + cx + rx),
@@ -2250,11 +2266,19 @@ class DigitalSimulator {
 
       // Pines de Entrada
       def.inputs.forEach((pinName, idx) => {
-        const offsetY = window.getPinOffsetY(node.type, idx, false);
+        let offsetX = 0;
+        let offsetY = window.getPinOffsetY(node.type, idx, false);
+        let pinSide = 'left';
+        if (def.pins && def.pins.inputs && def.pins.inputs[idx]) {
+          offsetX = def.pins.inputs[idx].x;
+          offsetY = def.pins.inputs[idx].y;
+          pinSide = def.pins.inputs[idx].side || 'top';
+        }
         const pinVal = inVals[idx] === 1;
 
         const pin = document.createElement('div');
-        pin.className = `pin input-pin ${pinVal ? 'high' : ''}`;
+        pin.className = `pin input-pin pin-${pinSide} ${pinVal ? 'high' : ''}`;
+        pin.style.left = `${offsetX - 5}px`;
         pin.style.top = `${offsetY - 5}px`;
         pin.title = `Entrada ${pinName} (${pinVal ? 1 : 0})`;
 
@@ -2272,12 +2296,21 @@ class DigitalSimulator {
 
       // Pines de Salida
       def.outputs.forEach((pinName, idx) => {
-        const offsetY = window.getPinOffsetY(node.type, idx, true);
+        let offsetX = def.width;
+        let offsetY = window.getPinOffsetY(node.type, idx, true);
+        let pinSide = 'right';
+        if (def.pins && def.pins.outputs && def.pins.outputs[idx]) {
+          offsetX = def.pins.outputs[idx].x;
+          offsetY = def.pins.outputs[idx].y;
+          pinSide = def.pins.outputs[idx].side || 'bottom';
+        }
         const pinVal = outVals[idx] === 1;
 
         const pin = document.createElement('div');
-        pin.className = `pin output-pin ${pinVal ? 'high' : ''}`;
+        pin.className = `pin output-pin pin-${pinSide} ${pinVal ? 'high' : ''}`;
+        pin.style.left = `${offsetX - 5}px`;
         pin.style.top = `${offsetY - 5}px`;
+        if (def.pins) pin.style.right = 'auto';
         pin.title = `Salida ${pinName} (${pinVal ? 1 : 0})`;
 
         pin.addEventListener('mousedown', (e) => {
@@ -2429,9 +2462,45 @@ class DigitalSimulator {
 
     const stub = 16;
 
-    // 1. Salida apuntando hacia el SUR (hacia abajo, p.ej. compuerta rotada 90°)
+    // 0. Salida apuntando hacia el OESTE (hacia la izquierda, p.ej. pin Cout de sumador modular)
+    if (startDir === 'west') {
+      if (endDir === 'east') {
+        if (Math.abs(y2 - y1) <= 2 && x1 >= x2) {
+          return { d: `M ${x1} ${y1} L ${x2} ${y2}`, bendX: (x1 + x2) / 2, bendY: y1 };
+        }
+        if (x1 >= x2 + 16) {
+          const midX = Math.round((x1 + x2) / 2);
+          return { d: `M ${x1} ${y1} H ${midX} V ${y2} H ${x2}`, bendX: midX, bendY: y1 };
+        }
+        const pad = 24;
+        const midY = Math.round((y1 + y2) / 2);
+        return { d: `M ${x1} ${y1} H ${x1 - pad} V ${midY} H ${x2 + pad} V ${y2} H ${x2}`, bendX: x1 - pad, bendY: midY };
+      }
+      if (endDir === 'west') {
+        if (Math.abs(y2 - y1) <= 2 && x1 >= x2) {
+          return { d: `M ${x1} ${y1} H ${x2}`, bendX: (x1 + x2) / 2, bendY: y1 };
+        }
+        if (x1 >= x2 + stub) {
+          return { d: `M ${x1} ${y1} H ${x2 - stub} V ${y2} H ${x2}`, bendX: x2 - stub, bendY: y1 };
+        }
+        const midY = Math.round((y1 + y2) / 2);
+        return { d: `M ${x1} ${y1} H ${x1 - stub} V ${midY} H ${x2 - stub} V ${y2} H ${x2}`, bendX: x1 - stub, bendY: midY };
+      }
+      if (endDir === 'north') {
+        if (x1 >= x2 && y2 >= y1) {
+          return { d: `M ${x1} ${y1} H ${x2} V ${y2}`, bendX: x2, bendY: y1 };
+        }
+        return { d: `M ${x1} ${y1} H ${x1 - stub} V ${y2 - stub} H ${x2} V ${y2}`, bendX: x1 - stub, bendY: y2 - stub };
+      }
+      return { d: `M ${x1} ${y1} H ${x2} V ${y2}`, bendX: x2, bendY: y1 };
+    }
+
+    // 1. Salida apuntando hacia el SUR (hacia abajo, p.ej. compuerta rotada 90° o pin S de sumador modular)
     if (startDir === 'south') {
       if (endDir === 'north') {
+        if (Math.abs(x2 - x1) <= 2 && y2 >= y1) {
+          return { d: `M ${x1} ${y1} L ${x2} ${y2}`, bendX: x1, bendY: (y1 + y2) / 2 };
+        }
         if (y2 >= y1 + stub) {
           const midY = Math.round((y1 + y2) / 2);
           return { d: `M ${x1} ${y1} V ${midY} H ${x2} V ${y2}`, bendX: x2, bendY: midY };
@@ -2440,7 +2509,7 @@ class DigitalSimulator {
         return { d: `M ${x1} ${y1} V ${y1 + stub} H ${midX} V ${y2 - stub} H ${x2} V ${y2}`, bendX: x1, bendY: y1 + stub };
       }
       if (endDir === 'west') {
-        if (y2 >= y1 + stub && x2 >= x1) {
+        if (y2 >= y1) {
           return { d: `M ${x1} ${y1} V ${y2} H ${x2}`, bendX: x1, bendY: y2 };
         }
         return { d: `M ${x1} ${y1} V ${y1 + stub} H ${x2 - stub} V ${y2} H ${x2}`, bendX: x1, bendY: y1 + stub };
@@ -2615,14 +2684,19 @@ class DigitalSimulator {
   }
 
   // =========================================================================
-  // TABLA DE VERDAD VERIFICADA Y EXPRESIONES BOOLEANAS (SOP)
+  // TABLA DE VERDAD VERIFICADA (MODO BUSES Y MODO BITS) Y EXPRESIONES BOOLEANAS
   // =========================================================================
   generateTruthTable(forceFullTable = false) {
     const container = document.getElementById('truthTableContainer');
     const exprBox = document.getElementById('booleanExpressionsBox');
     const hintText = document.getElementById('truthTableHintText');
+    const btnBus = document.getElementById('btnTruthViewBus');
+    const btnBits = document.getElementById('btnTruthViewBits');
+    const switchWrap = document.getElementById('truthViewSwitch');
 
-    // Ordenar entradas y salidas de arriba hacia abajo según su posición en el esquema
+    this.truthTableMode = this.truthTableMode || 'bus';
+
+    // Ordenar entradas y salidas de arriba hacia abajo / izquierda a derecha
     const inputNodes = this.nodes
       .filter((n) => n.type === 'INPUT')
       .slice()
@@ -2634,15 +2708,230 @@ class DigitalSimulator {
       .sort((a, b) => a.y - b.y || a.x - b.x);
 
     if (inputNodes.length === 0 || outputNodes.length === 0) {
+      if (switchWrap) switchWrap.style.display = 'none';
       container.innerHTML = `<div style="padding:14px;color:var(--text-muted);font-size:0.76rem;">Añade al menos una <b>Entrada Binaria</b> y una <b>Salida LED</b> para generar la Tabla de Verdad automáticamente.</div>`;
       exprBox.innerHTML = `<div style="color:var(--text-muted);font-size:0.75rem;">Sin salidas conectadas para analizar.</div>`;
       return;
     }
 
+    // Detección inteligente de buses de entrada (A y B)
+    const groupA = inputNodes
+      .filter((n) => /^A\d*$/i.test(n.label))
+      .sort((a, b) => b.label.localeCompare(a.label, undefined, { numeric: true }));
+    const groupB = inputNodes
+      .filter((n) => /^B\d*$/i.test(n.label))
+      .sort((a, b) => b.label.localeCompare(a.label, undefined, { numeric: true }));
+
+    const isBusCompatible = groupA.length > 0 && groupB.length > 0;
+    if (switchWrap) {
+      switchWrap.style.display = isBusCompatible ? 'inline-flex' : 'none';
+    }
+
+    if (btnBus && btnBits) {
+      if (this.truthTableMode === 'bus') {
+        btnBus.classList.add('active');
+        btnBits.classList.remove('active');
+      } else {
+        btnBits.classList.add('active');
+        btnBus.classList.remove('active');
+      }
+    }
+
+    const useBusView = this.truthTableMode === 'bus' && isBusCompatible;
+
+    if (useBusView) {
+      this.generateBusTruthTable(groupA, groupB, inputNodes, outputNodes, forceFullTable);
+    } else {
+      this.generateBitsTruthTable(inputNodes, outputNodes, forceFullTable);
+    }
+  }
+
+  generateBusTruthTable(groupA, groupB, inputNodes, outputNodes, forceFullTable = false) {
+    const container = document.getElementById('truthTableContainer');
+    const exprBox = document.getElementById('booleanExpressionsBox');
+    const hintText = document.getElementById('truthTableHintText');
+
+    // Detección de salidas de suma S (S0..S3 o Σ1..Σ4) y acarreo Cout (Cout, C4, S4)
+    const groupS = outputNodes
+      .filter((n) => /^(S[0-3]|Σ[0-3]|S)$/i.test(n.label) && !/Cout|C4|S4/i.test(n.label))
+      .sort((a, b) => b.label.localeCompare(a.label, undefined, { numeric: true }));
+
+    const nodeCout = outputNodes.find((n) => /^(Cout|C4|S4|C)$/i.test(n.label));
+    const otherOutputs = outputNodes.filter((n) => !groupS.includes(n) && n !== nodeCout);
+
+    // Vectores representativos de laboratorio (coinciden con la tabla de reporte de laboratorio)
+    const canonicalPairs = [
+      [0, 0],   // 1.  0000 + 0000 = 0000, Cout 0
+      [1, 2],   // 2.  0001 + 0010 = 0011, Cout 0
+      [3, 4],   // 3.  0011 + 0100 = 0111, Cout 0
+      [5, 3],   // 4.  0101 + 0011 = 1000, Cout 0
+      [7, 2],   // 5.  0111 + 0010 = 1001, Cout 0
+      [9, 5],   // 6.  1001 + 0101 = 1110, Cout 0
+      [10, 5],  // 7.  1010 + 0101 = 1111, Cout 0
+      [12, 4],  // 8.  1100 + 0100 = 0000, Cout 1
+      [15, 1],  // 9.  1111 + 0001 = 0000, Cout 1
+      [15, 15], // 10. 1111 + 1111 = 1110, Cout 1
+      [2, 6],   // 11. 0010 + 0110 = 1000, Cout 0
+      [4, 4],   // 12. 0100 + 0100 = 1000, Cout 0
+      [6, 7],   // 13. 0110 + 0111 = 1101, Cout 0
+      [8, 8],   // 14. 1000 + 1000 = 0000, Cout 1
+      [11, 7],  // 15. 1011 + 0111 = 0010, Cout 1
+      [13, 9],  // 16. 1101 + 1001 = 0110, Cout 1
+      [14, 8]   // 17. 1110 + 1000 = 0110, Cout 1
+    ];
+
+    // Obtener valores actuales en vivo de las entradas en el lienzo
+    let currValA = 0;
+    groupA.forEach((n) => {
+      const bit = n.state && n.state[0] ? 1 : 0;
+      currValA = (currValA << 1) | bit;
+    });
+
+    let currValB = 0;
+    groupB.forEach((n) => {
+      const bit = n.state && n.state[0] ? 1 : 0;
+      currValB = (currValB << 1) | bit;
+    });
+
+    const pairs = [];
+    const seenPairs = new Set();
+    const addPair = (a, b) => {
+      const k = `${a}_${b}`;
+      if (!seenPairs.has(k)) {
+        seenPairs.add(k);
+        pairs.push([a, b]);
+      }
+    };
+
+    // La combinación actual en el lienzo siempre va incluida (al inicio)
+    addPair(currValA, currValB);
+
+    if (forceFullTable) {
+      const maxA = 1 << groupA.length;
+      const maxB = 1 << groupB.length;
+      for (let a = 0; a < Math.min(maxA, 16); a++) {
+        for (let b = 0; b < Math.min(maxB, 16); b++) {
+          addPair(a, b);
+        }
+      }
+      if (hintText) {
+        hintText.innerHTML = `Tabla de buses exhaustiva (${pairs.length} vectores) · Clic en una fila para inyectarla`;
+      }
+    } else {
+      canonicalPairs.forEach(([a, b]) => addPair(a, b));
+      if (hintText) {
+        hintText.innerHTML = `Mostrando ${pairs.length} vectores clave de laboratorio · <button id="btnExpandFullTruth" class="btn-xs-rose" style="padding:1px 6px;">Ver tabla completa (256 filas)</button>`;
+      }
+    }
+
+    const bitLenA = groupA.length;
+    const bitLenB = groupB.length;
+    const sumColLabel = groupS.length > 0 ? `S (${groupS.length} bits)` : 'Suma';
+
+    let html = `<table class="truth-table"><thead><tr>`;
+    html += `<th style="width:42px;">N.°</th>`;
+    html += `<th>A</th>`;
+    html += `<th>B</th>`;
+    if (groupS.length > 0) {
+      html += `<th class="out-col">${sumColLabel}</th>`;
+    }
+    if (nodeCout) {
+      html += `<th class="out-col">${nodeCout.label}</th>`;
+    }
+    otherOutputs.forEach((out) => {
+      html += `<th class="out-col">${out.label}</th>`;
+    });
+    html += `</tr></thead><tbody>`;
+
+    pairs.forEach(([valA, valB], rowIdx) => {
+      const binA = valA.toString(2).padStart(bitLenA, '0');
+      const binB = valB.toString(2).padStart(bitLenB, '0');
+
+      const overrideMap = {};
+      groupA.forEach((nodeA, bitIdx) => {
+        overrideMap[nodeA.id] = Number(binA[bitIdx]);
+      });
+      groupB.forEach((nodeB, bitIdx) => {
+        overrideMap[nodeB.id] = Number(binB[bitIdx]);
+      });
+
+      const simResult = this.evaluateCircuit(overrideMap);
+
+      let strS = '';
+      if (groupS.length > 0) {
+        strS = groupS.map((out) => (simResult.inputsMap[out.id]?.[0] ? 1 : 0)).join('');
+      }
+
+      const valCout = nodeCout ? (simResult.inputsMap[nodeCout.id]?.[0] ? 1 : 0) : null;
+
+      html += `<tr data-bus-a="${binA}" data-bus-b="${binB}" title="Clic para inyectar A=${binA} (${valA}), B=${binB} (${valB}) en el circuito">`;
+      html += `<td style="color:var(--text-muted);font-weight:600;">${rowIdx + 1}</td>`;
+      html += `<td><span class="bus-val" style="font-family:var(--font-mono);font-weight:700;">${binA}</span></td>`;
+      html += `<td><span class="bus-val" style="font-family:var(--font-mono);font-weight:700;">${binB}</span></td>`;
+      if (groupS.length > 0) {
+        html += `<td class="${strS.includes('1') ? 'val-1' : ''}"><span class="bus-val" style="font-family:var(--font-mono);font-weight:800;">${strS}</span></td>`;
+      }
+      if (nodeCout) {
+        html += `<td class="${valCout === 1 ? 'val-1' : ''}" style="font-family:var(--font-mono);font-weight:800;">${valCout}</td>`;
+      }
+      otherOutputs.forEach((out) => {
+        const val = simResult.inputsMap[out.id]?.[0] ? 1 : 0;
+        html += `<td class="${val === 1 ? 'val-1' : ''}">${val}</td>`;
+      });
+      html += `</tr>`;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+
+    const btnExpand = document.getElementById('btnExpandFullTruth');
+    if (btnExpand) {
+      btnExpand.addEventListener('click', () => this.generateTruthTable(true));
+    }
+
+    // Al hacer clic en cualquier fila, inyectar bits de A y B en los terminales interactivos
+    container.querySelectorAll('tr[data-bus-a]').forEach((tr) => {
+      tr.addEventListener('click', () => {
+        const aBits = tr.dataset.busA.split('').map(Number);
+        const bBits = tr.dataset.busB.split('').map(Number);
+        groupA.forEach((n, idx) => {
+          if (aBits[idx] !== undefined) n.state = [aBits[idx]];
+        });
+        groupB.forEach((n, idx) => {
+          if (bBits[idx] !== undefined) n.state = [bBits[idx]];
+        });
+        this.evaluateCircuit();
+        this.renderAll();
+        this.updateInspector();
+        this.saveCurrentTabState();
+      });
+    });
+
+    // Panel de Expresiones Booleanas / Ecuación del Bus
+    exprBox.innerHTML = '';
+    const item = document.createElement('div');
+    item.className = 'expr-item';
+    const sumDec = currValA + currValB;
+    const moduloVal = 1 << groupA.length;
+    const decLatex = `A = ${currValA} \\quad B = ${currValB} \\implies A + B = ${sumDec}`;
+    const busLatex = `S = (A + B) \\pmod{${moduloVal}} \\qquad C_{out} = \\left\\lfloor \\frac{A + B}{${moduloVal}} \\right\\rfloor`;
+
+    item.innerHTML = `
+      <div class="expr-title" style="margin-bottom:6px;">${this.renderLatexToHtml(busLatex, false)}</div>
+      <div class="expr-sop" style="font-weight:700;color:#059669;">${this.renderLatexToHtml(decLatex, false)}</div>
+    `;
+    exprBox.appendChild(item);
+
+    this.highlightActiveTruthRow();
+  }
+
+  generateBitsTruthTable(inputNodes, outputNodes, forceFullTable = false) {
+    const container = document.getElementById('truthTableContainer');
+    const exprBox = document.getElementById('booleanExpressionsBox');
+    const hintText = document.getElementById('truthTableHintText');
+
     const totalVars = inputNodes.length;
     const isExhaustive = totalVars <= 6 || forceFullTable;
-    const maxVarsForFull = Math.min(totalVars, 8);
-    const totalPossibleRows = 1 << maxVarsForFull;
 
     // Construir lista de vectores de prueba asegurando que TODAS las entradas reciban valor explícito
     const testVectors = [];
@@ -2661,8 +2950,6 @@ class DigitalSimulator {
         hintText.textContent = `Tabla exhaustiva (${testVectors.length} combinaciones) · Haz clic en una fila para probarla`;
       }
     } else {
-      // Para circuitos de 7+ entradas (como Comparador 4-bits 74LS85 con 8 entradas A3..A0, B3..B0)
-      // Incluir la combinación actual en vivo + 32 vectores representativos que evalúan TODAS las columnas
       const currentBits = inputNodes.map((n) => (n.state && n.state[0] ? 1 : 0));
       const seenKeys = new Set();
 
@@ -2677,7 +2964,6 @@ class DigitalSimulator {
 
       addVector(currentBits);
 
-      // Si son 8 entradas (ej. 4 bits A y 4 bits B), probar pares (A, B) representativos donde A<B, A=B y A>B
       const samplePairs = [
         [0, 0], [0, 1], [1, 0], [1, 1],
         [2, 2], [2, 5], [5, 2], [5, 5],
@@ -2809,6 +3095,27 @@ class DigitalSimulator {
       .slice()
       .sort((a, b) => a.y - b.y || a.x - b.x);
     if (inputNodes.length === 0) return;
+
+    const groupA = inputNodes
+      .filter((n) => /^A\d*$/i.test(n.label))
+      .sort((a, b) => b.label.localeCompare(a.label, undefined, { numeric: true }));
+    const groupB = inputNodes
+      .filter((n) => /^B\d*$/i.test(n.label))
+      .sort((a, b) => b.label.localeCompare(a.label, undefined, { numeric: true }));
+
+    if (this.truthTableMode === 'bus' && groupA.length > 0 && groupB.length > 0) {
+      const currA = groupA.map((n) => (n.state && n.state[0] ? 1 : 0)).join('');
+      const currB = groupB.map((n) => (n.state && n.state[0] ? 1 : 0)).join('');
+      const rows = document.querySelectorAll('#truthTableContainer tr[data-bus-a]');
+      rows.forEach((tr) => {
+        if (tr.dataset.busA === currA && tr.dataset.busB === currB) {
+          tr.classList.add('active-row');
+        } else {
+          tr.classList.remove('active-row');
+        }
+      });
+      return;
+    }
 
     const currentKey = inputNodes.map((n) => (n.state && n.state[0] ? 1 : 0)).join('');
     const rows = document.querySelectorAll('#truthTableContainer tr[data-bits]');
@@ -3275,6 +3582,16 @@ class DigitalSimulator {
 
     // Inicializar barra interactiva de redimensión para alzar o bajar la tabla de verdad libremente
     this.initDockResizer();
+
+    // Conmutador de vista de Tabla de Verdad (Modo Buses vs Modo Bits)
+    document.getElementById('btnTruthViewBus')?.addEventListener('click', () => {
+      this.truthTableMode = 'bus';
+      this.generateTruthTable();
+    });
+    document.getElementById('btnTruthViewBits')?.addEventListener('click', () => {
+      this.truthTableMode = 'bits';
+      this.generateTruthTable();
+    });
 
     // Sub-barra flotante sobre el lienzo (Todos los botones auditados)
     document.getElementById('subtoolSelectMode')?.addEventListener('click', () => this.setInteractionMode('select'));

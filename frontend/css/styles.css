@@ -2376,6 +2376,7 @@ html.in-workspace-mode #simulatorView {
 
 .pin.input-pin { left: -5px; }
 .pin.output-pin { right: -5px; }
+.pin.pin-top, .pin.pin-bottom, .pin.pin-left, .pin.pin-right { right: auto; }
 
 /* CABLES ORTOGONALES ESQUEMÁTICOS Y PUNTOS DE UNIÓN */
 .wire-path {
@@ -2602,6 +2603,38 @@ html.in-workspace-mode #simulatorView {
   padding: 2px 7px;
   border-radius: 5px;
   font-weight: 700;
+}
+
+.truth-view-switch {
+  display: inline-flex;
+  align-items: center;
+  background: #f1f5f9;
+  border-radius: 6px;
+  padding: 2px;
+  border: 1px solid var(--border-light);
+  gap: 2px;
+}
+
+.btn-truth-mode {
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-truth-mode:hover {
+  color: var(--text-dark);
+}
+
+.btn-truth-mode.active {
+  background: #ffffff;
+  color: var(--rose-deep);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .truth-table-wrapper {

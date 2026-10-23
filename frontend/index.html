@@ -800,7 +800,13 @@
             <div class="dock-split-grid">
               <div class="dock-truth-col">
                 <div class="dock-col-header">
-                  <strong id="truthTableTitle">Tabla de Verdad</strong>
+                  <div style="display:inline-flex;align-items:center;gap:8px;">
+                    <strong id="truthTableTitle">Tabla de Verdad</strong>
+                    <div class="truth-view-switch" id="truthViewSwitch" title="Cambiar formato de visualización de la tabla">
+                      <button type="button" id="btnTruthViewBus" class="btn-truth-mode active" title="Vista de Buses agrupados (N.°, A, B, S, Cout)">Buses (A, B, S)</button>
+                      <button type="button" id="btnTruthViewBits" class="btn-truth-mode" title="Vista detallada de bits individuales (A3..A0, B3..B0)">Bits</button>
+                    </div>
+                  </div>
                   <span id="truthTableHintText">Haz clic en cualquier fila para inyectar esa combinación en el circuito</span>
                 </div>
                 <div id="truthTableContainer" class="truth-table-wrapper"></div>

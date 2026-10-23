@@ -504,6 +504,70 @@ window.COMPONENT_DEFS = {
       return [s, c1];
     }
   },
+  BLOCK_MS: {
+    name: 'Medio Sumador (M.S.)',
+    sub: 'Módulo 1-Bit (A, B → S, Cout)',
+    ic: 'M.S.',
+    kind: 'modular_adder',
+    family: 'Aritmética Modular',
+    manufacturer: 'Texas Instruments / DigiLab',
+    pkg: 'Bloque Modular',
+    inputs: ['A', 'B'],
+    outputs: ['S', 'Cout'],
+    width: 100,
+    height: 90,
+    pins: {
+      inputs: [
+        { name: 'A', side: 'top', x: 35, y: 0, orientation: 'north' },
+        { name: 'B', side: 'top', x: 65, y: 0, orientation: 'north' }
+      ],
+      outputs: [
+        { name: 'S', side: 'bottom', x: 50, y: 90, orientation: 'south' },
+        { name: 'Cout', side: 'left', x: 0, y: 45, orientation: 'west' }
+      ]
+    },
+    formula: 'S = A ⊕ B | Cout = A · B',
+    desc: 'Medio sumador modular de 1 bit con entradas superiores y cascada de acarreo.',
+    evaluate: (inVals) => {
+      const a = inVals[0] || 0;
+      const b = inVals[1] || 0;
+      return [a ^ b, a & b];
+    }
+  },
+  BLOCK_SC: {
+    name: 'Sumador Completo (S.C.)',
+    sub: 'Módulo 1-Bit (A, B, Cin → S, Cout)',
+    ic: 'S.C.',
+    kind: 'modular_adder',
+    family: 'Aritmética Modular',
+    manufacturer: 'Texas Instruments / DigiLab',
+    pkg: 'Bloque Modular',
+    inputs: ['A', 'B', 'Cin'],
+    outputs: ['S', 'Cout'],
+    width: 100,
+    height: 90,
+    pins: {
+      inputs: [
+        { name: 'A', side: 'top', x: 35, y: 0, orientation: 'north' },
+        { name: 'B', side: 'top', x: 65, y: 0, orientation: 'north' },
+        { name: 'Cin', side: 'right', x: 100, y: 45, orientation: 'east' }
+      ],
+      outputs: [
+        { name: 'S', side: 'bottom', x: 50, y: 90, orientation: 'south' },
+        { name: 'Cout', side: 'left', x: 0, y: 45, orientation: 'west' }
+      ]
+    },
+    formula: 'S = A ⊕ B ⊕ Cin | Cout = AB + Cin(A ⊕ B)',
+    desc: 'Sumador completo modular de 1 bit con entradas A y B arriba, suma abajo, acarreo de entrada a la derecha y acarreo de salida a la izquierda.',
+    evaluate: (inVals) => {
+      const a = inVals[0] || 0;
+      const b = inVals[1] || 0;
+      const cin = inVals[2] || 0;
+      const s = a ^ b ^ cin;
+      const cout = (a & b) | (cin & (a ^ b));
+      return [s, cout];
+    }
+  },
   IC_74283: {
     name: '74LS283',
     sub: 'Sumador de 4 bits',
@@ -837,6 +901,25 @@ window.getCatalogIconSvg = function (type) {
         <line x1="3" y1="17" x2="9" y2="17" stroke="${stroke}" stroke-width="1.8"/>
         <line x1="28" y1="12" x2="35" y2="12" stroke="${stroke}" stroke-width="1.8"/>
       </svg>`;
+    case 'BLOCK_MS':
+      return `<svg width="36" height="24" viewBox="0 0 38 24">
+        <rect x="7" y="3" width="24" height="18" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="1.8"/>
+        <text x="19" y="15" text-anchor="middle" fill="${stroke}" font-size="8.5" font-weight="800" font-family="Plus Jakarta Sans">M.S.</text>
+        <line x1="14" y1="0" x2="14" y2="3" stroke="${stroke}" stroke-width="1.5"/>
+        <line x1="24" y1="0" x2="24" y2="3" stroke="${stroke}" stroke-width="1.5"/>
+        <line x1="19" y1="21" x2="19" y2="24" stroke="${stroke}" stroke-width="1.5"/>
+        <line x1="3" y1="12" x2="7" y2="12" stroke="${stroke}" stroke-width="1.5"/>
+      </svg>`;
+    case 'BLOCK_SC':
+      return `<svg width="36" height="24" viewBox="0 0 38 24">
+        <rect x="7" y="3" width="24" height="18" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="1.8"/>
+        <text x="19" y="15" text-anchor="middle" fill="${stroke}" font-size="8.5" font-weight="800" font-family="Plus Jakarta Sans">S.C.</text>
+        <line x1="13" y1="0" x2="13" y2="3" stroke="${stroke}" stroke-width="1.5"/>
+        <line x1="23" y1="0" x2="23" y2="3" stroke="${stroke}" stroke-width="1.5"/>
+        <line x1="18" y1="21" x2="18" y2="24" stroke="${stroke}" stroke-width="1.5"/>
+        <line x1="3" y1="12" x2="7" y2="12" stroke="${stroke}" stroke-width="1.5"/>
+        <line x1="31" y1="12" x2="35" y2="12" stroke="${stroke}" stroke-width="1.5"/>
+      </svg>`;
     default:
       return `<svg width="36" height="24" viewBox="0 0 38 24">
         <rect x="8" y="3" width="22" height="18" rx="2.5" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
@@ -1025,7 +1108,49 @@ window.renderSchematicNodeSvg = function (node, inVals, outVals) {
     `;
   }
 
-  // 3. BLOQUES DE CIRCUITO INTEGRADO ESQUEMÁTICO LIMPIO (74LS85, 74LS283, SUMADORES, DECO)
+  // 3. BLOQUES MODULARES DE SUMADORES (M.S. Y S.C. ESQUEMÁTICO PURO)
+  if (def.kind === 'modular_adder') {
+    const isMS = node.type === 'BLOCK_MS';
+    const inAActive = inVals[0] === 1;
+    const inBActive = inVals[1] === 1;
+    const inCinActive = inVals[2] === 1;
+    const outSActive = outVals[0] === 1;
+    const outCoutActive = outVals[1] === 1;
+
+    return `
+      <svg class="schematic-svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+        <!-- Caja modular -->
+        <rect x="2" y="2" width="${w - 4}" height="${h - 4}" rx="4" fill="#ffffff" stroke="${stroke}" stroke-width="2.5"/>
+        
+        <!-- Nombre central -->
+        <text x="${w / 2}" y="${h / 2 + 5}" text-anchor="middle" fill="#1f122b" font-size="14.5" font-weight="800" font-family="Plus Jakarta Sans, sans-serif">${def.ic}</text>
+        
+        <!-- Entrada A (superior izquierda) -->
+        <line x1="35" y1="0" x2="35" y2="8" stroke="${inAActive ? '#10b981' : stroke}" stroke-width="2.4"/>
+        <text x="35" y="21" text-anchor="middle" fill="#4a1d35" font-size="10.5" font-weight="800" font-family="JetBrains Mono, monospace">A</text>
+        
+        <!-- Entrada B (superior derecha) -->
+        <line x1="65" y1="0" x2="65" y2="8" stroke="${inBActive ? '#10b981' : stroke}" stroke-width="2.4"/>
+        <text x="65" y="21" text-anchor="middle" fill="#4a1d35" font-size="10.5" font-weight="800" font-family="JetBrains Mono, monospace">B</text>
+        
+        <!-- Salida S (inferior central) -->
+        <line x1="50" y1="${h - 8}" x2="50" y2="${h}" stroke="${outSActive ? '#10b981' : stroke}" stroke-width="2.4"/>
+        <text x="50" y="${h - 13}" text-anchor="middle" fill="#be185d" font-size="11" font-weight="800" font-family="JetBrains Mono, monospace">S</text>
+        
+        <!-- Salida Cout (borde izquierdo) -->
+        <line x1="0" y1="45" x2="8" y2="45" stroke="${outCoutActive ? '#10b981' : stroke}" stroke-width="2.4"/>
+        <text x="14" y="49" text-anchor="start" fill="#be185d" font-size="9.5" font-weight="800" font-family="JetBrains Mono, monospace">Cout</text>
+        
+        <!-- Entrada Cin (borde derecho, solo en S.C.) -->
+        ${!isMS ? `
+          <line x1="${w - 8}" y1="45" x2="${w}" y2="45" stroke="${inCinActive ? '#10b981' : stroke}" stroke-width="2.4"/>
+          <text x="${w - 14}" y="49" text-anchor="end" fill="#4a1d35" font-size="9.5" font-weight="800" font-family="JetBrains Mono, monospace">Cin</text>
+        ` : ''}
+      </svg>
+    `;
+  }
+
+  // 4. BLOQUES DE CIRCUITO INTEGRADO ESQUEMÁTICO LIMPIO (74LS85, 74LS283, SUMADORES, DECO)
   const boxLeft = 14;
   const boxRight = w - 14;
   const boxW = boxRight - boxLeft;
