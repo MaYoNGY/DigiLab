@@ -987,25 +987,36 @@ html.in-workspace-mode #simulatorView {
   margin-left: 4px;
 }
 
-/* FILA 2: BARRA DE HERRAMIENTAS PRINCIPAL */
+/* FILA 2: BARRA DE HERRAMIENTAS PRINCIPAL (UNIFICADA PROFESIONAL) */
 .app-toolbar {
-  min-height: 48px;
+  min-height: 44px;
   background: #fff9fc;
   border-bottom: 1px solid var(--border-light);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 6px 14px;
-  gap: 10px;
-  flex-wrap: wrap;
+  justify-content: flex-start;
+  padding: 4px 12px;
+  gap: 7px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #fbcfe8 transparent;
   z-index: 30;
+}
+
+.app-toolbar::-webkit-scrollbar {
+  height: 4px;
+}
+.app-toolbar::-webkit-scrollbar-thumb {
+  background: #fbcfe8;
+  border-radius: 4px;
 }
 
 .toolbar-group {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 5px;
+  flex-shrink: 0;
 }
 
 .sim-control-cluster {
@@ -1013,9 +1024,10 @@ html.in-workspace-mode #simulatorView {
   align-items: center;
   gap: 4px;
   background: #fdf2f8;
-  padding: 3px;
+  padding: 3px 5px;
   border-radius: 9px;
   border: 1px solid #f9a8d4;
+  flex-shrink: 0;
 }
 
 .preset-select-wrapper {
@@ -1024,12 +1036,13 @@ html.in-workspace-mode #simulatorView {
   background: #ffffff;
   border: 1.5px solid var(--border-light);
   border-radius: 8px;
-  padding: 2px 8px;
-  gap: 6px;
+  padding: 2px 7px;
+  gap: 5px;
+  flex-shrink: 0;
 }
 
 .preset-prefix {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-muted);
   white-space: nowrap;
@@ -1040,19 +1053,26 @@ html.in-workspace-mode #simulatorView {
   background: transparent;
   color: var(--text-dark);
   font-weight: 700;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-family: var(--font-sans);
-  padding: 5px 4px;
+  padding: 4px 2px;
   outline: none;
   cursor: pointer;
-  min-width: 215px;
+  min-width: 165px;
+  max-width: 215px;
 }
 
 .toolbar-divider {
   width: 1px;
-  height: 24px;
+  height: 22px;
   background: var(--border-light);
-  margin: 0 3px;
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+.toolbar-zoom-right {
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .tool-action-btn {
@@ -2939,6 +2959,36 @@ kbd {
 .btn-menu-help:hover {
   background: #fce7f3 !important;
   color: var(--rose-deep) !important;
+}
+
+/* RESPONSIVE TOOLBAR COMPACTION */
+@media (max-width: 1440px) {
+  .app-toolbar {
+    gap: 5px;
+    padding: 3px 10px;
+  }
+  .tool-action-btn {
+    padding: 5px 8px;
+    font-size: 0.73rem;
+    gap: 4px;
+  }
+  .toolbar-select {
+    min-width: 140px;
+  }
+}
+
+@media (max-width: 1300px) {
+  #btnImportCircuit span,
+  #btnExportJson span {
+    display: none;
+  }
+  #btnImportCircuit,
+  #btnExportJson {
+    padding: 5px 8px;
+  }
+  .preset-prefix {
+    display: none;
+  }
 }
 
 /* RESPONSIVE */

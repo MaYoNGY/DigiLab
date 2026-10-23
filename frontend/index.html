@@ -21,7 +21,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Librería KaTeX para renderizado tipográfico de Expresiones Algebraicas y Booleanas -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="./css/styles.css" />
+  <link rel="stylesheet" href="./css/styles.css?v=4.5.2" />
 </head>
 <body>
 
@@ -451,18 +451,61 @@
       </div>
     </header>
 
-    <!-- FILA SUPERIOR 2: BARRA DE HERRAMIENTAS PRINCIPAL -->
+    <!-- FILA SUPERIOR 2: BARRA DE HERRAMIENTAS PRINCIPAL (UNIFICADA) -->
     <div class="app-toolbar">
+      <!-- 1. CLUSTER DE SIMULACIÓN Y EVALUACIÓN (NÚCLEO PRINCIPAL) -->
+      <div class="sim-control-cluster" title="Control de propagación de señales lógicas">
+        <button id="btnToggleSimulation" class="tool-action-btn simulate-btn running" title="Iniciar o Pausar la propagación de señales en el simulador">
+          <span id="simBtnIcon">▶</span>
+          <span id="simBtnLabel">Simular</span>
+        </button>
+        <button id="btnStepSimulation" class="tool-action-btn" title="Ejecutar un paso de evaluación lógica">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          <span>Paso</span>
+        </button>
+        <button id="btnResetInputs" class="tool-action-btn" title="Poner todas las entradas en 0">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
+          <span>Reset 0</span>
+        </button>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <!-- 2. HISTORIAL & EDICIÓN -->
       <div class="toolbar-group">
-        <div class="preset-select-wrapper">
-          <span class="preset-prefix">Ejemplo:</span>
-          <select id="presetSelect" class="toolbar-select">
-            <option value="">-- Seleccionar circuito --</option>
-          </select>
-        </div>
+        <button id="btnUndoToolbar" class="tool-action-btn" title="Deshacer último cambio en el lienzo (Ctrl+Z)">
+          <span>↶ Deshacer</span>
+        </button>
+        <button id="btnRedoToolbar" class="tool-action-btn" title="Rehacer cambio en el lienzo (Ctrl+Y)">
+          <span>↷</span>
+        </button>
+        <button id="btnClearCanvas" class="tool-action-btn danger-soft" title="Vaciar los componentes del lienzo actual (puedes deshacer con Ctrl+Z)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span>Limpiar</span>
+        </button>
+      </div>
 
-        <div class="toolbar-divider"></div>
+      <div class="toolbar-divider"></div>
 
+      <!-- 3. HERRAMIENTAS DIGITALES Y ANÁLISIS -->
+      <div class="toolbar-group">
+        <button id="btnSynthesis" class="tool-action-btn primary-rose" title="Sintetizar circuito desde Tabla de Verdad / Minitérminos">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+          <span>Sintetizar</span>
+        </button>
+
+        <button id="btnICPinout" class="tool-action-btn" title="Ver encapsulados DIP de la serie 74LS">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="8" y1="2" x2="8" y2="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="16" y1="2" x2="16" y2="4"/><line x1="8" y1="20" x2="8" y2="22"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="16" y1="20" x2="16" y2="22"/></svg>
+          <span>Pines 74LS</span>
+        </button>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <!-- 4. GESTIÓN DE PROYECTO & ARCHIVOS -->
+      <div class="toolbar-group">
         <button id="btnNewTabToolbar" class="tool-action-btn" title="Abrir un nuevo circuito en una nueva pestaña">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
           <span>Nuevo</span>
@@ -491,75 +534,35 @@
         </button>
       </div>
 
-      <!-- CONTROLES CENTRALES DE SIMULACIÓN Y EDICIÓN -->
-      <div class="toolbar-group">
-        <button id="btnUndoToolbar" class="tool-action-btn" title="Deshacer último cambio en el lienzo (Ctrl+Z)">
-          <span>↶ Deshacer</span>
+      <div class="toolbar-divider"></div>
+
+      <!-- 5. CIRCUITOS DE EJEMPLO -->
+      <div class="preset-select-wrapper" title="Cargar circuitos demostrativos listos para simular">
+        <span class="preset-prefix">Ejemplo:</span>
+        <select id="presetSelect" class="toolbar-select">
+          <option value="">-- Cargar ejemplo --</option>
+        </select>
+      </div>
+
+      <!-- 6. ZOOM & CENTRADO (ALINEADO A LA DERECHA) -->
+      <div class="zoom-controls-group toolbar-zoom-right">
+        <button id="btnZoomOut" class="btn-icon-only" title="Alejar (Zoom Out)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
-        <button id="btnRedoToolbar" class="tool-action-btn" title="Rehacer cambio en el lienzo (Ctrl+Y)">
-          <span>↷</span>
+        <span id="zoomLabel" class="zoom-badge">100%</span>
+        <button id="btnZoomIn" class="btn-icon-only" title="Acercar (Zoom In)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
-
-        <div class="toolbar-divider"></div>
-
-        <div class="sim-control-cluster">
-          <button id="btnToggleSimulation" class="tool-action-btn simulate-btn running" title="Iniciar o Pausar la propagación de señales en el simulador">
-            <span id="simBtnIcon">▶</span>
-            <span id="simBtnLabel">Simular</span>
-          </button>
-          <button id="btnStepSimulation" class="tool-action-btn" title="Ejecutar un paso de evaluación lógica">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-            <span>Paso</span>
-          </button>
-          <button id="btnResetInputs" class="tool-action-btn" title="Poner todas las entradas en 0">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
-            <span>Reset 0</span>
-          </button>
-        </div>
-
-        <div class="toolbar-divider"></div>
-
-        <button id="btnSynthesis" class="tool-action-btn primary-rose" title="Sintetizar circuito desde Tabla de Verdad / Minitérminos">
+        <button id="btnResetView" class="btn-icon-only" title="Restablecer vista (100% y centrar)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            <circle cx="12" cy="12" r="9"/>
+            <line x1="12" y1="3" x2="12" y2="7"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+            <line x1="3" y1="12" x2="7" y2="12"/>
+            <line x1="17" y1="12" x2="21" y2="12"/>
+            <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
           </svg>
-          <span>Sintetizar</span>
         </button>
-
-        <button id="btnICPinout" class="tool-action-btn" title="Ver encapsulados DIP de la serie 74LS">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="8" y1="2" x2="8" y2="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="16" y1="2" x2="16" y2="4"/><line x1="8" y1="20" x2="8" y2="22"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="16" y1="20" x2="16" y2="22"/></svg>
-          <span>Pines 74LS</span>
-        </button>
-
-        <button id="btnToolbarHelp" class="tool-action-btn primary-soft" title="Guía de uso y tutorial interactivo">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <span>Ayuda</span>
-        </button>
-
-        <button id="btnClearCanvas" class="tool-action-btn danger-soft" title="Vaciar los componentes del lienzo actual (puedes deshacer con Ctrl+Z)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          <span>Limpiar</span>
-        </button>
-
-        <div class="zoom-controls-group">
-          <button id="btnZoomOut" class="btn-icon-only" title="Alejar (Zoom Out)">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </button>
-          <span id="zoomLabel" class="zoom-badge">100%</span>
-          <button id="btnZoomIn" class="btn-icon-only" title="Acercar (Zoom In)">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </button>
-          <button id="btnResetView" class="btn-icon-only" title="Restablecer vista (100% y centrar)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9"/>
-              <line x1="12" y1="3" x2="12" y2="7"/>
-              <line x1="12" y1="17" x2="12" y2="21"/>
-              <line x1="3" y1="12" x2="7" y2="12"/>
-              <line x1="17" y1="12" x2="21" y2="12"/>
-              <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
-            </svg>
-          </button>
-        </div>
       </div>
     </div>
 
@@ -926,8 +929,8 @@
   <!-- Librería KaTeX para renderizar ecuaciones algebraicas y expresiones booleanas -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
-  <script src="./js/components.js?v=4.5.1"></script>
-  <script src="./js/presets.js?v=4.5.1"></script>
-  <script src="./js/simulator.js?v=4.5.1"></script>
+  <script src="./js/components.js?v=4.5.2"></script>
+  <script src="./js/presets.js?v=4.5.2"></script>
+  <script src="./js/simulator.js?v=4.5.2"></script>
 </body>
 </html>
