@@ -1245,12 +1245,44 @@ class DigitalSimulator {
         fetch('/api/simulator/presets')
       ]);
       if (catRes.ok && preRes.ok) {
-        this.catalog = await catRes.json();
-        this.presets = await preRes.json();
-        txt.textContent = 'Simulación en tiempo real';
+        const backendCatalog = await catRes.json();
+        const backendPresets = await preRes.json();
+
+        // 1. Combinar plantillas asegurando que nunca se borren las plantillas de FALLBACK_PRESETS
+        const presetMap = new Map();
+        (window.FALLBACK_PRESETS || []).forEach((p) => presetMap.set(p.id, p));
+        if (Array.isArray(backendPresets)) {
+          backendPresets.forEach((p) => {
+            if (p && p.id) presetMap.set(p.id, p);
+          });
+        }
+        this.presets = Array.from(presetMap.values());
+
+        // 2. Combinar catálogo preservando componentes locales esenciales (como BLOCK_MS y BLOCK_SC)
+        if (backendCatalog && Array.isArray(backendCatalog.categories)) {
+          const localCats = (window.FALLBACK_CATALOG?.categories || []);
+          const mergedCategories = backendCatalog.categories.map((bCat) => {
+            const lCat = localCats.find((c) => c.id === bCat.id);
+            if (!lCat) return bCat;
+            const itemMap = new Map();
+            (lCat.items || []).forEach((item) => itemMap.set(item.type, item));
+            (bCat.items || []).forEach((item) => itemMap.set(item.type, item));
+            return { ...bCat, items: Array.from(itemMap.values()) };
+          });
+          localCats.forEach((lCat) => {
+            if (!mergedCategories.some((c) => c.id === lCat.id)) {
+              mergedCategories.push(lCat);
+            }
+          });
+          this.catalog = { categories: mergedCategories };
+        }
+
+        if (txt) txt.textContent = 'Simulación en tiempo real';
+        this.renderCatalog();
+        this.populatePresetsDropdown();
       }
     } catch {
-      txt.textContent = 'Simulación en tiempo real';
+      if (txt) txt.textContent = 'Simulación en tiempo real';
     }
   }
 
@@ -1853,19 +1885,33 @@ class DigitalSimulator {
 
   populatePresetsDropdown() {
     const select = document.getElementById('presetSelect');
+    if (!select) return;
+    const currentVal = select.value;
     select.innerHTML = `<option value="">-- Seleccionar circuito de ejemplo --</option>`;
-    this.presets.forEach((p) => {
+    const presetMap = new Map();
+    (window.FALLBACK_PRESETS || []).forEach((p) => presetMap.set(p.id, p));
+    (this.presets || []).forEach((p) => presetMap.set(p.id, p));
+    presetMap.forEach((p) => {
       const opt = document.createElement('option');
       opt.value = p.id;
       opt.textContent = p.title;
       select.appendChild(opt);
     });
+    if (currentVal && presetMap.has(currentVal)) {
+      select.value = currentVal;
+    }
   }
 
   loadPreset(presetId) {
-    const preset = this.presets.find((p) => p.id === presetId);
-    if (!preset) return;
+    const preset = (this.presets || []).find((p) => p.id === presetId) ||
+                   (window.FALLBACK_PRESETS || []).find((p) => p.id === presetId);
+    if (!preset) {
+      console.warn('Plantilla no encontrada:', presetId);
+      this.showToast('No se encontró la plantilla seleccionada.');
+      return;
+    }
     this.openCircuitInNewTab(preset, true);
+    this.showToast(`Plantilla "${preset.title}" cargada.`);
   }
 
   getNextAvailableDesignator(prefix = 'U') {

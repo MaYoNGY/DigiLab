@@ -89,28 +89,28 @@ window.FALLBACK_PRESETS = [
     ],
     isPreset: true,
     nodes: [
-      // Entradas Bus A (de bit 3 a bit 0, ordenados de izquierda a derecha sobre cada bloque)
-      { id: 'inA3', type: 'INPUT', label: 'A3', x: 120, y: 50, state: [0] },
-      { id: 'inB3', type: 'INPUT', label: 'B3', x: 210, y: 50, state: [0] },
-      { id: 'inA2', type: 'INPUT', label: 'A2', x: 280, y: 50, state: [1] },
-      { id: 'inB2', type: 'INPUT', label: 'B2', x: 370, y: 50, state: [0] },
-      { id: 'inA1', type: 'INPUT', label: 'A1', x: 440, y: 50, state: [0] },
-      { id: 'inB1', type: 'INPUT', label: 'B1', x: 530, y: 50, state: [1] },
-      { id: 'inA0', type: 'INPUT', label: 'A0', x: 600, y: 50, state: [1] },
-      { id: 'inB0', type: 'INPUT', label: 'B0', x: 690, y: 50, state: [1] },
+      // Entradas Bus A y B (escalonadas limpiamente arriba de cada bloque de izquierda a derecha)
+      { id: 'inA3', type: 'INPUT', label: 'A3', x: 110, y: 45, state: [0] },
+      { id: 'inB3', type: 'INPUT', label: 'B3', x: 110, y: 100, state: [0] },
+      { id: 'inA2', type: 'INPUT', label: 'A2', x: 290, y: 45, state: [1] },
+      { id: 'inB2', type: 'INPUT', label: 'B2', x: 290, y: 100, state: [0] },
+      { id: 'inA1', type: 'INPUT', label: 'A1', x: 470, y: 45, state: [0] },
+      { id: 'inB1', type: 'INPUT', label: 'B1', x: 470, y: 100, state: [1] },
+      { id: 'inA0', type: 'INPUT', label: 'A0', x: 650, y: 45, state: [1] },
+      { id: 'inB0', type: 'INPUT', label: 'B0', x: 650, y: 100, state: [1] },
 
-      // Bloques Modulares (bit 3 a la izquierda hasta bit 0 a la derecha, alineados en Y=170)
-      { id: 'sc3', type: 'BLOCK_SC', label: 'SC3', x: 150, y: 170 },
-      { id: 'sc2', type: 'BLOCK_SC', label: 'SC2', x: 310, y: 170 },
-      { id: 'sc1', type: 'BLOCK_SC', label: 'SC1', x: 470, y: 170 },
-      { id: 'ms0', type: 'BLOCK_MS', label: 'MS0', x: 630, y: 170 },
+      // Bloques Modulares (bit 3 a la izquierda hasta bit 0 a la derecha, perfectamente alineados en Y=170)
+      { id: 'sc3', type: 'BLOCK_SC', label: 'SC3', x: 180, y: 170 },
+      { id: 'sc2', type: 'BLOCK_SC', label: 'SC2', x: 360, y: 170 },
+      { id: 'sc1', type: 'BLOCK_SC', label: 'SC1', x: 540, y: 170 },
+      { id: 'ms0', type: 'BLOCK_MS', label: 'MS0', x: 720, y: 170 },
 
-      // Salidas: Cout a la izquierda y S3..S0 debajo de cada bloque en Y=310
-      { id: 'outCout', type: 'OUTPUT', label: 'Cout', x: 40, y: 310 },
-      { id: 'outS3', type: 'OUTPUT', label: 'S3', x: 165, y: 310 },
-      { id: 'outS2', type: 'OUTPUT', label: 'S2', x: 325, y: 310 },
-      { id: 'outS1', type: 'OUTPUT', label: 'S1', x: 485, y: 310 },
-      { id: 'outS0', type: 'OUTPUT', label: 'S0', x: 645, y: 310 }
+      // Salidas: Cout alineado a la izquierda en Y=197 y S3..S0 debajo de cada bloque en Y=310
+      { id: 'outCout', type: 'OUTPUT', label: 'Cout', x: 40, y: 197 },
+      { id: 'outS3', type: 'OUTPUT', label: 'S3', x: 250, y: 310 },
+      { id: 'outS2', type: 'OUTPUT', label: 'S2', x: 430, y: 310 },
+      { id: 'outS1', type: 'OUTPUT', label: 'S1', x: 610, y: 310 },
+      { id: 'outS0', type: 'OUTPUT', label: 'S0', x: 790, y: 310 }
     ],
     wires: [
       // Conexiones de Entradas A y B a pines superiores (0 y 1) de cada bloque
