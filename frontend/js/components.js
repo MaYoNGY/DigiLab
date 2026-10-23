@@ -856,7 +856,7 @@ window.renderSchematicNodeSvg = function (node, inVals, outVals) {
   if (!def) return '';
   const w = def.width;
   const h = def.height;
-  const stroke = '#be185d';
+  const stroke = '#334155';
   const fill = '#ffffff';
   const isOutHigh = outVals && outVals[0] === 1;
   const outStroke = isOutHigh ? '#10b981' : stroke;

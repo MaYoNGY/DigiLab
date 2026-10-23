@@ -4,24 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DigiLab Studio | Ciencia de Circuitos Digitales</title>
-  <!-- Script síncrono anti-parpadeo: mantiene la vista del simulador al recargar si hay sesión activa -->
+  <!-- Script síncrono anti-parpadeo instantáneo: evita mostrar la landing de invitado al recargar con F5 -->
   <script>
     (function () {
       try {
         var hasToken = !!localStorage.getItem('digilab_token');
-        var inWorkspace = sessionStorage.getItem('digilab_workspace_active') === '1';
+        var inWorkspace = sessionStorage.getItem('digilab_workspace_active') === '1' ||
+                          localStorage.getItem('digilab_workspace_active') === '1' ||
+                          window.location.hash === '#simulator';
         if (hasToken || inWorkspace) {
           document.documentElement.classList.add('in-workspace-mode');
         }
       } catch (e) {}
     })();
   </script>
+  <style>
+    /* Regla crítica instantánea en head antes del render del DOM */
+    html.in-workspace-mode #landingView { display: none !important; }
+    html.in-workspace-mode #simulatorView { display: flex !important; }
+  </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Librería KaTeX para renderizado tipográfico de Expresiones Algebraicas y Booleanas -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="./css/styles.css?v=4.5.3" />
+  <link rel="stylesheet" href="./css/styles.css?v=4.6.0" />
 </head>
 <body>
 
@@ -489,10 +496,31 @@
           <span id="backendStatusText">Simulación en tiempo real</span>
         </div>
 
-        <div class="user-profile-pill">
-          <span class="user-avatar" id="userAvatarLetter">I</span>
-          <span class="user-name" id="userNameDisplay">Invitado</span>
-          <button id="btnLogout" class="btn-link-rose" title="Cerrar sesión activa">Cerrar Sesión</button>
+        <div class="user-profile-dropdown-wrap">
+          <button id="userProfileBtn" class="user-profile-pill" title="Opciones de cuenta y perfil">
+            <span class="user-avatar" id="userAvatarLetter">I</span>
+            <span class="user-name" id="userNameDisplay">Invitado</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div id="userProfileDropdown" class="user-profile-popover hidden">
+            <div class="profile-popover-header">
+              <div class="popover-avatar" id="popoverAvatarLetter">I</div>
+              <div class="popover-text">
+                <strong id="popoverUserName">Invitado</strong>
+                <span id="popoverUserRole">Sesión Local / Sin Guardar</span>
+              </div>
+            </div>
+            <div class="menu-sep"></div>
+            <button id="btnProfileMyCanvases" class="profile-popover-item" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              <span>Mis Lienzos Guardados</span>
+            </button>
+            <div class="menu-sep"></div>
+            <button id="btnLogout" class="profile-popover-logout" type="button" title="Cerrar sesión activa de forma segura">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <span>Cerrar Sesión</span>
+            </button>
+          </div>
         </div>
 
         <button id="btnToggleRightSidebar" class="btn-icon-only mobile-only" title="Inspector">
@@ -664,14 +692,13 @@
           <div class="canvas-QuickHint">
             <span id="bannerModuleTag" class="module-pill">Aritmética Binaria</span>
             <input id="activeCircuitTitleInput" type="text" class="work-tab-title-inline" value="Sumador Completo (1 bit)" title="Renombrar el circuito de la pestaña activa" />
-            <span id="bannerDesc" class="desc-inline">Haz clic en los terminales de entrada (A, B, Cin) para alternar entre 0 y 1.</span>
           </div>
         </div>
 
         <!-- Sub-barra de herramientas flotante sobre el lienzo (Todos los botones auditados y funcionales) -->
         <div class="canvas-subtoolbar">
           <button class="subtool-btn active" id="subtoolSelectMode" title="Modo Selección y Movimiento de Nodos (V)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M4 3l16 9-7 2-3 7L4 3z"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l7 18 2.5-7.5L20 11 3 3z"/></svg>
           </button>
           <button class="subtool-btn" id="subtoolPanMode" title="Modo Mano: Arrastrar para desplazar el lienzo (H)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
@@ -702,6 +729,20 @@
           <div id="canvasWorld" class="canvas-world">
             <svg id="wiresSvg" class="wires-layer"></svg>
             <div id="nodesLayer" class="nodes-layer"></div>
+          </div>
+          <div id="canvasEmptyGuide" class="canvas-empty-guide hidden">
+            <div class="empty-guide-card">
+              <div class="empty-guide-icon">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#be185d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="8" y1="2" x2="8" y2="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="16" y1="2" x2="16" y2="4"/><line x1="8" y1="20" x2="8" y2="22"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="16" y1="20" x2="16" y2="22"/></svg>
+              </div>
+              <h4>Lienzo listo para diseñar</h4>
+              <p>Haz clic o arrastra compuertas desde el catálogo izquierdo, o añade terminales rápidos:</p>
+              <div class="empty-guide-actions">
+                <button id="btnEmptyAddInput" class="btn-empty-action" type="button">+ Entrada Binaria (A)</button>
+                <button id="btnEmptyAddAnd" class="btn-empty-action" type="button">+ Compuerta AND (74LS08)</button>
+                <button id="btnEmptyAddOutput" class="btn-empty-action" type="button">+ Salida LED (S)</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -742,7 +783,10 @@
                   <line x1="3" y1="21" x2="10" y2="14"/>
                 </svg>
               </button>
-              <button id="btnToggleDockSize" class="btn-icon-only" title="Minimizar/Expandir panel inferior">▾</button>
+              <button id="btnToggleDockSize" class="btn-dock-toggle" title="Colapsar u ocultar el panel inferior para ganar espacio de trabajo">
+                <span id="dockToggleIcon">▾</span>
+                <span id="dockToggleLabel">Ocultar Panel</span>
+              </button>
             </div>
           </div>
 
@@ -973,14 +1017,35 @@
     </div>
   </div>
 
+  <!-- MODAL 5: CONFIRMAR VACIAR / LIMPIAR LIENZO (PROTECCIÓN DE ACCIÓN DESTRUCTIVA) -->
+  <div id="modalConfirmClear" class="modal-backdrop hidden">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <h3 style="color:#b91c1c;display:flex;align-items:center;gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span>¿Vaciar el circuito del lienzo?</span>
+        </h3>
+        <button class="modal-close" data-close="modalConfirmClear">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.86rem;color:var(--text-body);line-height:1.5;">Esta acción eliminará todos los componentes y cables del circuito actual en esta pestaña.</p>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-top:6px;">💡 Si lo confirmas por error, podrás restaurarlo inmediatamente pulsando <kbd>Ctrl+Z</kbd> o el botón <b>Deshacer</b>.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-soft" data-close="modalConfirmClear">Cancelar</button>
+        <button id="btnExecuteClearCanvas" class="btn btn-danger-solid">Sí, Vaciar Lienzo</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Notificación Toast Flotante (soporta botones de acción como "↶ Deshacer") -->
   <div id="toastNotification" class="toast-notification hidden"></div>
 
   <!-- Librería KaTeX para renderizar ecuaciones algebraicas y expresiones booleanas -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
-  <script src="./js/components.js?v=4.5.3"></script>
-  <script src="./js/presets.js?v=4.5.3"></script>
-  <script src="./js/simulator.js?v=4.5.3"></script>
+  <script src="./js/components.js?v=4.6.0"></script>
+  <script src="./js/presets.js?v=4.6.0"></script>
+  <script src="./js/simulator.js?v=4.6.0"></script>
 </body>
 </html>

@@ -82,16 +82,12 @@ class DigitalSimulator {
     this.initSynthesisModal();
     this.initPinoutModal();
 
-    await this.syncWithNestBackend();
-    this.renderCatalog();
-    this.populatePresetsDropdown();
+    // Verificación inmediata anti-parpadeo sincrónica antes de cualquier petición de red:
+    const hasWorkspaceFlag = sessionStorage.getItem('digilab_workspace_active') === '1' ||
+                             localStorage.getItem('digilab_workspace_active') === '1' ||
+                             window.location.hash === '#simulator';
 
-    // Si hay token guardado, PRIMERO verificar la sesión para autenticar y aislar las pestañas del usuario correcto
-    if (this.authToken) {
-      this.enterSimulatorWorkspace(false);
-      await this.verifySavedSession();
-    } else {
-      // Si es usuario invitado o no hay sesión, restaurar sus pestañas o abrir plantilla base
+    if (this.authToken || hasWorkspaceFlag) {
       const restored = this.restoreWorkspaceTabsFromSession();
       if (!restored) {
         const defaultPreset = this.presets.find((p) => p.id === 'full-adder') || this.presets[0];
@@ -101,9 +97,18 @@ class DigitalSimulator {
           this.createNewBlankTab();
         }
       }
-      if (sessionStorage.getItem('digilab_workspace_active') === '1') {
-        this.enterSimulatorWorkspace(false);
-      }
+      this.enterSimulatorWorkspace(false);
+    }
+
+    // Renderizar catálogo inmediatamente
+    this.renderCatalog();
+    this.populatePresetsDropdown();
+
+    // Sincronización en segundo plano con NestJS sin bloquear el flujo visual
+    await this.syncWithNestBackend();
+
+    if (this.authToken) {
+      await this.verifySavedSession();
     }
 
     this.renderMathInElementSafe(document.body);
@@ -493,10 +498,14 @@ class DigitalSimulator {
     bar.innerHTML = '';
 
     this.tabs.forEach((tab) => {
+      const isActive = tab.tabId === this.activeTabId;
       const el = document.createElement('div');
-      el.className = `work-tab ${tab.tabId === this.activeTabId ? 'active' : ''}`;
+      el.className = `work-tab ${isActive ? 'active' : ''}`;
+      const dotTitle = isActive
+        ? 'Lienzo activo · Simulación en tiempo real'
+        : 'Circuito en pestaña secundaria (haz clic para alternar)';
       el.innerHTML = `
-        <span class="work-tab-dot"></span>
+        <span class="work-tab-dot" title="${dotTitle}"></span>
         <span class="work-tab-name">${tab.title}</span>
         <button class="work-tab-close" title="Cerrar esta pestaña">✕</button>
       `;
@@ -806,21 +815,41 @@ class DigitalSimulator {
   updateUserHeaderUI() {
     const avatar = document.getElementById('userAvatarLetter');
     const nameDisp = document.getElementById('userNameDisplay');
+    const popoverAvatar = document.getElementById('popoverAvatarLetter');
+    const popoverName = document.getElementById('popoverUserName');
+    const popoverRole = document.getElementById('popoverUserRole');
     const btnLogout = document.getElementById('btnLogout');
 
     if (this.currentUser) {
-      avatar.textContent = (this.currentUser.name || this.currentUser.username || 'U')[0].toUpperCase();
-      nameDisp.textContent = this.currentUser.name || this.currentUser.username;
-      btnLogout.textContent = 'Cerrar Sesión';
+      const initial = (this.currentUser.name || this.currentUser.username || 'U')[0].toUpperCase();
+      const displayName = this.currentUser.name || this.currentUser.username;
+      if (avatar) avatar.textContent = initial;
+      if (nameDisp) nameDisp.textContent = displayName;
+      if (popoverAvatar) popoverAvatar.textContent = initial;
+      if (popoverName) popoverName.textContent = displayName;
+      if (popoverRole) popoverRole.textContent = this.currentUser.email || 'Cuenta de Laboratorio';
+      if (btnLogout) {
+        const span = btnLogout.querySelector('span');
+        if (span) span.textContent = 'Cerrar Sesión';
+        else btnLogout.textContent = 'Cerrar Sesión';
+      }
     } else {
-      avatar.textContent = 'I';
-      nameDisp.textContent = 'Invitado';
-      btnLogout.textContent = 'Ir a Login';
+      if (avatar) avatar.textContent = 'I';
+      if (nameDisp) nameDisp.textContent = 'Invitado';
+      if (popoverAvatar) popoverAvatar.textContent = 'I';
+      if (popoverName) popoverName.textContent = 'Invitado';
+      if (popoverRole) popoverRole.textContent = 'Sesión Local (Sin Guardar)';
+      if (btnLogout) {
+        const span = btnLogout.querySelector('span');
+        if (span) span.textContent = 'Ir a Login';
+        else btnLogout.textContent = 'Ir a Login';
+      }
     }
   }
 
   enterSimulatorWorkspace(pushHistory = true) {
     sessionStorage.setItem('digilab_workspace_active', '1');
+    localStorage.setItem('digilab_workspace_active', '1');
     document.documentElement.classList.add('in-workspace-mode');
     this.landingView.classList.add('hidden');
     this.simulatorView.classList.remove('hidden');
@@ -836,6 +865,7 @@ class DigitalSimulator {
     this.generateTruthTable();
     this.updateInspector();
     this.resetCategoriesToCollapsed();
+    this.updateEmptyGuideVisibility();
   }
 
   // =========================================================================
@@ -1666,6 +1696,54 @@ class DigitalSimulator {
     this.openCircuitInNewTab(preset, true);
   }
 
+  getNextAvailableDesignator(prefix = 'U') {
+    const existingNums = new Set();
+    const regex = new RegExp(`^${prefix}(\\d+)$`, 'i');
+    for (const node of this.nodes) {
+      const match = node.label?.match(regex);
+      if (match) {
+        existingNums.add(parseInt(match[1], 10));
+      }
+    }
+    let n = 1;
+    while (existingNums.has(n)) {
+      n++;
+    }
+    return `${prefix}${n}`;
+  }
+
+  getNextAvailableInputLabel() {
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    const used = new Set(this.nodes.filter((n) => n.type === 'INPUT').map((n) => n.label));
+    for (const letter of letters) {
+      if (!used.has(letter)) return letter;
+    }
+    let idx = 1;
+    while (used.has(`In${idx}`)) idx++;
+    return `In${idx}`;
+  }
+
+  getNextAvailableOutputLabel() {
+    const names = ['S', 'Cout', 'Y', 'F', 'Z', 'Q', 'X'];
+    const used = new Set(this.nodes.filter((n) => n.type === 'OUTPUT').map((n) => n.label));
+    for (const name of names) {
+      if (!used.has(name)) return name;
+    }
+    let idx = 1;
+    while (used.has(`Out${idx}`)) idx++;
+    return `Out${idx}`;
+  }
+
+  updateEmptyGuideVisibility() {
+    const guide = document.getElementById('canvasEmptyGuide');
+    if (!guide) return;
+    if (!this.nodes || this.nodes.length === 0) {
+      guide.classList.remove('hidden');
+    } else {
+      guide.classList.add('hidden');
+    }
+  }
+
   addNodeOfType(type, customX, customY, customLabel) {
     const def = window.COMPONENT_DEFS[type];
     if (!def) return null;
@@ -1674,16 +1752,11 @@ class DigitalSimulator {
 
     let label = customLabel || def.ic || def.name;
     if (!customLabel && type === 'INPUT') {
-      const count = this.nodes.filter((n) => n.type === 'INPUT').length;
-      const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-      label = letters[count] || `In${count + 1}`;
+      label = this.getNextAvailableInputLabel();
     } else if (!customLabel && type === 'OUTPUT') {
-      const count = this.nodes.filter((n) => n.type === 'OUTPUT').length;
-      const outNames = ['S', 'Cout', 'Y', 'F', 'Z'];
-      label = outNames[count] || `Out${count + 1}`;
-    } else if (!customLabel && def.kind === 'gate') {
-      const gateCount = this.nodes.filter((n) => !['INPUT', 'OUTPUT', 'VCC', 'GND'].includes(n.type)).length;
-      label = `U${gateCount + 1}`;
+      label = this.getNextAvailableOutputLabel();
+    } else if (!customLabel && (def.kind === 'gate' || def.kind === 'mux')) {
+      label = this.getNextAvailableDesignator('U');
     }
 
     const offset = (this.nodes.length % 6) * 24;
@@ -1733,7 +1806,17 @@ class DigitalSimulator {
     copy.id = `n_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     copy.x += 30;
     copy.y += 30;
-    copy.label = `${node.label}_2`;
+
+    let newLabel = `${node.label}_2`;
+    if (node.type === 'INPUT') {
+      newLabel = this.getNextAvailableInputLabel();
+    } else if (node.type === 'OUTPUT') {
+      newLabel = this.getNextAvailableOutputLabel();
+    } else if (node.label && /^U\d+$/i.test(node.label)) {
+      newLabel = this.getNextAvailableDesignator('U');
+    }
+    copy.label = newLabel;
+
     this.nodes.push(copy);
     this.selectedNodeId = copy.id;
     if (this.isSimulating) {
@@ -1743,11 +1826,23 @@ class DigitalSimulator {
     this.generateTruthTable();
     this.updateInspector();
     this.saveCurrentTabState();
-    this.showToast(`📋 Componente "${node.label}" duplicado.`);
+    this.showToast(`Componente "${node.label}" duplicado como "${newLabel}".`);
   }
 
   clearCurrentCanvasWithUndo() {
-    if (this.nodes.length === 0) return;
+    if (this.nodes.length === 0 && this.wires.length === 0) {
+      this.showToast('El lienzo ya está vacío.');
+      return;
+    }
+    const modal = document.getElementById('modalConfirmClear');
+    if (modal) {
+      modal.classList.remove('hidden');
+    } else {
+      this.executeClearCanvas();
+    }
+  }
+
+  executeClearCanvas() {
     this.pushUndoSnapshot();
     this.nodes = [];
     this.wires = [];
@@ -1757,7 +1852,7 @@ class DigitalSimulator {
     this.generateTruthTable();
     this.updateInspector();
     this.saveCurrentTabState();
-    this.showToast('🧹 Lienzo limpiado.', '↶ Deshacer', () => this.undoCanvasAction());
+    this.showToast('Lienzo vaciado.', '↶ Deshacer', () => this.undoCanvasAction());
   }
 
   // =========================================================================
@@ -1837,6 +1932,7 @@ class DigitalSimulator {
     this.renderNodes();
     this.renderWires();
     this.highlightActiveTruthRow();
+    this.updateEmptyGuideVisibility();
   }
 
   // =========================================================================
@@ -2504,9 +2600,19 @@ class DigitalSimulator {
 
       <div class="prop-form-row">
         <label>Posición (X, Y)</label>
-        <div class="prop-xy-grid">
-          <input id="inspectorPosX" type="number" class="prop-input" value="${node.x}" />
-          <input id="inspectorPosY" type="number" class="prop-input" value="${node.y}" />
+        <div class="prop-xy-steppers">
+          <div class="stepper-group" title="Ajuste fino horizontal">
+            <span class="stepper-prefix">X</span>
+            <button type="button" class="btn-stepper" id="btnStepDecX" title="Mover 10px a la izquierda">◀</button>
+            <input id="inspectorPosX" type="number" class="prop-input-stepper" value="${node.x}" step="10" />
+            <button type="button" class="btn-stepper" id="btnStepIncX" title="Mover 10px a la derecha">▶</button>
+          </div>
+          <div class="stepper-group" title="Ajuste fino vertical">
+            <span class="stepper-prefix">Y</span>
+            <button type="button" class="btn-stepper" id="btnStepDecY" title="Mover 10px hacia arriba">▲</button>
+            <input id="inspectorPosY" type="number" class="prop-input-stepper" value="${node.y}" step="10" />
+            <button type="button" class="btn-stepper" id="btnStepIncY" title="Mover 10px hacia abajo">▼</button>
+          </div>
         </div>
       </div>
 
@@ -2545,8 +2651,13 @@ class DigitalSimulator {
       </table>
 
       <div style="margin-top:14px;display:flex;gap:8px;">
-        <button id="btnInspectorPinout" class="btn btn-outline-soft" style="flex:1;justify-content:center;font-size:0.74rem;padding:7px;">🔲 Encapsulado DIP</button>
-        <button id="btnInspectorDelete" class="btn btn-outline-soft" style="color:var(--danger);border-color:#fecdd3;font-size:0.74rem;padding:7px;" title="Eliminar componente">🗑️</button>
+        <button id="btnInspectorPinout" class="btn btn-outline-soft" style="flex:1;justify-content:center;font-size:0.74rem;padding:7px;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="8" y1="2" x2="8" y2="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="16" y1="2" x2="16" y2="4"/><line x1="8" y1="20" x2="8" y2="22"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="16" y1="20" x2="16" y2="22"/></svg>
+          <span>Pines DIP 74LS</span>
+        </button>
+        <button id="btnInspectorDelete" class="btn btn-outline-soft" style="color:var(--danger);border-color:#fecdd3;font-size:0.74rem;padding:7px 10px;" title="Eliminar componente">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
       </div>
     `;
 
@@ -2563,8 +2674,40 @@ class DigitalSimulator {
       this.saveCurrentTabState();
     });
 
+    document.getElementById('btnStepDecX')?.addEventListener('click', () => {
+      node.x = Math.max(0, (node.x || 0) - 10);
+      const inp = document.getElementById('inspectorPosX');
+      if (inp) inp.value = node.x;
+      this.renderAll();
+      this.saveCurrentTabState();
+    });
+
+    document.getElementById('btnStepIncX')?.addEventListener('click', () => {
+      node.x = (node.x || 0) + 10;
+      const inp = document.getElementById('inspectorPosX');
+      if (inp) inp.value = node.x;
+      this.renderAll();
+      this.saveCurrentTabState();
+    });
+
     document.getElementById('inspectorPosY')?.addEventListener('change', (e) => {
       node.y = Number(e.target.value) || 0;
+      this.renderAll();
+      this.saveCurrentTabState();
+    });
+
+    document.getElementById('btnStepDecY')?.addEventListener('click', () => {
+      node.y = Math.max(0, (node.y || 0) - 10);
+      const inp = document.getElementById('inspectorPosY');
+      if (inp) inp.value = node.y;
+      this.renderAll();
+      this.saveCurrentTabState();
+    });
+
+    document.getElementById('btnStepIncY')?.addEventListener('click', () => {
+      node.y = (node.y || 0) + 10;
+      const inp = document.getElementById('inspectorPosY');
+      if (inp) inp.value = node.y;
       this.renderAll();
       this.saveCurrentTabState();
     });
@@ -3010,6 +3153,37 @@ class DigitalSimulator {
       this.downloadCircuitJson();
     });
 
+    // Confirmación modal para vaciar lienzo
+    document.getElementById('btnExecuteClearCanvas')?.addEventListener('click', () => {
+      document.getElementById('modalConfirmClear')?.classList.add('hidden');
+      this.executeClearCanvas();
+    });
+
+    // Menú desplegable de perfil de usuario
+    const userProfileBtn = document.getElementById('userProfileBtn');
+    const userProfileDropdown = document.getElementById('userProfileDropdown');
+    userProfileBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      userProfileDropdown?.classList.toggle('hidden');
+    });
+
+    document.getElementById('btnProfileMyCanvases')?.addEventListener('click', async () => {
+      userProfileDropdown?.classList.add('hidden');
+      await this.fetchUserCircuits();
+      document.getElementById('modalMyCanvases')?.classList.remove('hidden');
+    });
+
+    window.addEventListener('click', (e) => {
+      if (!e.target.closest('.user-profile-dropdown-wrap')) {
+        userProfileDropdown?.classList.add('hidden');
+      }
+    });
+
+    // Botones de acción rápida en el centro del lienzo vacío
+    document.getElementById('btnEmptyAddInput')?.addEventListener('click', () => this.addNodeOfType('INPUT'));
+    document.getElementById('btnEmptyAddAnd')?.addEventListener('click', () => this.addNodeOfType('AND'));
+    document.getElementById('btnEmptyAddOutput')?.addEventListener('click', () => this.addNodeOfType('OUTPUT'));
+
     const fileInput = document.getElementById('fileImportInput');
     document.getElementById('btnImportCircuit')?.addEventListener('click', () => fileInput?.click());
     fileInput?.addEventListener('change', (e) => {
@@ -3127,12 +3301,29 @@ class DigitalSimulator {
       });
     }
 
+    const updateToggleUI = () => {
+      const isCollapsed = dock.classList.contains('collapsed');
+      const icon = document.getElementById('dockToggleIcon');
+      const label = document.getElementById('dockToggleLabel');
+      if (icon) icon.textContent = isCollapsed ? '▴' : '▾';
+      if (label) label.textContent = isCollapsed ? 'Ver Tabla (2ⁿ)' : 'Ocultar Panel';
+      btnToggle.title = isCollapsed ? 'Expandir panel de tabla de verdad' : 'Colapsar panel para ganar espacio en el lienzo';
+    };
+
     if (btnToggle) {
       btnToggle.addEventListener('click', () => {
-        const isCollapsed = dock.classList.toggle('collapsed');
-        btnToggle.textContent = isCollapsed ? '▴' : '▾';
+        dock.classList.toggle('collapsed');
+        updateToggleUI();
       });
     }
+
+    // Al hacer clic en cualquier pestaña del dock inferior, asegurar que se descolapse
+    document.querySelectorAll('.dock-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        dock.classList.remove('collapsed');
+        updateToggleUI();
+      });
+    });
   }
 }
 

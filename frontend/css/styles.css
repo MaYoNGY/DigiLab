@@ -208,6 +208,22 @@ html.in-workspace-mode #simulatorView {
   background: #fff5f9;
 }
 
+.btn-danger-solid {
+  background: #e11d48;
+  color: #ffffff;
+  border: none;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);
+  transition: all 0.15s ease;
+}
+.btn-danger-solid:hover {
+  background: #be123c;
+  transform: translateY(-1px);
+}
+
 .btn-block {
   width: 100%;
   justify-content: center;
@@ -978,6 +994,11 @@ html.in-workspace-mode #simulatorView {
   box-shadow: 0 0 6px #10b981;
 }
 
+.user-profile-dropdown-wrap {
+  position: relative;
+  display: inline-block;
+}
+
 .user-profile-pill {
   display: flex;
   align-items: center;
@@ -986,6 +1007,13 @@ html.in-workspace-mode #simulatorView {
   border: 1px solid var(--border-light);
   padding: 3px 10px 3px 4px;
   border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.user-profile-pill:hover {
+  background: #fce7f3;
+  border-color: #f472b6;
 }
 
 .user-avatar {
@@ -1007,14 +1035,84 @@ html.in-workspace-mode #simulatorView {
   color: var(--text-dark);
 }
 
-.btn-link-rose {
-  background: transparent;
-  border: none;
-  color: var(--rose-primary);
-  font-size: 0.72rem;
+.user-profile-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 220px;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(157, 23, 77, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  padding: 8px 6px;
+  z-index: 100;
+}
+
+.profile-popover-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 10px;
+}
+
+.popover-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ec4899, #be185d);
+  color: #fff;
+  font-size: 0.85rem;
   font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popover-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.popover-text strong {
+  font-size: 0.82rem;
+  color: var(--text-dark);
+}
+
+.popover-text span {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.profile-popover-item,
+.profile-popover-logout {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-body);
   cursor: pointer;
-  margin-left: 4px;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.profile-popover-item:hover {
+  background: #fdf2f8;
+  color: var(--rose-primary);
+}
+
+.profile-popover-logout {
+  color: #b91c1c;
+}
+
+.profile-popover-logout:hover {
+  background: #fef2f2;
+  color: #dc2626;
 }
 
 /* FILA 2: BARRA DE HERRAMIENTAS PRINCIPAL (UNIFICADA PROFESIONAL) */
@@ -1749,12 +1847,13 @@ html.in-workspace-mode #simulatorView {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #db2777;
+  background: #94a3b8;
+  transition: all 0.2s ease;
 }
 
 .work-tab.active .work-tab-dot {
   background: #10b981;
-  box-shadow: 0 0 5px rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
 }
 
 .work-tab-close {
@@ -2173,8 +2272,8 @@ html.in-workspace-mode #simulatorView {
 /* CABLES ORTOGONALES ESQUEMÁTICOS Y PUNTOS DE UNIÓN */
 .wire-path {
   fill: none;
-  stroke: #9d174d;
-  stroke-width: 2.6px;
+  stroke: #475569; /* Slate Gray para estado lógico bajo '0' (evita sobrecarga de magenta) */
+  stroke-width: 2.5px;
   stroke-linecap: round;
   stroke-linejoin: round;
   cursor: pointer;
@@ -2187,13 +2286,18 @@ html.in-workspace-mode #simulatorView {
 }
 
 .wire-path.high {
-  stroke: #10b981;
+  stroke: #10b981; /* Verde esmeralda brillante para nivel lógico alto '1' */
   stroke-width: 3px;
-  filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.32));
+  filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.4));
+}
+
+.wire-path.selected {
+  stroke: #0284c7; /* Azul eléctrico cuando está seleccionado */
+  stroke-width: 3.2px;
 }
 
 .wire-junction {
-  fill: #9d174d;
+  fill: #475569;
   pointer-events: none;
 }
 
@@ -2313,6 +2417,27 @@ html.in-workspace-mode #simulatorView {
   gap: 8px;
 }
 
+.btn-dock-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fdf2f8;
+  border: 1.2px solid #fbcfe8;
+  color: #9d174d;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-dock-toggle:hover {
+  background: #fce7f3;
+  border-color: #f472b6;
+  color: #831843;
+}
+
 .dock-content {
   display: none;
   flex: 1;
@@ -2381,8 +2506,9 @@ html.in-workspace-mode #simulatorView {
 .truth-table {
   width: 100%;
   border-collapse: collapse;
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-family: var(--font-sans), monospace;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
   text-align: center;
 }
 
@@ -2394,6 +2520,7 @@ html.in-workspace-mode #simulatorView {
   padding: 5px 8px;
   border-bottom: 1px solid var(--border-light);
   font-weight: 800;
+  font-family: var(--font-sans);
 }
 
 .truth-table th.out-col {
@@ -2412,11 +2539,21 @@ html.in-workspace-mode #simulatorView {
   padding: 4px 8px;
   border-bottom: 1px solid #f9ebf3;
   color: var(--text-body);
+  font-family: var(--font-sans);
+  font-feature-settings: "zero" 0;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.84rem;
+  font-weight: 600;
 }
 
 .truth-table tr.active-row {
   background: #fbcfe8 !important;
   font-weight: 800;
+}
+
+.truth-table td.val-0 {
+  color: #475569;
+  font-weight: 700;
 }
 
 .truth-table td.val-1 {
@@ -2597,6 +2734,134 @@ html.in-workspace-mode #simulatorView {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
+}
+
+.prop-xy-steppers {
+  display: flex;
+  gap: 8px;
+}
+
+.stepper-group {
+  display: flex;
+  align-items: center;
+  background: #fdf2f8;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.stepper-prefix {
+  padding: 0 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--rose-deep);
+}
+
+.prop-input-stepper {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 4px 2px;
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-dark);
+}
+
+.prop-input-stepper:focus {
+  outline: none;
+  background: #ffffff;
+}
+
+.btn-stepper {
+  background: transparent;
+  border: none;
+  padding: 4px 6px;
+  font-size: 0.65rem;
+  color: var(--rose-primary);
+  cursor: pointer;
+  transition: background 0.12s;
+  user-select: none;
+}
+
+.btn-stepper:hover {
+  background: #fce7f3;
+  color: #831843;
+}
+
+/* Canvas Empty State Guide */
+.canvas-empty-guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.empty-guide-card {
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  border: 1.5px dashed #f472b6;
+  border-radius: 14px;
+  padding: 22px 28px;
+  text-align: center;
+  max-width: 380px;
+  box-shadow: 0 10px 30px rgba(190, 24, 93, 0.08);
+}
+
+.empty-guide-icon {
+  width: 48px;
+  height: 48px;
+  background: #fdf2f8;
+  border-radius: 12px;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-guide-card h4 {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #831843;
+  margin-bottom: 6px;
+}
+
+.empty-guide-card p {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.empty-guide-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-empty-action {
+  background: #fce7f3;
+  border: 1px solid #fbcfe8;
+  color: #9d174d;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-empty-action:hover {
+  background: #db2777;
+  color: #ffffff;
+  border-color: #db2777;
 }
 
 .prop-section-subtitle {

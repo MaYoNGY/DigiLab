@@ -189,7 +189,7 @@ window.FALLBACK_PRESETS = [
       { id: 'i3', type: 'INPUT', label: 'I3', x: 140, y: 175, state: [0] },
       { id: 's1', type: 'INPUT', label: 'S1', x: 140, y: 225, state: [0] },
       { id: 's0', type: 'INPUT', label: 'S0', x: 140, y: 265, state: [0] },
-      { id: 'mux4', type: 'MUX_4_1', label: 'U2', x: 370, y: 80 },
+      { id: 'mux4', type: 'MUX_4_1', label: 'U1', x: 370, y: 80 },
       { id: 'outY', type: 'OUTPUT', label: 'Y', x: 580, y: 150 }
     ],
     wires: [
