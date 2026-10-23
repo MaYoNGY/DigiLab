@@ -891,17 +891,47 @@ html.in-workspace-mode #simulatorView {
   background: transparent;
   border: none;
   text-align: left;
-  padding: 8px 10px;
+  padding: 7px 11px;
   border-radius: 7px;
   font-size: 0.77rem;
   font-weight: 600;
   color: var(--text-dark);
   cursor: pointer;
   font-family: var(--font-sans);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  transition: background 0.12s ease, color 0.12s ease;
 }
+
+.menu-dropdown button svg {
+  flex-shrink: 0;
+  color: var(--rose-primary);
+  opacity: 0.85;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
 .menu-dropdown button:hover {
   background: #fdf2f8;
   color: var(--rose-primary);
+}
+
+.menu-dropdown button:hover svg {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.menu-dropdown button kbd {
+  margin-left: auto;
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  background: #fce7f3;
+  color: #9d174d;
+  border: 1px solid #fbcfe8;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 700;
 }
 
 .menu-sep {
