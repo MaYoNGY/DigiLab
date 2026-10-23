@@ -2095,9 +2095,51 @@ class DigitalSimulator {
 
   getPinPosition(node, pinIndex, isOutput) {
     const def = window.COMPONENT_DEFS[node.type];
-    const pinY = node.y + window.getPinOffsetY(node.type, pinIndex, isOutput);
-    const pinX = isOutput ? node.x + def.width : node.x;
-    return { x: pinX, y: pinY };
+    if (!def) return { x: node.x, y: node.y, orientation: 'east' };
+
+    const w = def.width;
+    const h = def.height;
+    const rawX = isOutput ? w : 0;
+    const rawY = window.getPinOffsetY(node.type, pinIndex, isOutput);
+
+    const rot = ((node.rotation || 0) % 360 + 360) % 360;
+    if (rot === 0) {
+      return {
+        x: node.x + rawX,
+        y: node.y + rawY,
+        orientation: isOutput ? 'east' : 'west'
+      };
+    }
+
+    // Rotar coordenadas locales alrededor del centro del componente (w / 2, h / 2)
+    const cx = w / 2;
+    const cy = h / 2;
+    const dx = rawX - cx;
+    const dy = rawY - cy;
+
+    let rx = dx;
+    let ry = dy;
+    let orientation = isOutput ? 'east' : 'west';
+
+    if (rot === 90) {
+      rx = -dy;
+      ry = dx;
+      orientation = isOutput ? 'south' : 'north';
+    } else if (rot === 180) {
+      rx = -dx;
+      ry = -dy;
+      orientation = isOutput ? 'west' : 'east';
+    } else if (rot === 270) {
+      rx = dy;
+      ry = -dx;
+      orientation = isOutput ? 'north' : 'south';
+    }
+
+    return {
+      x: Math.round(node.x + cx + rx),
+      y: Math.round(node.y + cy + ry),
+      orientation
+    };
   }
 
   renderAll() {
@@ -2124,6 +2166,10 @@ class DigitalSimulator {
       el.style.width = `${def.width}px`;
       el.style.height = `${def.height}px`;
       el.dataset.id = node.id;
+      if (node.rotation) {
+        el.style.transform = `rotate(${node.rotation}deg)`;
+        el.style.transformOrigin = 'center center';
+      }
 
       const outVals = this.nodeOutputs[node.id] || [0];
       const inVals = this.nodeInputs[node.id] || [0];
@@ -2188,9 +2234,6 @@ class DigitalSimulator {
         const svgWrapper = document.createElement('div');
         svgWrapper.style.width = '100%';
         svgWrapper.style.height = '100%';
-        if (node.rotation) {
-          svgWrapper.style.transform = `rotate(${node.rotation}deg)`;
-        }
         svgWrapper.innerHTML = window.renderSchematicNodeSvg(node, inVals, outVals);
         el.appendChild(svgWrapper);
 
@@ -2198,6 +2241,9 @@ class DigitalSimulator {
           const tag = document.createElement('span');
           tag.className = 'schematic-floating-tag';
           tag.textContent = node.label;
+          if (node.rotation) {
+            tag.style.transform = `translateX(-50%) rotate(${-node.rotation}deg)`;
+          }
           el.appendChild(tag);
         }
       }
@@ -2300,7 +2346,11 @@ class DigitalSimulator {
       const outVals = this.nodeOutputs[fromNode.id] || [];
       const isHigh = outVals[wire.fromPin] === 1;
 
-      const { d, bendX } = this.buildOrthogonalPath(p1.x, p1.y, p2.x, p2.y, wire.toPin, idx);
+      const { d, bendX, bendY } = this.buildOrthogonalPath(
+        p1.x, p1.y, p2.x, p2.y,
+        wire.toPin, idx,
+        p1.orientation, p2.orientation
+      );
 
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', d);
@@ -2313,7 +2363,7 @@ class DigitalSimulator {
           // Si estamos tendiendo un cable desde una entrada hacia una señal existente (bifurcación / derivación en T)
           if (!this.wiringStart.isOutput) {
             this.completeWiringOnPin(wire.fromNode, wire.fromPin, true);
-            this.showToast('🔗 Conexión bifurcada añadida a la línea.');
+            this.showToast('Conexión bifurcada añadida a la línea.');
             return;
           }
           this.showToast('Para conectar esta señal, haz clic en el pin de entrada de la compuerta.');
@@ -2323,7 +2373,7 @@ class DigitalSimulator {
         // Si se presiona Shift o Alt sobre un cable existente, iniciar una nueva derivación desde esa señal
         if (e.shiftKey || e.altKey) {
           this.startOrCompleteWiring(wire.fromNode, wire.fromPin, true, e);
-          this.showToast('🔗 Derivando nueva conexión desde este cable...');
+          this.showToast('Derivando nueva conexión desde este cable...');
           return;
         }
 
@@ -2344,8 +2394,10 @@ class DigitalSimulator {
       if (pinUsageCount[key] > 1 && !drawnJunctions.has(key)) {
         drawnJunctions.add(key);
         const jDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        jDot.setAttribute('cx', String(bendX));
-        jDot.setAttribute('cy', String(p1.y));
+        const jX = p1.orientation === 'south' || p1.orientation === 'north' ? p1.x : (bendX !== undefined ? bendX : p1.x);
+        const jY = p1.orientation === 'south' || p1.orientation === 'north' ? (bendY !== undefined ? bendY : p1.y) : p1.y;
+        jDot.setAttribute('cx', String(jX));
+        jDot.setAttribute('cy', String(jY));
         jDot.setAttribute('r', '4.5');
         jDot.setAttribute('class', `wire-junction ${isHigh ? 'high' : ''}`);
         jDot.setAttribute('title', 'Punto de unión / bifurcación (Clic para derivar otra conexión)');
@@ -2354,11 +2406,11 @@ class DigitalSimulator {
           e.stopPropagation();
           if (this.wiringStart && !this.wiringStart.isOutput) {
             this.completeWiringOnPin(wire.fromNode, wire.fromPin, true);
-            this.showToast('🔗 Conectado al punto de unión.');
+            this.showToast('Conectado al punto de unión.');
             return;
           }
           this.startOrCompleteWiring(wire.fromNode, wire.fromPin, true, e);
-          this.showToast('🔗 Derivando nueva conexión desde el nodo...');
+          this.showToast('Derivando nueva conexión desde el nodo...');
         });
 
         this.wiresSvg.appendChild(jDot);
@@ -2370,18 +2422,83 @@ class DigitalSimulator {
     }
   }
 
-  buildOrthogonalPath(x1, y1, x2, y2, toPin = 0) {
+  buildOrthogonalPath(x1, y1, x2, y2, toPin = 0, idx = 0, startDir = 'east', endDir = 'west') {
+    if (Math.abs(y2 - y1) <= 2 && Math.abs(x2 - x1) <= 2) {
+      return { d: `M ${x1} ${y1} L ${x2} ${y2}`, bendX: (x1 + x2) / 2, bendY: (y1 + y2) / 2 };
+    }
+
+    const stub = 16;
+
+    // 1. Salida apuntando hacia el SUR (hacia abajo, p.ej. compuerta rotada 90°)
+    if (startDir === 'south') {
+      if (endDir === 'north') {
+        if (y2 >= y1 + stub) {
+          const midY = Math.round((y1 + y2) / 2);
+          return { d: `M ${x1} ${y1} V ${midY} H ${x2} V ${y2}`, bendX: x2, bendY: midY };
+        }
+        const midX = Math.round((x1 + x2) / 2);
+        return { d: `M ${x1} ${y1} V ${y1 + stub} H ${midX} V ${y2 - stub} H ${x2} V ${y2}`, bendX: x1, bendY: y1 + stub };
+      }
+      if (endDir === 'west') {
+        if (y2 >= y1 + stub && x2 >= x1) {
+          return { d: `M ${x1} ${y1} V ${y2} H ${x2}`, bendX: x1, bendY: y2 };
+        }
+        return { d: `M ${x1} ${y1} V ${y1 + stub} H ${x2 - stub} V ${y2} H ${x2}`, bendX: x1, bendY: y1 + stub };
+      }
+      return { d: `M ${x1} ${y1} V ${y1 + stub} H ${x2} V ${y2}`, bendX: x1, bendY: y1 + stub };
+    }
+
+    // 2. Salida apuntando hacia el NORTE (hacia arriba, p.ej. compuerta rotada 270°)
+    if (startDir === 'north') {
+      if (endDir === 'south') {
+        if (y1 >= y2 + stub) {
+          const midY = Math.round((y1 + y2) / 2);
+          return { d: `M ${x1} ${y1} V ${midY} H ${x2} V ${y2}`, bendX: x2, bendY: midY };
+        }
+      }
+      if (endDir === 'west') {
+        if (y1 >= y2 + stub && x2 >= x1) {
+          return { d: `M ${x1} ${y1} V ${y2} H ${x2}`, bendX: x1, bendY: y2 };
+        }
+        return { d: `M ${x1} ${y1} V ${y1 - stub} H ${x2 - stub} V ${y2} H ${x2}`, bendX: x1, bendY: y1 - stub };
+      }
+      return { d: `M ${x1} ${y1} V ${y1 - stub} H ${x2} V ${y2}`, bendX: x1, bendY: y1 - stub };
+    }
+
+    // 3. Entrada apuntando hacia el NORTE (desde arriba, p.ej. compuerta rotada 90°)
+    if (endDir === 'north') {
+      if (startDir === 'east') {
+        if (x2 >= x1 + stub && y2 >= y1) {
+          return { d: `M ${x1} ${y1} H ${x2} V ${y2}`, bendX: x2, bendY: y1 };
+        }
+        return { d: `M ${x1} ${y1} H ${x1 + stub} V ${y2 - stub} H ${x2} V ${y2}`, bendX: x1 + stub, bendY: y2 - stub };
+      }
+      return { d: `M ${x1} ${y1} H ${x2} V ${y2}`, bendX: x2, bendY: y1 };
+    }
+
+    // 4. Entrada apuntando hacia el SUR (desde abajo, p.ej. compuerta rotada 270°)
+    if (endDir === 'south') {
+      if (startDir === 'east') {
+        if (x2 >= x1 + stub && y1 >= y2) {
+          return { d: `M ${x1} ${y1} H ${x2} V ${y2}`, bendX: x2, bendY: y1 };
+        }
+        return { d: `M ${x1} ${y1} H ${x1 + stub} V ${y2 + stub} H ${x2} V ${y2}`, bendX: x1 + stub, bendY: y2 + stub };
+      }
+      return { d: `M ${x1} ${y1} H ${x2} V ${y2}`, bendX: x2, bendY: y1 };
+    }
+
+    // 5. Caso estándar: Salida hacia el ESTE y Entrada desde el OESTE
     if (Math.abs(y2 - y1) <= 2 && x2 >= x1) {
-      return { d: `M ${x1} ${y1} L ${x2} ${y2}`, bendX: (x1 + x2) / 2 };
+      return { d: `M ${x1} ${y1} L ${x2} ${y2}`, bendX: (x1 + x2) / 2, bendY: y1 };
     }
 
     if (x2 >= x1 + 24) {
-      // Escalonar levemente el punto de giro vertical según el pin para que cables paralelos no se superpongan
       const offset = ((toPin % 4) - 1.5) * 8;
       const midX = Math.round((x1 + x2) / 2 + offset);
       return {
         d: `M ${x1} ${y1} H ${midX} V ${y2} H ${x2}`,
-        bendX: midX
+        bendX: midX,
+        bendY: y1
       };
     }
 
@@ -2390,8 +2507,20 @@ class DigitalSimulator {
     const midY = Math.round((y1 + y2) / 2);
     return {
       d: `M ${x1} ${y1} H ${x1 + pad} V ${midY} H ${x2 - pad} V ${y2} H ${x2}`,
-      bendX: x1 + pad
+      bendX: x1 + pad,
+      bendY: midY
     };
+  }
+
+  updateTempWire(mouseX, mouseY) {
+    if (!this.wiringStart || !this.tempWirePath) return;
+    const node = this.nodes.find((n) => n.id === this.wiringStart.nodeId);
+    if (!node) return;
+    const startPos = this.getPinPosition(node, this.wiringStart.pinIndex, this.wiringStart.isOutput);
+    const { d } = this.wiringStart.isOutput
+      ? this.buildOrthogonalPath(startPos.x, startPos.y, mouseX, mouseY, 0, 0, startPos.orientation, 'west')
+      : this.buildOrthogonalPath(mouseX, mouseY, startPos.x, startPos.y, 0, 0, 'east', startPos.orientation);
+    this.tempWirePath.setAttribute('d', d);
   }
 
   startOrCompleteWiring(nodeId, pinIndex, isOutput, event) {
