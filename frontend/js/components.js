@@ -230,8 +230,42 @@ window.COMPONENT_DEFS = {
     pinYInputs: [16, 36, 56],
     pinYOutputs: [36],
     formula: 'Y = A · B · C',
-    desc: 'Salida en 1 cuando las 3 entradas son 1.',
+    desc: 'Salida en 1 cuando las 3 entradas son 1 (TTL 74LS11).',
     evaluate: (inVals) => [(inVals[0] & inVals[1] & inVals[2]) ? 1 : 0]
+  },
+  AND4: {
+    name: 'Compuerta AND 4-In',
+    sub: 'Dual AND de 4 entradas',
+    ic: '74LS21',
+    kind: 'gate',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-14',
+    inputs: ['A', 'B', 'C', 'D'],
+    outputs: ['Y'],
+    width: 104,
+    height: 90,
+    pinYInputs: [16, 36, 56, 74],
+    pinYOutputs: [45],
+    formula: 'Y = A · B · C · D',
+    desc: 'Salida en 1 únicamente cuando las 4 entradas son 1 (TTL 74LS21).',
+    evaluate: (inVals) => [(inVals[0] & inVals[1] & inVals[2] & inVals[3]) ? 1 : 0]
+  },
+  AND8: {
+    name: 'Compuerta AND 8-In',
+    sub: 'AND de 8 entradas (Decodificador)',
+    ic: 'AND-8',
+    kind: 'ic',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-14',
+    inputs: ['I0', 'I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7'],
+    outputs: ['Y'],
+    width: 126,
+    height: 196,
+    formula: 'Y = I0 · I1 · ... · I7',
+    desc: 'Salida en 1 únicamente cuando las 8 entradas son 1.',
+    evaluate: (inVals) => [inVals.every((v) => v === 1) ? 1 : 0]
   },
   NAND3: {
     name: 'Compuerta NAND 3-In',
@@ -271,7 +305,7 @@ window.COMPONENT_DEFS = {
   },
   NAND8: {
     name: 'Compuerta NAND 8-In',
-    sub: 'NAND de 8 entradas',
+    sub: 'NAND de 8 entradas (TTL 74LS30)',
     ic: '74LS30',
     kind: 'ic',
     family: '74LS (TTL)',
@@ -282,7 +316,44 @@ window.COMPONENT_DEFS = {
     width: 126,
     height: 196,
     formula: "Y = (I0·I1·...·I7)'",
+    desc: 'Salida en 0 únicamente cuando las 8 entradas son 1 (TTL 74LS30).',
     evaluate: (inVals) => [inVals.every((v) => v === 1) ? 0 : 1]
+  },
+  OR3: {
+    name: 'Compuerta OR 3-In',
+    sub: 'Triple OR de 3 entradas',
+    ic: '74LS4075',
+    kind: 'gate',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-14',
+    inputs: ['A', 'B', 'C'],
+    outputs: ['Y'],
+    width: 100,
+    height: 72,
+    pinYInputs: [16, 36, 56],
+    pinYOutputs: [36],
+    formula: 'Y = A + B + C',
+    desc: 'Salida en 1 si al menos una de las 3 entradas es 1 (TTL 74LS4075).',
+    evaluate: (inVals) => [(inVals[0] | inVals[1] | inVals[2]) ? 1 : 0]
+  },
+  OR4: {
+    name: 'Compuerta OR 4-In',
+    sub: 'Dual OR de 4 entradas',
+    ic: '74LS4072',
+    kind: 'gate',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-14',
+    inputs: ['A', 'B', 'C', 'D'],
+    outputs: ['Y'],
+    width: 104,
+    height: 90,
+    pinYInputs: [16, 36, 56, 74],
+    pinYOutputs: [45],
+    formula: 'Y = A + B + C + D',
+    desc: 'Salida en 1 si al menos una de las 4 entradas es 1 (TTL 74LS4072).',
+    evaluate: (inVals) => [(inVals[0] | inVals[1] | inVals[2] | inVals[3]) ? 1 : 0]
   },
   OR5: {
     name: 'Compuerta OR (SOP)',
@@ -299,7 +370,96 @@ window.COMPONENT_DEFS = {
     pinYInputs: [16, 34, 52, 70, 88],
     pinYOutputs: [52],
     formula: 'F = Σ minitérminos',
+    desc: 'OR de 5 entradas para sumar minitérminos en arquitecturas SOP.',
     evaluate: (inVals) => [inVals.some((v) => v === 1) ? 1 : 0]
+  },
+  OR8: {
+    name: 'Compuerta OR 8-In (SOP)',
+    sub: 'OR de 8 entradas para minitérminos',
+    ic: 'SOP-OR8',
+    kind: 'ic',
+    family: 'Lógica Combinacional',
+    manufacturer: 'DigiLab Logic',
+    pkg: 'Módulo SOP',
+    inputs: ['m0', 'm1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7'],
+    outputs: ['F'],
+    width: 126,
+    height: 196,
+    formula: 'F = Σ minitérminos (m0..m7)',
+    desc: 'OR de 8 entradas para sumar hasta 8 minitérminos en circuitos combinacionales.',
+    evaluate: (inVals) => [inVals.some((v) => v === 1) ? 1 : 0]
+  },
+  NOR3: {
+    name: 'Compuerta NOR 3-In',
+    sub: 'Triple NOR de 3 entradas',
+    ic: '74LS27',
+    kind: 'gate',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-14',
+    inputs: ['A', 'B', 'C'],
+    outputs: ['Y'],
+    width: 100,
+    height: 72,
+    pinYInputs: [16, 36, 56],
+    pinYOutputs: [36],
+    formula: "Y = (A + B + C)'",
+    desc: 'Salida en 1 únicamente cuando las 3 entradas son 0 (TTL 74LS27).',
+    evaluate: (inVals) => [(inVals[0] | inVals[1] | inVals[2]) ? 0 : 1]
+  },
+  NOR4: {
+    name: 'Compuerta NOR 4-In',
+    sub: 'Dual NOR de 4 entradas',
+    ic: '74LS4002',
+    kind: 'gate',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-14',
+    inputs: ['A', 'B', 'C', 'D'],
+    outputs: ['Y'],
+    width: 104,
+    height: 90,
+    pinYInputs: [16, 36, 56, 74],
+    pinYOutputs: [45],
+    formula: "Y = (A + B + C + D)'",
+    desc: 'Salida en 1 únicamente cuando las 4 entradas son 0 (TTL 74LS4002).',
+    evaluate: (inVals) => [(inVals[0] | inVals[1] | inVals[2] | inVals[3]) ? 0 : 1]
+  },
+  XOR3: {
+    name: 'Compuerta XOR 3-In',
+    sub: 'Generador Paridad Impar 3-In',
+    ic: 'PARITY-ODD',
+    kind: 'gate',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-14',
+    inputs: ['A', 'B', 'C'],
+    outputs: ['Y'],
+    width: 100,
+    height: 72,
+    pinYInputs: [16, 36, 56],
+    pinYOutputs: [36],
+    formula: 'Y = A ⊕ B ⊕ C',
+    desc: 'Salida en 1 cuando un número impar de entradas está en 1.',
+    evaluate: (inVals) => [((inVals[0] ^ inVals[1] ^ inVals[2]) & 1) ? 1 : 0]
+  },
+  XNOR3: {
+    name: 'Compuerta XNOR 3-In',
+    sub: 'Generador Paridad Par 3-In',
+    ic: 'PARITY-EVEN',
+    kind: 'gate',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-14',
+    inputs: ['A', 'B', 'C'],
+    outputs: ['Y'],
+    width: 100,
+    height: 72,
+    pinYInputs: [16, 36, 56],
+    pinYOutputs: [36],
+    formula: "Y = (A ⊕ B ⊕ C)'",
+    desc: 'Salida en 1 cuando un número par de entradas está en 1 (o todas en 0).',
+    evaluate: (inVals) => [((inVals[0] ^ inVals[1] ^ inVals[2]) & 1) ? 0 : 1]
   },
 
   // CIRCUITOS ARITMÉTICOS (ESQUEMÁTICOS LIMPIOS)
@@ -593,11 +753,17 @@ window.getCatalogIconSvg = function (type) {
       </svg>`;
     case 'AND':
     case 'AND3':
+    case 'AND4':
       return `<svg width="36" height="24" viewBox="0 0 38 24">
         <line x1="2" y1="8" x2="9" y2="8" stroke="${stroke}" stroke-width="1.8"/>
         <line x1="2" y1="16" x2="9" y2="16" stroke="${stroke}" stroke-width="1.8"/>
         <path d="M9 3 H20 A9 9 0 0 1 20 21 H9 Z" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
         <line x1="29" y1="12" x2="36" y2="12" stroke="${stroke}" stroke-width="1.8"/>
+      </svg>`;
+    case 'AND8':
+      return `<svg width="36" height="24" viewBox="0 0 38 24">
+        <rect x="7" y="2" width="24" height="20" rx="3" fill="${fill}" stroke="${stroke}" stroke-width="1.8"/>
+        <text x="19" y="16" text-anchor="middle" fill="${stroke}" font-size="9" font-weight="800" font-family="JetBrains Mono">&amp;8</text>
       </svg>`;
     case 'NAND':
     case 'NAND3':
@@ -611,6 +777,8 @@ window.getCatalogIconSvg = function (type) {
         <line x1="32" y1="12" x2="37" y2="12" stroke="${stroke}" stroke-width="1.8"/>
       </svg>`;
     case 'OR':
+    case 'OR3':
+    case 'OR4':
     case 'OR5':
       return `<svg width="36" height="24" viewBox="0 0 38 24">
         <line x1="2" y1="8" x2="10" y2="8" stroke="${stroke}" stroke-width="1.8"/>
@@ -618,7 +786,14 @@ window.getCatalogIconSvg = function (type) {
         <path d="M7 3 Q18 3 29 12 Q18 21 7 21 Q12 12 7 3 Z" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
         <line x1="29" y1="12" x2="36" y2="12" stroke="${stroke}" stroke-width="1.8"/>
       </svg>`;
+    case 'OR8':
+      return `<svg width="36" height="24" viewBox="0 0 38 24">
+        <rect x="7" y="2" width="24" height="20" rx="3" fill="${fill}" stroke="${stroke}" stroke-width="1.8"/>
+        <text x="19" y="16" text-anchor="middle" fill="${stroke}" font-size="8.5" font-weight="800" font-family="JetBrains Mono">≥1·8</text>
+      </svg>`;
     case 'NOR':
+    case 'NOR3':
+    case 'NOR4':
       return `<svg width="36" height="24" viewBox="0 0 38 24">
         <line x1="2" y1="8" x2="9" y2="8" stroke="${stroke}" stroke-width="1.8"/>
         <line x1="2" y1="16" x2="9" y2="16" stroke="${stroke}" stroke-width="1.8"/>
@@ -627,6 +802,7 @@ window.getCatalogIconSvg = function (type) {
         <line x1="31.5" y1="12" x2="37" y2="12" stroke="${stroke}" stroke-width="1.8"/>
       </svg>`;
     case 'XOR':
+    case 'XOR3':
       return `<svg width="36" height="24" viewBox="0 0 38 24">
         <line x1="2" y1="8" x2="9" y2="8" stroke="${stroke}" stroke-width="1.8"/>
         <line x1="2" y1="16" x2="9" y2="16" stroke="${stroke}" stroke-width="1.8"/>
@@ -635,6 +811,7 @@ window.getCatalogIconSvg = function (type) {
         <line x1="29" y1="12" x2="36" y2="12" stroke="${stroke}" stroke-width="1.8"/>
       </svg>`;
     case 'XNOR':
+    case 'XNOR3':
       return `<svg width="36" height="24" viewBox="0 0 38 24">
         <line x1="1" y1="8" x2="8" y2="8" stroke="${stroke}" stroke-width="1.8"/>
         <line x1="1" y1="16" x2="8" y2="16" stroke="${stroke}" stroke-width="1.8"/>
@@ -689,7 +866,7 @@ window.renderSchematicNodeSvg = function (node, inVals, outVals) {
     const inYs = def.inputs.map((_, idx) => window.getPinOffsetY(node.type, idx, false));
     const outY = window.getPinOffsetY(node.type, 0, true);
 
-    if (node.type === 'AND' || node.type === 'AND3') {
+    if (node.type === 'AND' || node.type === 'AND3' || node.type === 'AND4') {
       const leadEndX = 22;
       const bodyRightStraight = 52;
       const r = (h - 12) / 2;
@@ -725,7 +902,7 @@ window.renderSchematicNodeSvg = function (node, inVals, outVals) {
       `;
     }
 
-    if (node.type === 'OR' || node.type === 'OR5') {
+    if (node.type === 'OR' || node.type === 'OR3' || node.type === 'OR4' || node.type === 'OR5') {
       const tipX = w - 18;
       const leads = inYs
         .map((y, idx) => `<line x1="0" y1="${y}" x2="25" y2="${y}" stroke="${inVals[idx] ? '#10b981' : stroke}" stroke-width="2.5"/>`)
@@ -740,7 +917,7 @@ window.renderSchematicNodeSvg = function (node, inVals, outVals) {
       `;
     }
 
-    if (node.type === 'NOR') {
+    if (node.type === 'NOR' || node.type === 'NOR3' || node.type === 'NOR4') {
       const tipX = w - 26;
       const bubbleX = tipX + 5.5;
       const leads = inYs
@@ -757,7 +934,7 @@ window.renderSchematicNodeSvg = function (node, inVals, outVals) {
       `;
     }
 
-    if (node.type === 'XOR') {
+    if (node.type === 'XOR' || node.type === 'XOR3') {
       const tipX = w - 18;
       const leads = inYs
         .map((y, idx) => `<line x1="0" y1="${y}" x2="27" y2="${y}" stroke="${inVals[idx] ? '#10b981' : stroke}" stroke-width="2.5"/>`)
@@ -773,7 +950,7 @@ window.renderSchematicNodeSvg = function (node, inVals, outVals) {
       `;
     }
 
-    if (node.type === 'XNOR') {
+    if (node.type === 'XNOR' || node.type === 'XNOR3') {
       const tipX = w - 26;
       const bubbleX = tipX + 5.5;
       const leads = inYs
@@ -952,5 +1129,47 @@ window.IC_PINOUT_DATA = {
     pins: 16,
     left: ['1: I3', '2: I2', '3: I1', '4: I0', '5: Z (Salida)', "6: Z' (Invertida)", "7: E' (Enable)", '8: GND'],
     right: ['16: VCC (+5V)', '15: I4', '14: I5', '13: I6', '12: I7', '11: S0', '10: S1', '9: S2']
+  },
+  '74LS10': {
+    title: '74LS10 · Triple Compuerta NAND de 3 Entradas',
+    package: 'Encapsulado DIP-14 · Serie TTL 74LS',
+    pins: 14,
+    left: ['1: 1A', '2: 1B', '3: 2A', '4: 2B', '5: 2C', '6: 2Y (Out)', '7: GND'],
+    right: ['14: VCC (+5V)', '13: 1C', '12: 1Y (Out)', '11: 3C', '10: 3B', '9: 3A', '8: 3Y (Out)']
+  },
+  '74LS11': {
+    title: '74LS11 · Triple Compuerta AND de 3 Entradas',
+    package: 'Encapsulado DIP-14 · Serie TTL 74LS',
+    pins: 14,
+    left: ['1: 1A', '2: 1B', '3: 2A', '4: 2B', '5: 2C', '6: 2Y (Out)', '7: GND'],
+    right: ['14: VCC (+5V)', '13: 1C', '12: 1Y (Out)', '11: 3C', '10: 3B', '9: 3A', '8: 3Y (Out)']
+  },
+  '74LS20': {
+    title: '74LS20 · Dual Compuerta NAND de 4 Entradas',
+    package: 'Encapsulado DIP-14 · Serie TTL 74LS',
+    pins: 14,
+    left: ['1: 1A', '2: 1B', '3: NC', '4: 1C', '5: 1D', '6: 1Y (Out)', '7: GND'],
+    right: ['14: VCC (+5V)', '13: 2D', '12: 2C', '11: NC', '10: 2B', '9: 2A', '8: 2Y (Out)']
+  },
+  '74LS21': {
+    title: '74LS21 · Dual Compuerta AND de 4 Entradas',
+    package: 'Encapsulado DIP-14 · Serie TTL 74LS',
+    pins: 14,
+    left: ['1: 1A', '2: 1B', '3: NC', '4: 1C', '5: 1D', '6: 1Y (Out)', '7: GND'],
+    right: ['14: VCC (+5V)', '13: 2D', '12: 2C', '11: NC', '10: 2B', '9: 2A', '8: 2Y (Out)']
+  },
+  '74LS27': {
+    title: '74LS27 · Triple Compuerta NOR de 3 Entradas',
+    package: 'Encapsulado DIP-14 · Serie TTL 74LS',
+    pins: 14,
+    left: ['1: 1A', '2: 1B', '3: 2A', '4: 2B', '5: 2C', '6: 2Y (Out)', '7: GND'],
+    right: ['14: VCC (+5V)', '13: 1C', '12: 1Y (Out)', '11: 3C', '10: 3B', '9: 3A', '8: 3Y (Out)']
+  },
+  '74LS30': {
+    title: '74LS30 · Compuerta NAND de 8 Entradas',
+    package: 'Encapsulado DIP-14 · Serie TTL 74LS',
+    pins: 14,
+    left: ['1: A', '2: B', '3: C', '4: D', '5: E', '6: F', '7: GND'],
+    right: ['14: VCC (+5V)', '13: NC', '12: Y (Out)', '11: H', '10: NC', '9: NC', '8: G']
   }
 };

@@ -542,9 +542,18 @@
 
         <!-- TAB 1: CATÁLOGO DE COMPONENTES -->
         <div id="leftCatalog" class="left-tab-body active">
-          <div class="search-box-wrap">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9d174d" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" id="searchComponent" placeholder="Buscar componente..." class="search-input-clean" />
+          <div class="search-box-wrap" id="searchBoxWrap">
+            <svg class="search-icon-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9d174d" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchComponent" placeholder="Buscar componente (ej: 74LS10, NAND 3, MUX)..." class="search-input-clean" autocomplete="off" spellcheck="false" />
+            <button id="btnClearSearch" class="search-clear-btn hidden" type="button" title="Limpiar búsqueda">✕</button>
+
+            <!-- MENÚ DESPLEGABLE TIPO AUTOCOMPLETE (ESTILO YOUTUBE) -->
+            <div id="searchSuggestionsDropdown" class="search-suggestions-dropdown hidden"></div>
+          </div>
+          <div class="catalog-toolbar-actions">
+            <button id="btnToggleAllCategories" class="btn-toggle-all-cats" type="button" title="Alternar entre abrir o colapsar todas las secciones">
+              <span id="btnToggleAllCatsIcon">▾</span> <span id="btnToggleAllCatsText">Colapsar todo</span>
+            </button>
           </div>
           <div id="componentCatalog" class="catalog-scroll"></div>
         </div>
@@ -787,8 +796,8 @@
   <!-- Librería KaTeX para renderizar ecuaciones algebraicas y expresiones booleanas -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
-  <script src="./js/components.js?v=4.3.0"></script>
-  <script src="./js/presets.js?v=4.3.0"></script>
-  <script src="./js/simulator.js?v=4.3.0"></script>
+  <script src="./js/components.js?v=4.4.0"></script>
+  <script src="./js/presets.js?v=4.4.0"></script>
+  <script src="./js/simulator.js?v=4.4.0"></script>
 </body>
 </html>

@@ -332,8 +332,8 @@ export class SimulatorService implements OnModuleInit {
     return {
       categories: [
         {
-          id: 'gates',
-          name: 'Lógica Básica',
+          id: 'gates_basic',
+          name: 'Compuertas Básicas (2 Entradas)',
           items: [
             { type: 'AND', name: 'AND', ic: '74LS08', desc: 'Puerta lógica AND (2 entradas)' },
             { type: 'OR', name: 'OR', ic: '74LS32', desc: 'Puerta lógica OR (2 entradas)' },
@@ -341,11 +341,27 @@ export class SimulatorService implements OnModuleInit {
             { type: 'NAND', name: 'NAND', ic: '74LS00', desc: 'Puerta lógica NAND (2 entradas)' },
             { type: 'NOR', name: 'NOR', ic: '74LS02', desc: 'Puerta lógica NOR (2 entradas)' },
             { type: 'XOR', name: 'XOR', ic: '74LS86', desc: 'Puerta lógica XOR (2 entradas)' },
-            { type: 'XNOR', name: 'XNOR', ic: '74LS266', desc: 'Puerta lógica XNOR (Equivalencia)' },
-            { type: 'AND3', name: 'AND 3-In', ic: '74LS11', desc: 'Triple AND de 3 entradas' },
-            { type: 'NAND3', name: 'NAND 3-In', ic: '74LS10', desc: 'Triple NAND de 3 entradas' },
-            { type: 'NAND4', name: 'NAND 4-In', ic: '74LS20', desc: 'Dual NAND de 4 entradas' },
-            { type: 'OR5', name: 'OR 5-In (SOP)', ic: 'SOP-OR', desc: 'OR de 5 entradas para minitérminos' }
+            { type: 'XNOR', name: 'XNOR', ic: '74LS266', desc: 'Puerta lógica XNOR (Equivalencia)' }
+          ]
+        },
+        {
+          id: 'gates_multi',
+          name: 'Compuertas Multi-Entrada (3, 4 y 8 In)',
+          items: [
+            { type: 'AND3', name: 'AND 3-In', ic: '74LS11', desc: 'Triple AND de 3 entradas (TTL 74LS11)' },
+            { type: 'AND4', name: 'AND 4-In', ic: '74LS21', desc: 'Dual AND de 4 entradas (TTL 74LS21)' },
+            { type: 'AND8', name: 'AND 8-In', ic: 'AND-8', desc: 'Compuerta AND de 8 entradas' },
+            { type: 'NAND3', name: 'NAND 3-In', ic: '74LS10', desc: 'Triple NAND de 3 entradas (TTL 74LS10)' },
+            { type: 'NAND4', name: 'NAND 4-In', ic: '74LS20', desc: 'Dual NAND de 4 entradas (TTL 74LS20)' },
+            { type: 'NAND8', name: 'NAND 8-In', ic: '74LS30', desc: 'NAND de 8 entradas (TTL 74LS30)' },
+            { type: 'OR3', name: 'OR 3-In', ic: '74LS4075', desc: 'Triple OR de 3 entradas (TTL 74LS4075)' },
+            { type: 'OR4', name: 'OR 4-In', ic: '74LS4072', desc: 'Dual OR de 4 entradas (TTL 74LS4072)' },
+            { type: 'OR5', name: 'OR 5-In (SOP)', ic: 'SOP-OR', desc: 'OR de 5 entradas para minitérminos' },
+            { type: 'OR8', name: 'OR 8-In (SOP)', ic: 'SOP-OR8', desc: 'OR de 8 entradas para minitérminos' },
+            { type: 'NOR3', name: 'NOR 3-In', ic: '74LS27', desc: 'Triple NOR de 3 entradas (TTL 74LS27)' },
+            { type: 'NOR4', name: 'NOR 4-In', ic: '74LS4002', desc: 'Dual NOR de 4 entradas' },
+            { type: 'XOR3', name: 'XOR 3-In', ic: 'PARITY-ODD', desc: 'XOR de 3 entradas (Paridad Impar)' },
+            { type: 'XNOR3', name: 'XNOR 3-In', ic: 'PARITY-EVEN', desc: 'XNOR de 3 entradas (Paridad Par)' }
           ]
         },
         {

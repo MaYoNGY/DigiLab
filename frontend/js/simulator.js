@@ -56,6 +56,14 @@ class DigitalSimulator {
     // Catálogo y Plantillas Base
     this.catalog = window.FALLBACK_CATALOG;
     this.presets = window.FALLBACK_PRESETS;
+    try {
+      this.collapsedCategories = new Set(
+        JSON.parse(localStorage.getItem('digilab_collapsed_cats') || '[]')
+      );
+    } catch (e) {
+      this.collapsedCategories = new Set();
+    }
+    this.searchHighlightedIndex = -1;
 
     // Referencias DOM
     this.landingView = document.getElementById('landingView');
@@ -1316,12 +1324,16 @@ class DigitalSimulator {
   }
 
   // =========================================================================
-  // CATÁLOGO LATERAL CON ICONOS ESQUEMÁTICOS SVG
+  // CATÁLOGO LATERAL CON VIÑETAS COLAPSABLES Y BÚSQUEDA YOUTUBE-STYLE
   // =========================================================================
   renderCatalog(filterText = '') {
     const container = document.getElementById('componentCatalog');
+    if (!container) return;
     container.innerHTML = '';
     const query = filterText.trim().toLowerCase();
+    const isSearching = query.length > 0;
+
+    if (!this.catalog || !Array.isArray(this.catalog.categories)) return;
 
     this.catalog.categories.forEach((cat) => {
       const filteredItems = cat.items.filter(
@@ -1334,14 +1346,43 @@ class DigitalSimulator {
 
       if (filteredItems.length === 0) return;
 
+      const isCollapsed = !isSearching && this.collapsedCategories.has(cat.id);
+
       const catDiv = document.createElement('div');
-      catDiv.className = 'catalog-category';
-      catDiv.innerHTML = `
-        <div class="category-title">
-          <span>▾ ${cat.name}</span>
-          <span class="category-count">${filteredItems.length}</span>
+      catDiv.className = `catalog-category ${isCollapsed ? 'is-collapsed' : ''}`;
+      catDiv.dataset.catId = cat.id;
+
+      const header = document.createElement('div');
+      header.className = 'category-title';
+      header.setAttribute('role', 'button');
+      header.setAttribute('tabindex', '0');
+      header.setAttribute('title', isCollapsed ? 'Clic para expandir sección' : 'Clic para colapsar sección');
+      header.innerHTML = `
+        <div class="category-title-left">
+          <span class="category-chevron">${isCollapsed ? '▸' : '▾'}</span>
+          <span>${cat.name}</span>
         </div>
+        <span class="category-count">${filteredItems.length}</span>
       `;
+
+      header.addEventListener('click', () => {
+        if (this.collapsedCategories.has(cat.id)) {
+          this.collapsedCategories.delete(cat.id);
+        } else {
+          this.collapsedCategories.add(cat.id);
+        }
+        try {
+          localStorage.setItem('digilab_collapsed_cats', JSON.stringify([...this.collapsedCategories]));
+        } catch (e) {}
+        this.renderCatalog(filterText);
+      });
+
+      header.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          header.click();
+        }
+      });
 
       const grid = document.createElement('div');
       grid.className = 'catalog-grid';
@@ -1366,14 +1407,238 @@ class DigitalSimulator {
         `;
         card.addEventListener('click', () => {
           this.addNodeOfType(item.type);
-          document.getElementById('leftSidebar').classList.remove('open');
+          document.getElementById('leftSidebar')?.classList.remove('open');
         });
         grid.appendChild(card);
       });
 
+      catDiv.appendChild(header);
       catDiv.appendChild(grid);
       container.appendChild(catDiv);
     });
+
+    // Actualizar botón "Colapsar todo / Expandir todo"
+    const allCatIds = this.catalog.categories.map((c) => c.id);
+    const iconSpan = document.getElementById('btnToggleAllCatsIcon');
+    const textSpan = document.getElementById('btnToggleAllCatsText');
+    if (iconSpan && textSpan) {
+      if (this.collapsedCategories.size >= Math.ceil(allCatIds.length / 2)) {
+        iconSpan.textContent = '▸';
+        textSpan.textContent = 'Expandir todo';
+      } else {
+        iconSpan.textContent = '▾';
+        textSpan.textContent = 'Colapsar todo';
+      }
+    }
+  }
+
+  // =========================================================================
+  // BÚSQUEDA INTERACTIVA CON MENÚ DESPLEGABLE TIPO YOUTUBE (AUTOCOMPLETE)
+  // =========================================================================
+  initComponentSearch() {
+    const searchInput = document.getElementById('searchComponent');
+    const searchBoxWrap = document.getElementById('searchBoxWrap');
+    const dropdown = document.getElementById('searchSuggestionsDropdown');
+    const clearBtn = document.getElementById('btnClearSearch');
+    const btnToggleAll = document.getElementById('btnToggleAllCategories');
+
+    if (!searchInput || !dropdown) return;
+
+    const getComponentsList = () => {
+      const list = [];
+      const seen = new Set();
+      if (this.catalog && Array.isArray(this.catalog.categories)) {
+        this.catalog.categories.forEach((cat) => {
+          cat.items.forEach((item) => {
+            if (!seen.has(item.type)) {
+              seen.add(item.type);
+              const def = window.COMPONENT_DEFS[item.type] || {};
+              list.push({
+                type: item.type,
+                name: item.name,
+                ic: item.ic || def.ic || item.type,
+                desc: def.sub || item.desc || '',
+                catName: cat.name,
+                catId: cat.id,
+                inCount: def.inputs ? def.inputs.length : 0,
+                outCount: def.outputs ? def.outputs.length : 0,
+              });
+            }
+          });
+        });
+      }
+      return list;
+    };
+
+    const showSuggestions = (query = '') => {
+      const all = getComponentsList();
+      const q = query.trim().toLowerCase();
+      this.searchHighlightedIndex = -1;
+
+      let matches = [];
+      let headerText = '';
+
+      if (!q) {
+        const featuredTypes = ['NAND3', 'AND4', 'OR3', 'IC_74283', 'IC_7485', 'MUX_8_1', 'NOR3', 'XOR3', 'NAND4'];
+        matches = all.filter((item) => featuredTypes.includes(item.type));
+        headerText = 'Componentes Frecuentes y Multi-Entrada';
+      } else {
+        matches = all.filter(
+          (item) =>
+            item.name.toLowerCase().includes(q) ||
+            item.type.toLowerCase().includes(q) ||
+            item.ic.toLowerCase().includes(q) ||
+            item.desc.toLowerCase().includes(q) ||
+            item.catName.toLowerCase().includes(q)
+        );
+        headerText = matches.length
+          ? `Sugerencias encontradas (${matches.length})`
+          : 'Sin resultados';
+      }
+
+      dropdown.innerHTML = '';
+      dropdown.classList.remove('hidden');
+
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'suggestions-header';
+      headerDiv.innerHTML = `
+        <span>${headerText}</span>
+        <small style="text-transform:none;opacity:0.8;">↵ Añadir al lienzo</small>
+      `;
+      dropdown.appendChild(headerDiv);
+
+      if (matches.length === 0) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'suggestion-empty';
+        emptyDiv.innerHTML = `No se encontraron componentes para <b>"${query}"</b>.<br/><span style="color:#9d174d;font-weight:600;">Prueba con "NAND", "74LS", "Sumador", "OR" o "3".</span>`;
+        dropdown.appendChild(emptyDiv);
+        return;
+      }
+
+      const listDiv = document.createElement('div');
+      listDiv.className = 'suggestions-list';
+
+      matches.slice(0, 10).forEach((item, index) => {
+        const itemRow = document.createElement('div');
+        itemRow.className = 'search-suggestion-item';
+        itemRow.dataset.type = item.type;
+        itemRow.dataset.index = index;
+
+        let displayName = item.name;
+        if (q) {
+          const reg = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+          displayName = item.name.replace(reg, '<span class="suggestion-highlight">$1</span>');
+        }
+
+        const iconSvg = window.getCatalogIconSvg(item.type);
+        const pinsInfo = item.inCount > 0 ? `${item.inCount} In / ${item.outCount} Out` : `${item.outCount} Out`;
+
+        itemRow.innerHTML = `
+          <div class="suggestion-left">
+            <div class="suggestion-icon">${iconSvg}</div>
+            <div class="suggestion-info">
+              <div class="suggestion-title-row">
+                <span class="suggestion-name">${displayName}</span>
+                <span class="suggestion-badge">${item.ic}</span>
+              </div>
+              <span class="suggestion-sub">${item.desc || item.catName} · <b style="color:#9d174d;">${pinsInfo}</b></span>
+            </div>
+          </div>
+          <button class="btn-suggestion-add" type="button" title="Colocar componente en lienzo">+ Añadir</button>
+        `;
+
+        const chooseThisItem = () => {
+          this.addNodeOfType(item.type);
+          this.showToast(`✨ Componente "${item.name}" añadido al lienzo.`);
+          dropdown.classList.add('hidden');
+          document.getElementById('leftSidebar')?.classList.remove('open');
+        };
+
+        itemRow.addEventListener('click', chooseThisItem);
+        listDiv.appendChild(itemRow);
+      });
+
+      dropdown.appendChild(listDiv);
+    };
+
+    searchInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (clearBtn) {
+        clearBtn.classList.toggle('hidden', val.length === 0);
+      }
+      this.renderCatalog(val);
+      showSuggestions(val);
+    });
+
+    searchInput.addEventListener('focus', () => {
+      showSuggestions(searchInput.value);
+    });
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        clearBtn.classList.add('hidden');
+        this.renderCatalog('');
+        showSuggestions('');
+        searchInput.focus();
+      });
+    }
+
+    searchInput.addEventListener('keydown', (e) => {
+      const items = dropdown.querySelectorAll('.search-suggestion-item');
+      if (!items.length || dropdown.classList.contains('hidden')) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        this.searchHighlightedIndex = (this.searchHighlightedIndex + 1) % items.length;
+        items.forEach((it, idx) => it.classList.toggle('active', idx === this.searchHighlightedIndex));
+        items[this.searchHighlightedIndex]?.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        this.searchHighlightedIndex = (this.searchHighlightedIndex - 1 + items.length) % items.length;
+        items.forEach((it, idx) => it.classList.toggle('active', idx === this.searchHighlightedIndex));
+        items[this.searchHighlightedIndex]?.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const activeItem = items[this.searchHighlightedIndex] || items[0];
+        if (activeItem) {
+          activeItem.click();
+        }
+      } else if (e.key === 'Escape') {
+        dropdown.classList.add('hidden');
+        searchInput.blur();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (searchBoxWrap && !searchBoxWrap.contains(e.target)) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    if (btnToggleAll) {
+      btnToggleAll.addEventListener('click', () => {
+        const allCatIds = (this.catalog?.categories || []).map((c) => c.id);
+        const iconSpan = document.getElementById('btnToggleAllCatsIcon');
+        const textSpan = document.getElementById('btnToggleAllCatsText');
+
+        if (this.collapsedCategories.size >= Math.ceil(allCatIds.length / 2)) {
+          this.collapsedCategories.clear();
+          if (iconSpan) iconSpan.textContent = '▾';
+          if (textSpan) textSpan.textContent = 'Colapsar todo';
+        } else {
+          allCatIds.forEach((id) => this.collapsedCategories.add(id));
+          if (iconSpan) iconSpan.textContent = '▸';
+          if (textSpan) textSpan.textContent = 'Expandir todo';
+        }
+
+        try {
+          localStorage.setItem('digilab_collapsed_cats', JSON.stringify([...this.collapsedCategories]));
+        } catch (e) {}
+
+        this.renderCatalog(searchInput.value);
+      });
+    }
   }
 
   populatePresetsDropdown() {
@@ -2509,9 +2774,7 @@ class DigitalSimulator {
   }
 
   bindEvents() {
-    document.getElementById('searchComponent').addEventListener('input', (e) => {
-      this.renderCatalog(e.target.value);
-    });
+    this.initComponentSearch();
 
     document.getElementById('presetSelect').addEventListener('change', (e) => {
       if (e.target.value) {
