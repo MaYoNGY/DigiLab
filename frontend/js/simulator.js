@@ -443,18 +443,27 @@ class DigitalSimulator {
     this.panY = tab.panY || 0;
     this.selectedNodeId = tab.selectedNodeId || null;
 
-    document.getElementById('bannerModuleTag').textContent = tab.moduleTag || 'Diseño Digital';
-    document.getElementById('activeCircuitTitleInput').value = tab.title || 'Circuito';
-    document.getElementById('truthTableTitle').textContent = `Tabla de Verdad (${tab.title || 'Circuito'})`;
-    document.getElementById('bannerDesc').textContent = tab.description || '';
+    const bannerTag = document.getElementById('bannerModuleTag');
+    if (bannerTag) bannerTag.textContent = tab.moduleTag || 'Diseño Digital';
+
+    const activeTitle = document.getElementById('activeCircuitTitleInput');
+    if (activeTitle) activeTitle.value = tab.title || 'Circuito';
+
+    const truthTableTitle = document.getElementById('truthTableTitle');
+    if (truthTableTitle) truthTableTitle.textContent = `Tabla de Verdad (${tab.title || 'Circuito'})`;
+
+    const bannerDesc = document.getElementById('bannerDesc');
+    if (bannerDesc) bannerDesc.textContent = tab.description || '';
 
     const formulasContainer = document.getElementById('bannerFormulas');
-    formulasContainer.innerHTML = (tab.formulas || [])
-      .map((f) => {
-        const latex = this.convertFormulaStringToLatex(f);
-        return `<span class="formula-chip">${this.renderLatexToHtml(latex, false)}</span>`;
-      })
-      .join('');
+    if (formulasContainer) {
+      formulasContainer.innerHTML = (tab.formulas || [])
+        .map((f) => {
+          const latex = this.convertFormulaStringToLatex(f);
+          return `<span class="formula-chip">${this.renderLatexToHtml(latex, false)}</span>`;
+        })
+        .join('');
+    }
 
     const presetSelect = document.getElementById('presetSelect');
     if (presetSelect) {
@@ -633,8 +642,8 @@ class DigitalSimulator {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       authAlert.classList.add('hidden');
-      const username = document.getElementById('loginUsername').value.trim().toLowerCase();
-      const password = document.getElementById('loginPassword').value;
+      const username = (document.getElementById('loginUsername')?.value || '').trim().toLowerCase();
+      const password = document.getElementById('loginPassword')?.value || '';
 
       if (username.length < 3) {
         showAuthError('El nombre de usuario debe tener al menos 3 caracteres.');
@@ -667,9 +676,9 @@ class DigitalSimulator {
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       authAlert.classList.add('hidden');
-      const name = document.getElementById('regName').value.trim();
-      const username = document.getElementById('regUsername').value.trim().toLowerCase();
-      const password = document.getElementById('regPassword').value;
+      const name = (document.getElementById('regName')?.value || '').trim();
+      const username = (document.getElementById('regUsername')?.value || '').trim().toLowerCase();
+      const password = document.getElementById('regPassword')?.value || '';
 
       if (name.length < 2) {
         showAuthError('Ingresa tu nombre completo (mínimo 2 caracteres).');
@@ -1304,7 +1313,7 @@ class DigitalSimulator {
 
       item.querySelector('.btn-open-c').addEventListener('click', () => {
         this.openCircuitInNewTab(c, false);
-        document.getElementById('modalMyCanvases').classList.add('hidden');
+        document.getElementById('modalMyCanvases')?.classList.add('hidden');
         this.showToast(`Trabajando en "${c.title}"`);
       });
 
@@ -1340,14 +1349,14 @@ class DigitalSimulator {
 
   async saveCurrentCanvasToCloud(silent = false) {
     const titleInput = document.getElementById('activeCircuitTitleInput');
-    const title = (titleInput.value || '').trim() || 'Mi Lienzo Digital';
+    const title = (titleInput?.value || '').trim() || 'Mi Lienzo Digital';
 
     const payload = {
       id: this.currentCircuitId || `c_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
       title,
       category: 'Mis Lienzos',
-      moduleTag: 'Proyecto Guardado',
-      description: document.getElementById('bannerDesc').textContent,
+      moduleTag: document.getElementById('bannerModuleTag')?.textContent || 'Proyecto Guardado',
+      description: document.getElementById('bannerDesc')?.textContent || '',
       formulas: [],
       nodes: this.nodes,
       wires: this.wires,
@@ -1385,7 +1394,8 @@ class DigitalSimulator {
       if (!res.ok) throw new Error('Error al guardar');
       const data = await res.json();
       this.currentCircuitId = data.circuit.id;
-      document.getElementById('bannerModuleTag').textContent = 'Guardado en Cuenta';
+      const bannerTag = document.getElementById('bannerModuleTag');
+      if (bannerTag) bannerTag.textContent = 'Guardado en Cuenta';
       this.saveCurrentTabState();
 
       await this.fetchUserCircuits();
@@ -1453,13 +1463,13 @@ class DigitalSimulator {
   downloadCircuitJson(circuitObj = null) {
     const title = circuitObj
       ? circuitObj.title
-      : document.getElementById('activeCircuitTitleInput').value.trim() || 'mi-circuito-digital';
+      : document.getElementById('activeCircuitTitleInput')?.value?.trim() || 'mi-circuito-digital';
 
     const payload = circuitObj || {
       id: this.currentCircuitId || `export-${Date.now()}`,
       title,
-      moduleTag: document.getElementById('bannerModuleTag').textContent,
-      description: document.getElementById('bannerDesc').textContent,
+      moduleTag: document.getElementById('bannerModuleTag')?.textContent || 'Diseño Digital',
+      description: document.getElementById('bannerDesc')?.textContent || '',
       nodes: this.nodes,
       wires: this.wires
     };
@@ -3023,7 +3033,8 @@ class DigitalSimulator {
 
   updateWorldTransform() {
     this.world.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.zoom})`;
-    document.getElementById('zoomLabel').textContent = `${Math.round(this.zoom * 100)}%`;
+    const zoomLabel = document.getElementById('zoomLabel');
+    if (zoomLabel) zoomLabel.textContent = `${Math.round(this.zoom * 100)}%`;
   }
 
   resetView() {
