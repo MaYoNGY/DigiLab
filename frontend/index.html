@@ -415,8 +415,14 @@
           <div class="dropdown-menu-wrap">
             <button class="menu-link" data-dropdown="dropHerramientas">Herramientas ▾</button>
             <div id="dropHerramientas" class="menu-dropdown hidden">
-              <button id="menuToolSynth">⚡ Sintetizador Booleano (MUX / SOP)</button>
-              <button id="menuToolPinout">🔲 Encapsulados DIP Familia 74LS</button>
+              <button id="menuToolSynth">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span>Sintetizador Booleano (MUX / SOP)</span>
+              </button>
+              <button id="menuToolPinout">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:6px;"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="8" y1="2" x2="8" y2="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="16" y1="2" x2="16" y2="4"/><line x1="8" y1="20" x2="8" y2="22"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="16" y1="20" x2="16" y2="22"/></svg>
+                <span>Encapsulados DIP Familia 74LS</span>
+              </button>
             </div>
           </div>
 
@@ -502,17 +508,22 @@
             <span id="simBtnLabel">Simular</span>
           </button>
           <button id="btnStepSimulation" class="tool-action-btn" title="Ejecutar un paso de evaluación lógica">
-            <span>⏭ Paso</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <span>Paso</span>
           </button>
           <button id="btnResetInputs" class="tool-action-btn" title="Poner todas las entradas en 0">
-            <span>↺ Reset 0</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
+            <span>Reset 0</span>
           </button>
         </div>
 
         <div class="toolbar-divider"></div>
 
         <button id="btnSynthesis" class="tool-action-btn primary-rose" title="Sintetizar circuito desde Tabla de Verdad / Minitérminos">
-          <span>⚡ Sintetizar</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+          <span>Sintetizar</span>
         </button>
 
         <button id="btnICPinout" class="tool-action-btn" title="Ver encapsulados DIP de la serie 74LS">
@@ -751,7 +762,10 @@
   <div id="modalSynthesis" class="modal-backdrop hidden">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>⚡ Sintetizador Automático de Funciones Booleanas</h3>
+        <h3 style="display:flex;align-items:center;gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span>Sintetizador Automático de Funciones Booleanas</span>
+        </h3>
         <button class="modal-close" data-close="modalSynthesis">✕</button>
       </div>
       <div class="modal-body">
@@ -830,7 +844,9 @@
     <div class="modal-card modal-lg">
       <div class="modal-header">
         <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:36px;height:36px;border-radius:10px;background:#fce7f3;color:#db2777;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:900;">💡</div>
+          <div style="width:36px;height:36px;border-radius:10px;background:#fce7f3;color:#db2777;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"/></svg>
+          </div>
           <div>
             <h3 style="margin:0;font-size:1.1rem;color:#831843;">Guía de Uso · ¿Cómo funciona DigiLab Studio?</h3>
             <span style="font-size:0.75rem;color:var(--text-muted);">Aprende a diseñar, conectar y simular circuitos digitales paso a paso</span>
@@ -910,8 +926,8 @@
   <!-- Librería KaTeX para renderizar ecuaciones algebraicas y expresiones booleanas -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
-  <script src="./js/components.js?v=4.5.0"></script>
-  <script src="./js/presets.js?v=4.5.0"></script>
-  <script src="./js/simulator.js?v=4.5.0"></script>
+  <script src="./js/components.js?v=4.5.1"></script>
+  <script src="./js/presets.js?v=4.5.1"></script>
+  <script src="./js/simulator.js?v=4.5.1"></script>
 </body>
 </html>

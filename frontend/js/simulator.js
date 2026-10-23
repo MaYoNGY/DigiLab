@@ -695,12 +695,16 @@ class DigitalSimulator {
       }
     });
 
-    document.getElementById('btnGuestEnterNav').addEventListener('click', () => {
+    document.getElementById('btnGuestEnterNav')?.addEventListener('click', () => {
       this.enterSimulatorWorkspace(true);
     });
 
-    document.getElementById('btnGuestEnterHero').addEventListener('click', () => {
+    document.getElementById('btnGuestEnterHero')?.addEventListener('click', () => {
       this.enterSimulatorWorkspace(true);
+    });
+
+    document.getElementById('btnLandingHelp')?.addEventListener('click', () => {
+      document.getElementById('modalHelp')?.classList.remove('hidden');
     });
 
     document.querySelectorAll('[data-open-preset]').forEach((card) => {
@@ -716,12 +720,12 @@ class DigitalSimulator {
       featureCardMyDesigns.addEventListener('click', async () => {
         this.enterSimulatorWorkspace(true);
         await this.fetchUserCircuits();
-        document.getElementById('modalMyCanvases').classList.remove('hidden');
+        document.getElementById('modalMyCanvases')?.classList.remove('hidden');
       });
     }
 
     // ÚNICO BOTÓN QUE CIERRA LA SESIÓN Y REGRESA AL LOGIN (CON BLOQUEO DE FLECHA ATRÁS)
-    document.getElementById('btnLogout').addEventListener('click', () => {
+    document.getElementById('btnLogout')?.addEventListener('click', () => {
       this.forceLoggedOutLandingState();
       localStorage.removeItem('digilab_token');
       sessionStorage.removeItem('digilab_workspace_active');
@@ -860,120 +864,118 @@ class DigitalSimulator {
     window.addEventListener('click', () => closeAllDropdowns());
 
     // Archivo
-    document.getElementById('menuFileNew').addEventListener('click', () => {
+    document.getElementById('menuFileNew')?.addEventListener('click', () => {
       closeAllDropdowns();
       this.createNewBlankTab();
     });
 
-    document.getElementById('menuFileSave').addEventListener('click', () => {
+    document.getElementById('menuFileSave')?.addEventListener('click', () => {
       closeAllDropdowns();
       this.saveCurrentCanvasToCloud();
     });
 
-    document.getElementById('menuFileOpen').addEventListener('click', async () => {
+    document.getElementById('menuFileOpen')?.addEventListener('click', async () => {
       closeAllDropdowns();
       await this.fetchUserCircuits();
-      document.getElementById('modalMyCanvases').classList.remove('hidden');
+      document.getElementById('modalMyCanvases')?.classList.remove('hidden');
     });
 
-    document.getElementById('menuFileImport').addEventListener('click', () => {
+    document.getElementById('menuFileImport')?.addEventListener('click', () => {
       closeAllDropdowns();
-      document.getElementById('fileImportInput').click();
+      document.getElementById('fileImportInput')?.click();
     });
 
-    document.getElementById('menuFileExport').addEventListener('click', () => {
+    document.getElementById('menuFileExport')?.addEventListener('click', () => {
       closeAllDropdowns();
       this.downloadCircuitJson();
     });
 
     // Editar
-    document.getElementById('menuEditUndo').addEventListener('click', () => {
+    document.getElementById('menuEditUndo')?.addEventListener('click', () => {
       closeAllDropdowns();
       this.undoCanvasAction();
     });
 
-    document.getElementById('menuEditRedo').addEventListener('click', () => {
+    document.getElementById('menuEditRedo')?.addEventListener('click', () => {
       closeAllDropdowns();
       this.redoCanvasAction();
     });
 
-    document.getElementById('menuEditDuplicate').addEventListener('click', () => {
+    document.getElementById('menuEditDuplicate')?.addEventListener('click', () => {
       closeAllDropdowns();
       this.duplicateSelectedNode();
     });
 
-    document.getElementById('menuEditRotate').addEventListener('click', () => {
+    document.getElementById('menuEditRotate')?.addEventListener('click', () => {
       closeAllDropdowns();
       this.rotateSelectedNode();
     });
 
-    document.getElementById('menuEditDelete').addEventListener('click', () => {
+    document.getElementById('menuEditDelete')?.addEventListener('click', () => {
       closeAllDropdowns();
       if (this.selectedNodeId) this.deleteNode(this.selectedNodeId);
     });
 
-    document.getElementById('menuEditClear').addEventListener('click', () => {
+    document.getElementById('menuEditClear')?.addEventListener('click', () => {
       closeAllDropdowns();
       this.clearCurrentCanvasWithUndo();
     });
 
     // Simular
-    document.getElementById('menuSimToggle').addEventListener('click', () => {
+    document.getElementById('menuSimToggle')?.addEventListener('click', () => {
       closeAllDropdowns();
       this.toggleSimulationState();
     });
 
-    document.getElementById('menuSimStep').addEventListener('click', () => {
+    document.getElementById('menuSimStep')?.addEventListener('click', () => {
       closeAllDropdowns();
       this.stepSimulationOnce();
     });
 
-    document.getElementById('menuSimResetInputs').addEventListener('click', () => {
+    document.getElementById('menuSimResetInputs')?.addEventListener('click', () => {
       closeAllDropdowns();
       this.resetAllInputsToZero();
     });
 
-    document.getElementById('menuSimTruth').addEventListener('click', () => {
+    document.getElementById('menuSimTruth')?.addEventListener('click', () => {
       closeAllDropdowns();
       this.generateTruthTable();
       this.showToast('Tabla de verdad recalculada.');
     });
 
     // Herramientas
-    document.getElementById('menuToolSynth').addEventListener('click', () => {
+    document.getElementById('menuToolSynth')?.addEventListener('click', () => {
       closeAllDropdowns();
-      document.getElementById('modalSynthesis').classList.remove('hidden');
+      document.getElementById('modalSynthesis')?.classList.remove('hidden');
     });
 
-    document.getElementById('menuToolPinout').addEventListener('click', () => {
+    document.getElementById('menuToolPinout')?.addEventListener('click', () => {
       closeAllDropdowns();
-      document.getElementById('modalPinout').classList.remove('hidden');
+      document.getElementById('modalPinout')?.classList.remove('hidden');
     });
 
-    document.getElementById('menuVerGuiaBtn').addEventListener('click', () => {
+    // Guía y Ayuda (Soporta btnHeaderHelp en menubar y menú de compatibilidad)
+    const openHelpFromMenu = () => {
       closeAllDropdowns();
-      document.querySelectorAll('.dock-tab').forEach((b) => b.classList.remove('active'));
-      document.querySelectorAll('.dock-content').forEach((c) => c.classList.remove('active'));
-      const refTabBtn = document.querySelector('[data-docktab="dockReference"]');
-      if (refTabBtn) refTabBtn.classList.add('active');
-      document.getElementById('dockReference').classList.add('active');
-      document.getElementById('bottomDock').classList.remove('collapsed');
-    });
+      document.getElementById('modalHelp')?.classList.remove('hidden');
+    };
+    document.getElementById('btnHeaderHelp')?.addEventListener('click', openHelpFromMenu);
+    document.getElementById('menuVerGuiaBtn')?.addEventListener('click', openHelpFromMenu);
   }
 
   // =========================================================================
   // CONTROLES DE SIMULACIÓN EN BARRA DE HERRAMIENTAS
   // =========================================================================
   bindSimulationControls() {
-    document.getElementById('btnToggleSimulation').addEventListener('click', () => {
+    document.getElementById('btnToggleSimulation')?.addEventListener('click', () => {
       this.toggleSimulationState();
     });
 
-    document.getElementById('btnStepSimulation').addEventListener('click', () => {
+    document.getElementById('btnStepSimulation')?.addEventListener('click', () => {
       this.stepSimulationOnce();
     });
 
-    document.getElementById('btnResetInputs').addEventListener('click', () => {
+    document.getElementById('btnResetInputs')?.addEventListener('click', () => {
       this.resetAllInputsToZero();
     });
   }
@@ -2548,36 +2550,36 @@ class DigitalSimulator {
       </div>
     `;
 
-    document.getElementById('inspectorLabelInput').addEventListener('input', (e) => {
+    document.getElementById('inspectorLabelInput')?.addEventListener('input', (e) => {
       node.label = e.target.value || def.name;
       this.renderNodes();
       this.generateTruthTable();
       this.saveCurrentTabState();
     });
 
-    document.getElementById('inspectorPosX').addEventListener('change', (e) => {
+    document.getElementById('inspectorPosX')?.addEventListener('change', (e) => {
       node.x = Number(e.target.value) || 0;
       this.renderAll();
       this.saveCurrentTabState();
     });
 
-    document.getElementById('inspectorPosY').addEventListener('change', (e) => {
+    document.getElementById('inspectorPosY')?.addEventListener('change', (e) => {
       node.y = Number(e.target.value) || 0;
       this.renderAll();
       this.saveCurrentTabState();
     });
 
-    document.getElementById('inspectorRotationSelect').addEventListener('change', (e) => {
+    document.getElementById('inspectorRotationSelect')?.addEventListener('change', (e) => {
       node.rotation = Number(e.target.value) || 0;
       this.renderAll();
       this.saveCurrentTabState();
     });
 
-    document.getElementById('btnInspectorPinout').addEventListener('click', () => {
-      document.getElementById('modalPinout').classList.remove('hidden');
+    document.getElementById('btnInspectorPinout')?.addEventListener('click', () => {
+      document.getElementById('modalPinout')?.classList.remove('hidden');
     });
 
-    document.getElementById('btnInspectorDelete').addEventListener('click', () => {
+    document.getElementById('btnInspectorDelete')?.addEventListener('click', () => {
       this.deleteNode(node.id);
     });
   }
@@ -2610,13 +2612,13 @@ class DigitalSimulator {
       grid.appendChild(div);
     }
 
-    document.getElementById('btnBuildSynthesized').addEventListener('click', () => {
+    document.getElementById('btnBuildSynthesized')?.addEventListener('click', () => {
       const selectedMinterms = Array.from(grid.querySelectorAll('.minterm-box.checked')).map((el) =>
         Number(el.dataset.minterm)
       );
-      const method = document.querySelector('input[name="synthMethod"]:checked').value;
+      const method = document.querySelector('input[name="synthMethod"]:checked')?.value || 'MUX';
       this.buildSynthesizedCircuit(selectedMinterms, method);
-      document.getElementById('modalSynthesis').classList.add('hidden');
+      document.getElementById('modalSynthesis')?.classList.add('hidden');
     });
   }
 
@@ -2782,20 +2784,21 @@ class DigitalSimulator {
   bindEvents() {
     this.initComponentSearch();
 
-    document.getElementById('presetSelect').addEventListener('change', (e) => {
+    document.getElementById('presetSelect')?.addEventListener('change', (e) => {
       if (e.target.value) {
         this.loadPreset(e.target.value);
       }
     });
 
     // Renombrar la pestaña activa en tiempo real
-    document.getElementById('activeCircuitTitleInput').addEventListener('input', (e) => {
+    document.getElementById('activeCircuitTitleInput')?.addEventListener('input', (e) => {
       const val = e.target.value.trim() || 'Circuito';
       const tab = this.tabs.find((t) => t.tabId === this.activeTabId);
       if (tab) {
         tab.title = val;
         this.renderTabsBar();
-        document.getElementById('truthTableTitle').textContent = `Tabla de Verdad (${val})`;
+        const truthTitle = document.getElementById('truthTableTitle');
+        if (truthTitle) truthTitle.textContent = `Tabla de Verdad (${val})`;
         this.persistWorkspaceTabsToSession();
       }
     });
@@ -2806,7 +2809,7 @@ class DigitalSimulator {
         document.querySelectorAll('.side-tab').forEach((b) => b.classList.remove('active'));
         document.querySelectorAll('.left-tab-body').forEach((body) => body.classList.remove('active'));
         btn.classList.add('active');
-        document.getElementById(btn.dataset.lefttab).classList.add('active');
+        document.getElementById(btn.dataset.lefttab)?.classList.add('active');
       });
     });
 
@@ -2817,9 +2820,11 @@ class DigitalSimulator {
         document.querySelectorAll('.dock-content').forEach((c) => c.classList.remove('active'));
         btn.classList.add('active');
         const targetDock = document.getElementById(btn.dataset.docktab);
-        targetDock.classList.add('active');
-        document.getElementById('bottomDock').classList.remove('collapsed');
-        this.renderMathInElementSafe(targetDock);
+        if (targetDock) {
+          targetDock.classList.add('active');
+          document.getElementById('bottomDock')?.classList.remove('collapsed');
+          this.renderMathInElementSafe(targetDock);
+        }
       });
     });
 
@@ -2827,13 +2832,13 @@ class DigitalSimulator {
     this.initDockResizer();
 
     // Sub-barra flotante sobre el lienzo (Todos los botones auditados)
-    document.getElementById('subtoolSelectMode').addEventListener('click', () => this.setInteractionMode('select'));
-    document.getElementById('subtoolPanMode').addEventListener('click', () => this.setInteractionMode('pan'));
-    document.getElementById('subtoolAddInput').addEventListener('click', () => this.addNodeOfType('INPUT'));
-    document.getElementById('subtoolAddOutput').addEventListener('click', () => this.addNodeOfType('OUTPUT'));
-    document.getElementById('subtoolRotateNode').addEventListener('click', () => this.rotateSelectedNode());
-    document.getElementById('subtoolDuplicateNode').addEventListener('click', () => this.duplicateSelectedNode());
-    document.getElementById('subtoolDeleteNode').addEventListener('click', () => {
+    document.getElementById('subtoolSelectMode')?.addEventListener('click', () => this.setInteractionMode('select'));
+    document.getElementById('subtoolPanMode')?.addEventListener('click', () => this.setInteractionMode('pan'));
+    document.getElementById('subtoolAddInput')?.addEventListener('click', () => this.addNodeOfType('INPUT'));
+    document.getElementById('subtoolAddOutput')?.addEventListener('click', () => this.addNodeOfType('OUTPUT'));
+    document.getElementById('subtoolRotateNode')?.addEventListener('click', () => this.rotateSelectedNode());
+    document.getElementById('subtoolDuplicateNode')?.addEventListener('click', () => this.duplicateSelectedNode());
+    document.getElementById('subtoolDeleteNode')?.addEventListener('click', () => {
       if (this.selectedNodeId) {
         this.deleteNode(this.selectedNodeId);
       } else {
@@ -2842,30 +2847,30 @@ class DigitalSimulator {
     });
 
     // Botones de crear nueva pestaña (+ y Nuevo)
-    document.getElementById('btnQuickNewTab').addEventListener('click', () => this.createNewBlankTab());
-    document.getElementById('btnNewTabToolbar').addEventListener('click', () => this.createNewBlankTab());
+    document.getElementById('btnQuickNewTab')?.addEventListener('click', () => this.createNewBlankTab());
+    document.getElementById('btnNewTabToolbar')?.addEventListener('click', () => this.createNewBlankTab());
 
     // Botón "+ Nuevo" dentro de la pestaña "Mis Lienzos" (Crea un nuevo cuadro en la lista de abajo)
-    document.getElementById('btnNewBlankFromList').addEventListener('click', () => {
+    document.getElementById('btnNewBlankFromList')?.addEventListener('click', () => {
       this.createNewCanvasInMyList();
     });
 
     // Botones Deshacer / Rehacer de la barra superior
-    document.getElementById('btnUndoToolbar').addEventListener('click', () => this.undoCanvasAction());
-    document.getElementById('btnRedoToolbar').addEventListener('click', () => this.redoCanvasAction());
+    document.getElementById('btnUndoToolbar')?.addEventListener('click', () => this.undoCanvasAction());
+    document.getElementById('btnRedoToolbar')?.addEventListener('click', () => this.redoCanvasAction());
 
     // Botones responsive móviles
     const leftSidebar = document.getElementById('leftSidebar');
     const rightSidebar = document.getElementById('rightSidebar');
 
-    document.getElementById('btnToggleLeftSidebar').addEventListener('click', () => {
-      leftSidebar.classList.toggle('open');
-      rightSidebar.classList.remove('open');
+    document.getElementById('btnToggleLeftSidebar')?.addEventListener('click', () => {
+      leftSidebar?.classList.toggle('open');
+      rightSidebar?.classList.remove('open');
     });
 
-    document.getElementById('btnToggleRightSidebar').addEventListener('click', () => {
-      rightSidebar.classList.toggle('open');
-      leftSidebar.classList.remove('open');
+    document.getElementById('btnToggleRightSidebar')?.addEventListener('click', () => {
+      rightSidebar?.classList.toggle('open');
+      leftSidebar?.classList.remove('open');
     });
 
     // Movimiento en el lienzo
@@ -2927,15 +2932,15 @@ class DigitalSimulator {
       { passive: false }
     );
 
-    document.getElementById('btnZoomIn').addEventListener('click', () => {
+    document.getElementById('btnZoomIn')?.addEventListener('click', () => {
       this.zoom = Math.min(1.8, Number((this.zoom + 0.15).toFixed(2)));
       this.updateWorldTransform();
     });
-    document.getElementById('btnZoomOut').addEventListener('click', () => {
+    document.getElementById('btnZoomOut')?.addEventListener('click', () => {
       this.zoom = Math.max(0.45, Number((this.zoom - 0.15).toFixed(2)));
       this.updateWorldTransform();
     });
-    document.getElementById('btnResetView').addEventListener('click', () => this.resetView());
+    document.getElementById('btnResetView')?.addEventListener('click', () => this.resetView());
 
     // Atajos de teclado (Supr, Ctrl+Z, Ctrl+Y, Ctrl+D, R)
     window.addEventListener('keydown', (e) => {
@@ -2960,7 +2965,7 @@ class DigitalSimulator {
       }
     });
 
-    document.getElementById('btnRefreshTruth').addEventListener('click', () => {
+    document.getElementById('btnRefreshTruth')?.addEventListener('click', () => {
       this.generateTruthTable();
       this.showToast('Tabla de verdad actualizada.');
     });
@@ -2973,40 +2978,41 @@ class DigitalSimulator {
     document.getElementById('btnToolbarHelp')?.addEventListener('click', openHelpModal);
     document.getElementById('btnLandingHelp')?.addEventListener('click', openHelpModal);
 
-    document.getElementById('btnSynthesis').addEventListener('click', () => {
-      document.getElementById('modalSynthesis').classList.remove('hidden');
+    document.getElementById('btnSynthesis')?.addEventListener('click', () => {
+      document.getElementById('modalSynthesis')?.classList.remove('hidden');
     });
 
-    document.getElementById('btnICPinout').addEventListener('click', () => {
-      document.getElementById('modalPinout').classList.remove('hidden');
+    document.getElementById('btnICPinout')?.addEventListener('click', () => {
+      document.getElementById('modalPinout')?.classList.remove('hidden');
     });
 
-    document.getElementById('btnMyCanvases').addEventListener('click', async () => {
+    document.getElementById('btnMyCanvases')?.addEventListener('click', async () => {
       await this.fetchUserCircuits();
-      document.getElementById('modalMyCanvases').classList.remove('hidden');
+      document.getElementById('modalMyCanvases')?.classList.remove('hidden');
     });
 
     document.querySelectorAll('[data-close]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        document.getElementById(btn.dataset.close).classList.add('hidden');
+        const targetModal = document.getElementById(btn.dataset.close);
+        if (targetModal) targetModal.classList.add('hidden');
       });
     });
 
-    document.getElementById('btnClearCanvas').addEventListener('click', () => {
+    document.getElementById('btnClearCanvas')?.addEventListener('click', () => {
       this.clearCurrentCanvasWithUndo();
     });
 
-    document.getElementById('btnSaveCloud').addEventListener('click', () => {
+    document.getElementById('btnSaveCloud')?.addEventListener('click', () => {
       this.saveCurrentCanvasToCloud();
     });
 
-    document.getElementById('btnExportJson').addEventListener('click', () => {
+    document.getElementById('btnExportJson')?.addEventListener('click', () => {
       this.downloadCircuitJson();
     });
 
     const fileInput = document.getElementById('fileImportInput');
-    document.getElementById('btnImportCircuit').addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (e) => {
+    document.getElementById('btnImportCircuit')?.addEventListener('click', () => fileInput?.click());
+    fileInput?.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
