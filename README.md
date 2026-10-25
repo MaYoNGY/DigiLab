@@ -229,17 +229,12 @@ flowchart TD
    cd DigiLab
    ```
 
-2. **Crear el archivo de variables de entorno para la base de datos**:
-   En la raíz del proyecto o dentro de `backend/`, crea un archivo `.env`:
-   ```env
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_USER=postgres
-   DB_PASSWORD=postgres
-   DB_NAME=digilab_db
-   JWT_SECRET=super_secreto_digilab_2026
-   PORT=3000
+2. **Configurar variables de entorno**:
+   Copia el archivo de plantilla `.env.example` para tu entorno local:
+   ```bash
+   cp backend/.env.example backend/.env
    ```
+   > 🔒 **Seguridad**: Configura tus propias credenciales locales en `.env`. Nunca compartas ni subas a repositorios tus contraseñas o el `JWT_SECRET` de producción. En plataformas en la nube (como Vercel), las variables se configuran de forma segura y privada desde el panel de control de entorno.
 
 3. **Iniciar el contenedor de PostgreSQL**:
    ```bash
