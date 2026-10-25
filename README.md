@@ -19,7 +19,7 @@
   <img src="https://img.shields.io/badge/ORM-TypeORM-fe0803?style=for-the-badge&logo=typeorm" alt="TypeORM" />
   <img src="https://img.shields.io/badge/Math-KaTeX-059669?style=for-the-badge&logo=latex" alt="KaTeX" />
   <img src="https://img.shields.io/badge/Deployment-Docker%20%7C%20Vercel-000000?style=for-the-badge&logo=docker" alt="Deploy" />
-  <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License" />
+  <img src="https://img.shields.io/badge/License-All%20Rights%20Reserved-red?style=for-the-badge" alt="All Rights Reserved" />
 </p>
 
 ---
@@ -38,7 +38,7 @@
 - [Referencia de la API REST](#-referencia-de-la-api-rest)
 - [Atajos de Teclado y Controles del Lienzo](#-atajos-de-teclado-y-controles-del-lienzo)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
-- [Licencia](#-licencia)
+- [Derechos de Autor y Licencia](#-derechos-de-autor-y-licencia)
 
 ---
 
@@ -360,9 +360,14 @@ DigiLab/
 
 ---
 
-## 📄 Licencia
+## 🔒 Derechos de Autor y Licencia
 
-Este proyecto se encuentra bajo la Licencia **MIT**. Eres libre de utilizarlo, modificarlo y distribuirlo con fines académicos o comerciales.
+© 2026 **MaYoNGY**. Todos los derechos reservados.
+
+Este software, su código fuente, arquitectura esquemática, interfaz visual y documentación asociada son propiedad intelectual exclusiva de su autor y fueron desarrollados con propósitos académicos y de investigación.
+
+- **Prohibición de copia o plagio**: Queda terminantemente prohibida la reproducción, duplicación, distribución, ingeniería inversa o uso comercial de cualquier parte de este proyecto sin la autorización expresa y por escrito del autor.
+- **Uso permitido**: Se autoriza la visualización pública con fines estrictamente educativos, de consulta, auditoría técnica y evaluación académica.
 
 ---
 
