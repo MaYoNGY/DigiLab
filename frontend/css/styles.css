@@ -1473,57 +1473,29 @@ html.in-workspace-mode #simulatorView {
   color: #be185d;
 }
 
-.edge-drawer-handle {
-  position: absolute;
-  top: 14px;
-  z-index: 28;
-  height: 32px;
-  padding: 0 7px;
-  background: rgba(255, 255, 255, 0.96);
+.subtool-sidebar-btn {
+  height: 28px;
+  padding: 0 9px;
+  background: #fdf2f8;
   border: 1.5px solid #f472b6;
   color: #9d174d;
+  border-radius: 6px;
   font-family: var(--font-sans);
-  font-size: 0.72rem;
+  font-size: 0.71rem;
   font-weight: 800;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0;
+  gap: 5px;
   white-space: nowrap;
-  box-shadow: 0 3px 10px rgba(190, 24, 93, 0.12);
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+  transition: all 0.15s ease;
 }
 
-.edge-drawer-handle.edge-left {
-  left: 0;
-  border-left: none;
-  border-radius: 0 8px 8px 0;
-}
-
-.edge-drawer-handle.edge-right {
-  right: 0;
-  border-right: none;
-  border-radius: 8px 0 0 8px;
-}
-
-.edge-drawer-handle .edge-handle-label {
-  max-width: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: max-width 0.2s ease, opacity 0.18s ease, margin 0.18s ease;
-}
-
-.edge-drawer-handle:hover {
+.subtool-sidebar-btn:hover {
   background: #fce7f3;
   border-color: #db2777;
   color: #831843;
-  padding: 0 11px;
-}
-
-.edge-drawer-handle:hover .edge-handle-label {
-  max-width: 110px;
-  opacity: 1;
-  margin: 0 5px;
 }
 
 .side-tab {

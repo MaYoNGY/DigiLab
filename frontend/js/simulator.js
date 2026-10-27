@@ -2101,6 +2101,21 @@ class DigitalSimulator {
   // NAVEGACIÓN JERÁRQUICA DE MAYOR A MENOR Y DE MENOR A MAYOR
   // =========================================================================
   drillDownIntoNode(node) {
+    // Si ya estamos dentro de una exploración jerárquica, mantener SIEMPRE la misma familia
+    // para que el camino Mayor → Menor y Menor → Mayor sea 100% simétrico
+    if (this.hierarchyState) {
+      const currentFam = window.HIERARCHY_FAMILIES?.[this.hierarchyState.familyId];
+      if (currentFam) {
+        const nextLevel = Math.min(currentFam.levels.length, this.hierarchyState.level + 1);
+        if (nextLevel > this.hierarchyState.level) {
+          this.openHierarchyLevel(currentFam.id, nextLevel);
+        } else {
+          this.showToast('Ya estás en el nivel más profundo (Compuertas Básicas).');
+        }
+        return;
+      }
+    }
+
     const targetNode = node || this.nodes.find((n) => n.id === this.selectedNodeId);
     if (!targetNode) {
       this.showToast('Selecciona un circuito integrado o bloque MSI para ver su interior.');
@@ -2116,18 +2131,14 @@ class DigitalSimulator {
       return;
     }
 
-    // Si ya estamos dentro de esa misma familia jerárquica, bajar al siguiente nivel
-    let targetLevel = hInfo.nextLevel || 2;
-    if (this.hierarchyState && this.hierarchyState.familyId === hInfo.family.id) {
-      targetLevel = Math.min(hInfo.family.levels.length, this.hierarchyState.level + 1);
-    }
-
+    const targetLevel = hInfo.nextLevel || 2;
     this.openHierarchyLevel(hInfo.family.id, targetLevel, targetNode);
   }
 
   openHierarchyLevel(familyId, levelNum = 1, originNode = null) {
     const families = window.HIERARCHY_FAMILIES || {};
-    const family = families[familyId];
+    const effectiveFamilyId = this.hierarchyState ? this.hierarchyState.familyId : familyId;
+    const family = families[effectiveFamilyId];
     if (!family || !Array.isArray(family.levels) || family.levels.length === 0) return;
 
     const requestedLevel = Number(levelNum) || 1;
@@ -2189,8 +2200,10 @@ class DigitalSimulator {
     const firstMsiNode = this.nodes.find((n) => !['INPUT', 'OUTPUT', 'VCC', 'GND'].includes(n.type)) || this.nodes[0];
     this.selectSingleNode(firstMsiNode ? firstMsiNode.id : null);
 
+    const visibleLevels = family.levels.filter((l) => l.level >= baseOriginLevel);
+    const displayLevelNum = Math.max(1, visibleLevels.findIndex((l) => l.level === levelObj.level) + 1);
     const bannerTag = document.getElementById('bannerModuleTag');
-    if (bannerTag) bannerTag.textContent = `Nivel ${levelObj.level} de ${family.levels.length}`;
+    if (bannerTag) bannerTag.textContent = `Nivel ${displayLevelNum} de ${visibleLevels.length}`;
 
     const bannerDesc = document.getElementById('bannerDesc');
     if (bannerDesc) bannerDesc.textContent = levelObj.subtitle || levelObj.title;
@@ -2296,29 +2309,39 @@ class DigitalSimulator {
     if (formulaSep) formulaSep.classList.add('hidden');
     this.updateSelectionUI();
 
+    const originLevel = this.hierarchyOriginSnapshot?.originLevel || 1;
+    const visibleLevels = family.levels.filter((l) => l.level >= originLevel);
+
     const btnUp = document.getElementById('btnHierarchyUp');
     const btnDown = document.getElementById('btnHierarchyDown');
-    if (btnUp) btnUp.disabled = this.hierarchyState.level <= 1;
+    if (btnUp) btnUp.disabled = this.hierarchyState.level <= originLevel;
     if (btnDown) btnDown.disabled = this.hierarchyState.level >= family.levels.length;
 
     const crumbsContainer = document.getElementById('hierarchyBreadcrumbs');
     if (crumbsContainer) {
       crumbsContainer.innerHTML = '';
-      family.levels.forEach((lvl, idx) => {
+      visibleLevels.forEach((lvl, idx) => {
         if (idx > 0) {
           const arrow = document.createElement('span');
           arrow.className = 'hierarchy-crumb-arrow';
           arrow.textContent = '›';
           crumbsContainer.appendChild(arrow);
         }
+        const displayNum = idx + 1;
         const isCurrent = lvl.level === this.hierarchyState.level;
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = `hierarchy-crumb ${isCurrent ? 'active' : ''}`;
-        const cleanShort = String(lvl.shortName || '').replace(/^\d+\.\s*/, '');
+        const isOrigin = lvl.level === originLevel;
+        const originLabel = this.hierarchyOriginSnapshot?.originNodeLabel || 'Tu Circuito';
+        const cleanShort = isOrigin
+          ? `Tu Circuito (${originLabel})`
+          : String(lvl.shortName || '').replace(/^\d+\.\s*/, '');
         const compactLabel = cleanShort.length > 22 ? `${cleanShort.slice(0, 20)}…` : cleanShort;
-        btn.textContent = isCurrent ? `N${lvl.level} · ${compactLabel}` : `N${lvl.level}`;
-        btn.title = `${lvl.title} (Clic para ver este nivel)`;
+        btn.textContent = isCurrent ? `N${displayNum} · ${compactLabel}` : `N${displayNum}`;
+        btn.title = isOrigin
+          ? `Nivel 1: Volver a tu circuito (${originLabel})`
+          : `Nivel ${displayNum}: ${lvl.title}`;
         btn.addEventListener('click', () => {
           this.openHierarchyLevel(family.id, lvl.level);
         });
@@ -3770,10 +3793,13 @@ class DigitalSimulator {
     const box = document.getElementById('inspectorContent');
     if (!box) return;
 
+    const workspace = document.querySelector('.eda-workspace');
     const selectedList = this.getSelectedNodesList();
 
-    // Si hay múltiples elementos seleccionados con la flecha, mostrar panel de acciones en lote
+    // Si hay múltiples elementos seleccionados con la flecha, mostrar panel de acciones en lote y abrir Inspector
     if (selectedList.length >= 2) {
+      workspace?.classList.remove('right-collapsed');
+      requestAnimationFrame(() => this.updateTabsScrollButtons());
       box.innerHTML = `
         <div class="prop-header-card">
           <div class="item-svg-icon" style="background:#fce7f3;border-radius:8px;color:#db2777;font-weight:800;">${selectedList.length}</div>
@@ -3828,25 +3854,39 @@ class DigitalSimulator {
 
     const node = this.nodes.find((n) => n.id === this.selectedNodeId);
 
+    // El Inspector solo aparece cuando el usuario hace clic en un componente; si no hay ninguno seleccionado, se oculta automáticamente
     if (!node) {
-      box.innerHTML = `<p style="font-size:0.76rem;color:var(--text-muted);line-height:1.5;">Haz clic sobre cualquier compuerta, display o circuito integrado para inspeccionar sus propiedades, o <b>arrastra con la flecha sobre el lienzo</b> para seleccionar varios elementos a la vez.</p>`;
+      workspace?.classList.add('right-collapsed');
+      requestAnimationFrame(() => this.updateTabsScrollButtons());
+      box.innerHTML = '';
       return;
     }
+
+    workspace?.classList.remove('right-collapsed');
+    requestAnimationFrame(() => this.updateTabsScrollButtons());
 
     const def = window.COMPONENT_DEFS[node.type] || {};
     const inVals = this.nodeInputs[node.id] || [];
     const outVals = this.nodeOutputs[node.id] || [];
     const iconSvg = window.getCatalogIconSvg(node.type);
     const currentRot = node.rotation || 0;
-    const hInfo = typeof window.getHierarchyInfoForNode === 'function' ? window.getHierarchyInfoForNode(node.type) : null;
+    const nodeHInfo = typeof window.getHierarchyInfoForNode === 'function' ? window.getHierarchyInfoForNode(node.type) : null;
+
+    // Si estamos dentro de una vista jerárquica, mantener bloqueada la familia original para que todos los N coincidan de ida y vuelta
+    const activeFam = this.hierarchyState
+      ? window.HIERARCHY_FAMILIES?.[this.hierarchyState.familyId]
+      : nodeHInfo?.family;
 
     let hierarchyHtml = '';
-    if (hInfo && hInfo.family) {
-      const fam = hInfo.family;
-      const activeLvl = this.hierarchyState && this.hierarchyState.familyId === fam.id ? this.hierarchyState.level : hInfo.startLevel;
-      const canGoUp = activeLvl > 1;
-      const canGoDown = activeLvl < fam.levels.length;
-      const nextDownLevel = canGoDown ? activeLvl + 1 : activeLvl;
+    if (activeFam) {
+      const originLevel = this.hierarchyState
+        ? (this.hierarchyOriginSnapshot?.originLevel || 1)
+        : (nodeHInfo?.startLevel || 1);
+      const visibleLevels = activeFam.levels.filter((l) => l.level >= originLevel);
+      const activeLvl = this.hierarchyState ? this.hierarchyState.level : originLevel;
+      const canGoUp = activeLvl > originLevel;
+      const canGoDown = activeLvl < activeFam.levels.length;
+      const nextDisplayDown = Math.min(visibleLevels.length, visibleLevels.findIndex((l) => l.level === activeLvl) + 2);
 
       hierarchyHtml = `
         <div class="inspector-hierarchy-card">
@@ -3861,13 +3901,18 @@ class DigitalSimulator {
             Selecciona un nivel para inspeccionar su construcción interna:
           </p>
           <div class="inspector-hierarchy-levels">
-            ${fam.levels.map((lvl) => {
+            ${visibleLevels.map((lvl, idx) => {
+              const displayNum = idx + 1;
               const isCurr = lvl.level === activeLvl;
-              const cleanName = String(lvl.shortName || '').replace(/^\d+\.\s*/, '');
+              const isOrigin = lvl.level === originLevel;
+              const originLabel = this.hierarchyOriginSnapshot?.originNodeLabel || node.label;
+              const cleanName = isOrigin
+                ? `Tu Circuito (${originLabel})`
+                : String(lvl.shortName || '').replace(/^\d+\.\s*/, '');
               return `
-                <button type="button" class="inspector-level-btn ${isCurr ? 'current' : ''}" data-hfamily="${fam.id}" data-hlevel="${lvl.level}">
+                <button type="button" class="inspector-level-btn ${isCurr ? 'current' : ''}" data-hfamily="${activeFam.id}" data-hlevel="${lvl.level}">
                   <div class="inspector-level-left">
-                    <span class="inspector-level-num">${lvl.level}</span>
+                    <span class="inspector-level-num">${displayNum}</span>
                     <span class="inspector-level-text">${cleanName}</span>
                   </div>
                   <span class="inspector-level-right">
@@ -3895,7 +3940,7 @@ class DigitalSimulator {
               : `
                 <button type="button" id="btnInspectorDrillDown" class="btn btn-rose-solid" style="width:100%;justify-content:center;font-size:0.71rem;padding:6px 8px;gap:6px;">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-                  <span>Ver Subcircuito Interior (Nivel ${nextDownLevel})</span>
+                  <span>Ver Subcircuito Interior (Nivel ${nextDisplayDown})</span>
                 </button>
               `
             }
@@ -4799,50 +4844,41 @@ class DigitalSimulator {
     });
 
     // =========================================================================
-    // PANELES LATERALES COLAPSABLES (COMPONENTES / MIS LIENZOS E INSPECTOR)
-    // Y BOTONES DE DESPLAZAMIENTO HORIZONTAL DE PESTAÑAS
+    // PANEL DE COMPONENTES COLAPSABLE + INSPECTOR AUTOMÁTICO AL SELECCIONAR
     // =========================================================================
     const workspace = document.querySelector('.eda-workspace');
     const btnCollapseLeft = document.getElementById('btnCollapseLeftSidebar');
     const btnExpandLeft = document.getElementById('btnExpandLeftSidebar');
+    const subtoolLeftSep = document.getElementById('subtoolLeftSep');
     const btnCollapseRight = document.getElementById('btnCollapseRightSidebar');
-    const btnExpandRight = document.getElementById('btnExpandRightSidebar');
 
-    const applySidebarCollapseState = (leftCollapsed, rightCollapsed) => {
+    const applyLeftSidebarState = (leftCollapsed) => {
       if (!workspace) return;
       workspace.classList.toggle('left-collapsed', leftCollapsed);
-      workspace.classList.toggle('right-collapsed', rightCollapsed);
       btnExpandLeft?.classList.toggle('hidden', !leftCollapsed);
-      btnExpandRight?.classList.toggle('hidden', !rightCollapsed);
+      subtoolLeftSep?.classList.toggle('hidden', !leftCollapsed);
       localStorage.setItem('digilab_left_collapsed', leftCollapsed ? '1' : '0');
-      localStorage.setItem('digilab_right_collapsed', rightCollapsed ? '1' : '0');
       requestAnimationFrame(() => this.updateTabsScrollButtons());
     };
 
     const savedLeftCollapsed = localStorage.getItem('digilab_left_collapsed') === '1';
-    const savedRightCollapsed = localStorage.getItem('digilab_right_collapsed') === '1';
-    if (savedLeftCollapsed || savedRightCollapsed) {
-      applySidebarCollapseState(savedLeftCollapsed, savedRightCollapsed);
+    if (savedLeftCollapsed) {
+      applyLeftSidebarState(true);
     }
 
     btnCollapseLeft?.addEventListener('click', () => {
-      const rightCollapsed = workspace?.classList.contains('right-collapsed') || false;
-      applySidebarCollapseState(true, rightCollapsed);
+      applyLeftSidebarState(true);
     });
 
     btnExpandLeft?.addEventListener('click', () => {
-      const rightCollapsed = workspace?.classList.contains('right-collapsed') || false;
-      applySidebarCollapseState(false, rightCollapsed);
+      applyLeftSidebarState(false);
     });
 
+    // Cerrar el Inspector deselecciona el componente actual (vuelve a abrirse automáticamente al hacer clic en cualquier componente)
     btnCollapseRight?.addEventListener('click', () => {
-      const leftCollapsed = workspace?.classList.contains('left-collapsed') || false;
-      applySidebarCollapseState(leftCollapsed, true);
-    });
-
-    btnExpandRight?.addEventListener('click', () => {
-      const leftCollapsed = workspace?.classList.contains('left-collapsed') || false;
-      applySidebarCollapseState(leftCollapsed, false);
+      this.clearSelection();
+      this.renderNodes();
+      this.updateInspector();
     });
 
     const tabsBar = document.getElementById('activeWorkTabs');
