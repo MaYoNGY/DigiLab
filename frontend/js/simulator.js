@@ -1696,7 +1696,10 @@ class DigitalSimulator {
         `;
         card.addEventListener('click', () => {
           this.addNodeOfType(item.type);
-          document.getElementById('leftSidebar')?.classList.remove('open');
+          if (window.innerWidth <= 1160) {
+            document.querySelector('.eda-workspace')?.classList.add('left-collapsed');
+            document.getElementById('btnToggleLeftSidebarDesktop')?.classList.remove('active');
+          }
         });
         grid.appendChild(card);
       });
@@ -1840,7 +1843,10 @@ class DigitalSimulator {
           this.addNodeOfType(item.type);
           this.showToast(`✨ Componente "${item.name}" añadido al lienzo.`);
           dropdown.classList.add('hidden');
-          document.getElementById('leftSidebar')?.classList.remove('open');
+          if (window.innerWidth <= 1160) {
+            document.querySelector('.eda-workspace')?.classList.add('left-collapsed');
+            document.getElementById('btnToggleLeftSidebarDesktop')?.classList.remove('active');
+          }
         };
 
         itemRow.addEventListener('click', chooseThisItem);
@@ -4438,20 +4444,6 @@ class DigitalSimulator {
     document.getElementById('btnUndoToolbar')?.addEventListener('click', () => this.undoCanvasAction());
     document.getElementById('btnRedoToolbar')?.addEventListener('click', () => this.redoCanvasAction());
 
-    // Botones responsive móviles
-    const leftSidebar = document.getElementById('leftSidebar');
-    const rightSidebar = document.getElementById('rightSidebar');
-
-    document.getElementById('btnToggleLeftSidebar')?.addEventListener('click', () => {
-      leftSidebar?.classList.toggle('open');
-      rightSidebar?.classList.remove('open');
-    });
-
-    document.getElementById('btnToggleRightSidebar')?.addEventListener('click', () => {
-      rightSidebar?.classList.toggle('open');
-      leftSidebar?.classList.remove('open');
-    });
-
     // Movimiento en el lienzo (Arrastre grupal, Cableado, Selección por rectángulo y Panorámica)
     window.addEventListener('mousemove', (e) => {
       if (this.draggingNode) {
@@ -4932,26 +4924,19 @@ class DigitalSimulator {
       requestAnimationFrame(() => this.updateTabsScrollButtons());
     };
 
-    const savedLeftCollapsed = localStorage.getItem('digilab_left_collapsed') === '1';
+    const savedLeftCollapsed =
+      localStorage.getItem('digilab_left_collapsed') === '1' || window.innerWidth <= 1160;
     if (savedLeftCollapsed) {
       applyLeftSidebarState(true);
     }
 
     btnToggleLeftDesktop?.addEventListener('click', () => {
-      const leftPanel = document.getElementById('leftSidebar');
-      if (window.innerWidth <= 1160 && leftPanel) {
-        const isOpen = leftPanel.classList.toggle('open');
-        document.getElementById('rightSidebar')?.classList.remove('open');
-        btnToggleLeftDesktop.classList.toggle('active', isOpen);
-        return;
-      }
       const isCurrentlyCollapsed = workspace?.classList.contains('left-collapsed') || false;
       applyLeftSidebarState(!isCurrentlyCollapsed);
     });
 
     // Cerrar el Inspector deselecciona el componente actual (vuelve a abrirse automáticamente al hacer clic en cualquier componente)
     btnCollapseRight?.addEventListener('click', () => {
-      document.getElementById('rightSidebar')?.classList.remove('open');
       this.clearSelection();
       this.renderNodes();
       this.updateInspector();
