@@ -2473,6 +2473,33 @@ window.HIERARCHY_FAMILIES = {
           { id: 'wo3', fromNode: 'and3', fromPin: 0, toNode: 'orFinal', toPin: 3 },
           { id: 'wy', fromNode: 'orFinal', fromPin: 0, toNode: 'outY', toPin: 0 }
         ]
+      },
+      {
+        level: 3,
+        shortName: '3. Compuertas Básicas (NOT, AND, OR)',
+        title: 'Nivel 3 (Menor): Compuertas Lógicas Básicas del Multiplexor',
+        subtitle: 'Implementación a nivel de compuertas elementales con inversores NOT de selección, compuertas AND de paso y OR de salida.',
+        formulas: ["Y = I_0 \\cdot S' + I_1 \\cdot S"],
+        nodes: [
+          { id: 'inI0', type: 'INPUT', label: 'I0', x: 100, y: 55, state: [1] },
+          { id: 'inI1', type: 'INPUT', label: 'I1', x: 100, y: 175, state: [0] },
+          { id: 'inS', type: 'INPUT', label: 'S0', x: 100, y: 270, state: [0] },
+          { id: 'notS', type: 'NOT', label: 'NOT_S', x: 250, y: 115 },
+          { id: 'and0', type: 'AND', label: 'AND_CH0', x: 420, y: 65 },
+          { id: 'and1', type: 'AND', label: 'AND_CH1', x: 420, y: 195 },
+          { id: 'orOut', type: 'OR', label: 'OR_Y', x: 600, y: 130 },
+          { id: 'outY', type: 'OUTPUT', label: 'Y', x: 750, y: 142 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'inS', fromPin: 0, toNode: 'notS', toPin: 0 },
+          { id: 'w2', fromNode: 'inI0', fromPin: 0, toNode: 'and0', toPin: 0 },
+          { id: 'w3', fromNode: 'notS', fromPin: 0, toNode: 'and0', toPin: 1 },
+          { id: 'w4', fromNode: 'inI1', fromPin: 0, toNode: 'and1', toPin: 0 },
+          { id: 'w5', fromNode: 'inS', fromPin: 0, toNode: 'and1', toPin: 1 },
+          { id: 'w6', fromNode: 'and0', fromPin: 0, toNode: 'orOut', toPin: 0 },
+          { id: 'w7', fromNode: 'and1', fromPin: 0, toNode: 'orOut', toPin: 1 },
+          { id: 'w8', fromNode: 'orOut', fromPin: 0, toNode: 'outY', toPin: 0 }
+        ]
       }
     ]
   }

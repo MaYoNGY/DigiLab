@@ -2122,15 +2122,35 @@ class DigitalSimulator {
       targetLevel = Math.min(hInfo.family.levels.length, this.hierarchyState.level + 1);
     }
 
-    this.openHierarchyLevel(hInfo.family.id, targetLevel);
+    this.openHierarchyLevel(hInfo.family.id, targetLevel, targetNode);
   }
 
-  openHierarchyLevel(familyId, levelNum = 1) {
+  openHierarchyLevel(familyId, levelNum = 1, originNode = null) {
     const families = window.HIERARCHY_FAMILIES || {};
     const family = families[familyId];
     if (!family || !Array.isArray(family.levels) || family.levels.length === 0) return;
 
-    const levelObj = family.levels.find((l) => l.level === Number(levelNum)) || family.levels[0];
+    const requestedLevel = Number(levelNum) || 1;
+    const originNodeObj = originNode || this.nodes.find((n) => n.id === this.selectedNodeId) || null;
+    const originHInfo = originNodeObj && typeof window.getHierarchyInfoForNode === 'function'
+      ? window.getHierarchyInfoForNode(originNodeObj.type)
+      : null;
+    const baseOriginLevel = this.hierarchyOriginSnapshot?.originLevel || originHInfo?.startLevel || 1;
+
+    // Si ya estamos en vista jerárquica y el usuario regresa al nivel de origen (ej. N1 o Subir Mayor),
+    // restaurar SIEMPRE su circuito original exacto con el componente que tenía antes.
+    if (this.hierarchyState && this.hierarchyOriginSnapshot && requestedLevel <= baseOriginLevel) {
+      this.exitHierarchyView();
+      return;
+    }
+
+    // Si aún está en su circuito principal y hace clic en el nivel actual (N1), no reemplazar su circuito
+    if (!this.hierarchyState && requestedLevel <= baseOriginLevel) {
+      this.showToast('Ya estás en el nivel principal de tu circuito.');
+      return;
+    }
+
+    const levelObj = family.levels.find((l) => l.level === requestedLevel) || family.levels[0];
 
     // Guardar copia de respaldo del circuito original de la pestaña si aún no estamos en modo jerárquico
     if (!this.hierarchyState && !this.hierarchyOriginSnapshot) {
@@ -2142,7 +2162,10 @@ class DigitalSimulator {
         wires: JSON.parse(JSON.stringify(this.wires)),
         zoom: this.zoom,
         panX: this.panX,
-        panY: this.panY
+        panY: this.panY,
+        originNodeId: originNodeObj ? originNodeObj.id : this.selectedNodeId,
+        originNodeLabel: originNodeObj ? originNodeObj.label : null,
+        originLevel: baseOriginLevel
       };
     }
 
@@ -2196,6 +2219,11 @@ class DigitalSimulator {
     const family = window.HIERARCHY_FAMILIES?.[this.hierarchyState.familyId];
     if (!family) return;
     const nextLevel = this.hierarchyState.level + delta;
+    const originLevel = this.hierarchyOriginSnapshot?.originLevel || 1;
+    if (delta < 0 && nextLevel <= originLevel) {
+      this.exitHierarchyView();
+      return;
+    }
     if (nextLevel < 1 || nextLevel > family.levels.length) return;
     this.openHierarchyLevel(family.id, nextLevel);
   }
@@ -2212,19 +2240,25 @@ class DigitalSimulator {
       tab.hierarchyOriginSnapshot = null;
     }
 
+    let restoredNodeId = null;
     if (snap) {
       this.nodes = JSON.parse(JSON.stringify(snap.nodes || []));
       this.wires = JSON.parse(JSON.stringify(snap.wires || []));
       this.zoom = snap.zoom || 1;
       this.panX = snap.panX || 0;
       this.panY = snap.panY || 0;
+      restoredNodeId = snap.originNodeId || null;
       const bannerTag = document.getElementById('bannerModuleTag');
       if (bannerTag) bannerTag.textContent = snap.moduleTag || 'Diseño Digital';
       const bannerDesc = document.getElementById('bannerDesc');
       if (bannerDesc) bannerDesc.textContent = snap.description || '';
     }
 
-    this.clearSelection();
+    if (restoredNodeId && this.nodes.some((n) => n.id === restoredNodeId)) {
+      this.selectSingleNode(restoredNodeId);
+    } else {
+      this.clearSelection();
+    }
     this.renderHierarchyNavBar();
     this.updateWorldTransform();
     this.evaluateCircuit();
@@ -2232,7 +2266,7 @@ class DigitalSimulator {
     this.generateTruthTable();
     this.updateInspector();
     this.saveCurrentTabState();
-    this.showToast('Has vuelto a tu circuito principal.');
+    this.showToast(snap?.originNodeLabel ? `De vuelta en tu circuito (${snap.originNodeLabel}).` : 'Has vuelto a tu circuito principal.');
   }
 
   renderHierarchyNavBar() {
@@ -3953,7 +3987,7 @@ class DigitalSimulator {
 
     box.querySelectorAll('.inspector-level-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
-        this.openHierarchyLevel(btn.dataset.hfamily, Number(btn.dataset.hlevel));
+        this.openHierarchyLevel(btn.dataset.hfamily, Number(btn.dataset.hlevel), node);
       });
     });
 
