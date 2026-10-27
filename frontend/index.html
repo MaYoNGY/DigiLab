@@ -33,7 +33,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Librería KaTeX para renderizado tipográfico de Expresiones Algebraicas y Booleanas -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="./css/styles.css?v=4.7.2" />
+  <link rel="stylesheet" href="./css/styles.css?v=4.7.3" />
 </head>
 <body>
 
@@ -640,6 +640,9 @@
         <div class="sidebar-top-tabs">
           <button class="side-tab active" data-lefttab="leftCatalog">Componentes</button>
           <button class="side-tab" data-lefttab="leftMyWork">Mis Lienzos</button>
+          <button id="btnCollapseLeftSidebar" class="btn-sidebar-collapse" type="button" title="Ocultar panel de Componentes y Mis Lienzos para ver más pizarra">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+          </button>
         </div>
 
         <!-- TAB 1: CATÁLOGO DE COMPONENTES -->
@@ -675,12 +678,26 @@
         
         <!-- BARRA DE PESTAÑAS REALES -->
         <div class="canvas-tabs-bar">
+          <button id="btnExpandLeftSidebar" class="btn-sidebar-reopen hidden" type="button" title="Mostrar panel de Componentes y Mis Lienzos">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><polyline points="13 9 16 12 13 15"/></svg>
+            <span>Componentes</span>
+          </button>
+          <button id="btnTabsScrollLeft" class="btn-tab-scroll" type="button" title="Desplazar pestañas a la izquierda">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
           <div id="activeWorkTabs" class="work-tabs-list"></div>
+          <button id="btnTabsScrollRight" class="btn-tab-scroll" type="button" title="Desplazar pestañas a la derecha">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
           <button id="btnQuickNewTab" class="btn-add-tab" title="Abrir nueva pestaña de circuito (+)">+</button>
           <div class="canvas-QuickHint">
             <span id="bannerModuleTag" class="module-pill">Aritmética Binaria</span>
             <input id="activeCircuitTitleInput" type="text" class="work-tab-title-inline" value="Sumador Completo (1 bit)" title="Renombrar el circuito de la pestaña activa" />
             <span id="bannerDesc" style="display:none;" aria-hidden="true"></span>
+            <button id="btnExpandRightSidebar" class="btn-sidebar-reopen hidden" type="button" title="Mostrar panel Inspector de Propiedades">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/><polyline points="11 9 8 12 11 15"/></svg>
+              <span>Inspector</span>
+            </button>
           </div>
         </div>
 
@@ -862,10 +879,10 @@
             <div class="dock-split-grid">
               <div class="dock-truth-col">
                 <div class="dock-col-header">
-                  <div style="display:inline-flex;align-items:center;gap:8px;">
-                    <strong id="truthTableTitle">Tabla de Verdad</strong>
+                  <div class="dock-col-header-left">
+                    <strong id="truthTableTitle" title="Tabla de Verdad del circuito activo">Tabla de Verdad</strong>
                     <div class="truth-view-switch" id="truthViewSwitch" title="Cambiar formato de visualización de la tabla">
-                      <button type="button" id="btnTruthViewBus" class="btn-truth-mode active" title="Vista de Buses agrupados (N.°, A, B, S, Cout)">Buses (A, B, S)</button>
+                      <button type="button" id="btnTruthViewBus" class="btn-truth-mode active" title="Vista de Buses agrupados (N.°, A, B, S, Cout)">Buses (A, B)</button>
                       <button type="button" id="btnTruthViewBits" class="btn-truth-mode" title="Vista detallada de bits individuales (A3..A0, B3..B0)">Bits</button>
                     </div>
                   </div>
@@ -920,8 +937,13 @@
       <!-- COLUMNA DERECHA: INSPECTOR Y PROPIEDADES -->
       <aside id="rightSidebar" class="eda-sidebar-right">
         <div class="inspector-tabs-header">
-          <span class="inspector-tab-title active">Inspector</span>
-          <span class="inspector-tab-sub">Propiedades</span>
+          <div style="display:inline-flex;align-items:center;gap:8px;">
+            <span class="inspector-tab-title active">Inspector</span>
+            <span class="inspector-tab-sub">Propiedades</span>
+          </div>
+          <button id="btnCollapseRightSidebar" class="btn-sidebar-collapse" type="button" title="Ocultar panel Inspector para ver más pizarra">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+          </button>
         </div>
         <div id="inspectorContent" class="inspector-body"></div>
       </aside>
@@ -1204,8 +1226,8 @@
   <!-- Librería KaTeX para renderizar ecuaciones algebraicas y expresiones booleanas -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
-  <script src="./js/components.js?v=4.7.2"></script>
-  <script src="./js/presets.js?v=4.7.2"></script>
-  <script src="./js/simulator.js?v=4.7.2"></script>
+  <script src="./js/components.js?v=4.7.3"></script>
+  <script src="./js/presets.js?v=4.7.3"></script>
+  <script src="./js/simulator.js?v=4.7.3"></script>
 </body>
 </html>

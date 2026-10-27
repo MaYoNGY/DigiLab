@@ -550,13 +550,17 @@ class DigitalSimulator {
         },
         { passive: false }
       );
+      bar.addEventListener('scroll', () => this.updateTabsScrollButtons());
     }
+
+    let activeTabEl = null;
 
     this.tabs.forEach((tab) => {
       const isActive = tab.tabId === this.activeTabId;
       const el = document.createElement('div');
       el.className = `work-tab ${isActive ? 'active' : ''}`;
       el.title = tab.title;
+      if (isActive) activeTabEl = el;
       const dotTitle = isActive
         ? 'Lienzo activo · Simulación en tiempo real'
         : 'Circuito en pestaña secundaria (haz clic para alternar)';
@@ -580,6 +584,23 @@ class DigitalSimulator {
 
       bar.appendChild(el);
     });
+
+    requestAnimationFrame(() => {
+      if (activeTabEl) {
+        activeTabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      }
+      this.updateTabsScrollButtons();
+    });
+  }
+
+  updateTabsScrollButtons() {
+    const bar = document.getElementById('activeWorkTabs');
+    const btnLeft = document.getElementById('btnTabsScrollLeft');
+    const btnRight = document.getElementById('btnTabsScrollRight');
+    if (!bar || !btnLeft || !btnRight) return;
+    const hasOverflow = bar.scrollWidth > bar.clientWidth + 4;
+    btnLeft.classList.toggle('hidden', !hasOverflow);
+    btnRight.classList.toggle('hidden', !hasOverflow);
   }
 
   // =========================================================================
@@ -3214,15 +3235,15 @@ class DigitalSimulator {
       return;
     }
 
-    // Detección inteligente de buses de entrada (A y B)
+    // Detección inteligente de buses de entrada multibit (A3..A0 y B3..B0)
     const groupA = inputNodes
-      .filter((n) => /^A\d*$/i.test(n.label))
+      .filter((n) => /^A\d+$/i.test(n.label))
       .sort((a, b) => b.label.localeCompare(a.label, undefined, { numeric: true }));
     const groupB = inputNodes
-      .filter((n) => /^B\d*$/i.test(n.label))
+      .filter((n) => /^B\d+$/i.test(n.label))
       .sort((a, b) => b.label.localeCompare(a.label, undefined, { numeric: true }));
 
-    const isBusCompatible = groupA.length > 0 && groupB.length > 0;
+    const isBusCompatible = groupA.length >= 2 && groupB.length >= 2;
     if (switchWrap) {
       switchWrap.style.display = isBusCompatible ? 'inline-flex' : 'none';
     }
@@ -3256,8 +3277,12 @@ class DigitalSimulator {
       .filter((n) => /^(S[0-3]|Σ[0-3]|S)$/i.test(n.label) && !/Cout|C4|S4/i.test(n.label))
       .sort((a, b) => b.label.localeCompare(a.label, undefined, { numeric: true }));
 
-    const nodeCout = outputNodes.find((n) => /^(Cout|C4|S4|C)$/i.test(n.label));
+    const nodeCout = outputNodes.find((n) => /^(Cout|C4|S4)$/i.test(n.label));
     const otherOutputs = outputNodes.filter((n) => !groupS.includes(n) && n !== nodeCout);
+    const auxInputs = inputNodes.filter((n) => !groupA.includes(n) && !groupB.includes(n));
+
+    const maxMaskA = (1 << groupA.length) - 1;
+    const maxMaskB = (1 << groupB.length) - 1;
 
     // Vectores representativos de laboratorio (coinciden con la tabla de reporte de laboratorio)
     const canonicalPairs = [
@@ -3296,10 +3321,12 @@ class DigitalSimulator {
     const pairs = [];
     const seenPairs = new Set();
     const addPair = (a, b) => {
-      const k = `${a}_${b}`;
+      const ma = a & maxMaskA;
+      const mb = b & maxMaskB;
+      const k = `${ma}_${mb}`;
       if (!seenPairs.has(k)) {
         seenPairs.add(k);
-        pairs.push([a, b]);
+        pairs.push([ma, mb]);
       }
     };
 
@@ -3315,12 +3342,12 @@ class DigitalSimulator {
         }
       }
       if (hintText) {
-        hintText.innerHTML = `Tabla de buses exhaustiva (${pairs.length} vectores) · Clic en una fila para inyectarla`;
+        hintText.innerHTML = `<span>${pairs.length} vectores · Clic en fila para inyectar</span>`;
       }
     } else {
       canonicalPairs.forEach(([a, b]) => addPair(a, b));
       if (hintText) {
-        hintText.innerHTML = `Mostrando ${pairs.length} vectores clave de laboratorio · <button id="btnExpandFullTruth" class="btn-xs-rose" style="padding:1px 6px;">Ver tabla completa (256 filas)</button>`;
+        hintText.innerHTML = `<span>${pairs.length} vectores clave · Clic en fila para inyectar</span> <button id="btnExpandFullTruth" class="btn-xs-rose" style="padding:1px 6px;">Ver 256</button>`;
       }
     }
 
@@ -3330,8 +3357,8 @@ class DigitalSimulator {
 
     let html = `<table class="truth-table"><thead><tr>`;
     html += `<th style="width:42px;">N.°</th>`;
-    html += `<th>A</th>`;
-    html += `<th>B</th>`;
+    html += `<th>A (${bitLenA}b)</th>`;
+    html += `<th>B (${bitLenB}b)</th>`;
     if (groupS.length > 0) {
       html += `<th class="out-col">${sumColLabel}</th>`;
     }
@@ -3354,17 +3381,30 @@ class DigitalSimulator {
       groupB.forEach((nodeB, bitIdx) => {
         overrideMap[nodeB.id] = Number(binB[bitIdx]);
       });
+      auxInputs.forEach((aux) => {
+        overrideMap[aux.id] = aux.state && aux.state[0] ? 1 : 0;
+      });
 
       const simResult = this.evaluateCircuit(overrideMap);
 
       let strS = '';
       if (groupS.length > 0) {
-        strS = groupS.map((out) => (simResult.inputsMap[out.id]?.[0] ? 1 : 0)).join('');
+        strS = groupS
+          .map((out) => {
+            const tId = out.nodeId || out.id;
+            const pIdx = out.pinIndex || 0;
+            return simResult.inputsMap[tId]?.[pIdx] ? 1 : 0;
+          })
+          .join('');
       }
 
-      const valCout = nodeCout ? (simResult.inputsMap[nodeCout.id]?.[0] ? 1 : 0) : null;
+      const valCout = nodeCout
+        ? simResult.inputsMap[nodeCout.nodeId || nodeCout.id]?.[nodeCout.pinIndex || 0]
+          ? 1
+          : 0
+        : null;
 
-      html += `<tr data-bus-a="${binA}" data-bus-b="${binB}" title="Clic para inyectar A=${binA} (${valA}), B=${binB} (${valB}) en el circuito">`;
+      html += `<tr data-bus-a="${binA}" data-bus-b="${binB}" style="cursor:pointer;" title="Clic para inyectar A=${binA} (${valA}), B=${binB} (${valB}) en el circuito">`;
       html += `<td style="color:var(--text-muted);font-weight:600;">${rowIdx + 1}</td>`;
       html += `<td><span class="bus-val" style="font-family:var(--font-mono);font-weight:700;">${binA}</span></td>`;
       html += `<td><span class="bus-val" style="font-family:var(--font-mono);font-weight:700;">${binB}</span></td>`;
@@ -3375,7 +3415,9 @@ class DigitalSimulator {
         html += `<td class="${valCout === 1 ? 'val-1' : ''}" style="font-family:var(--font-mono);font-weight:800;">${valCout}</td>`;
       }
       otherOutputs.forEach((out) => {
-        const val = simResult.inputsMap[out.id]?.[0] ? 1 : 0;
+        const tId = out.nodeId || out.id;
+        const pIdx = out.pinIndex || 0;
+        const val = simResult.inputsMap[tId]?.[pIdx] ? 1 : 0;
         html += `<td class="${val === 1 ? 'val-1' : ''}">${val}</td>`;
       });
       html += `</tr>`;
@@ -3389,39 +3431,49 @@ class DigitalSimulator {
       btnExpand.addEventListener('click', () => this.generateTruthTable(true));
     }
 
-    // Al hacer clic en cualquier fila, inyectar bits de A y B en los terminales interactivos
+    const renderBusExpressionLive = (valA, valB) => {
+      if (!exprBox) return;
+      exprBox.innerHTML = '';
+      const item = document.createElement('div');
+      item.className = 'expr-item';
+      const sumDec = valA + valB;
+      const moduloVal = 1 << groupA.length;
+      const decLatex = `A = ${valA} \\;(${valA.toString(2).padStart(bitLenA, '0')}_2) \\quad B = ${valB} \\;(${valB.toString(2).padStart(bitLenB, '0')}_2) \\implies A + B = ${sumDec}`;
+      const busLatex = `S = (A + B) \\pmod{${moduloVal}} \\qquad C_{out} = \\left\\lfloor \\frac{A + B}{${moduloVal}} \\right\\rfloor`;
+
+      item.innerHTML = `
+        <div class="expr-title" style="margin-bottom:6px;">${this.renderLatexToHtml(busLatex, false)}</div>
+        <div class="expr-sop" style="font-weight:700;color:#059669;">${this.renderLatexToHtml(decLatex, false)}</div>
+      `;
+      exprBox.appendChild(item);
+    };
+
+    // Al hacer clic en cualquier fila, inyectar bits de A y B en los terminales interactivos y actualizar todo en tiempo real
     container.querySelectorAll('tr[data-bus-a]').forEach((tr) => {
       tr.addEventListener('click', () => {
-        const aBits = tr.dataset.busA.split('').map(Number);
-        const bBits = tr.dataset.busB.split('').map(Number);
+        const binA = tr.dataset.busA || '';
+        const binB = tr.dataset.busB || '';
+        const aBits = binA.split('').map(Number);
+        const bBits = binB.split('').map(Number);
         groupA.forEach((n, idx) => {
           if (aBits[idx] !== undefined) n.state = [aBits[idx]];
         });
         groupB.forEach((n, idx) => {
           if (bBits[idx] !== undefined) n.state = [bBits[idx]];
         });
+        const newValA = parseInt(binA, 2) || 0;
+        const newValB = parseInt(binB, 2) || 0;
         this.evaluateCircuit();
         this.renderAll();
         this.updateInspector();
+        renderBusExpressionLive(newValA, newValB);
+        this.highlightActiveTruthRow();
         this.saveCurrentTabState();
+        this.showToast(`Vector aplicado: A = ${binA} (${newValA}), B = ${binB} (${newValB})`);
       });
     });
 
-    // Panel de Expresiones Booleanas / Ecuación del Bus
-    exprBox.innerHTML = '';
-    const item = document.createElement('div');
-    item.className = 'expr-item';
-    const sumDec = currValA + currValB;
-    const moduloVal = 1 << groupA.length;
-    const decLatex = `A = ${currValA} \\quad B = ${currValB} \\implies A + B = ${sumDec}`;
-    const busLatex = `S = (A + B) \\pmod{${moduloVal}} \\qquad C_{out} = \\left\\lfloor \\frac{A + B}{${moduloVal}} \\right\\rfloor`;
-
-    item.innerHTML = `
-      <div class="expr-title" style="margin-bottom:6px;">${this.renderLatexToHtml(busLatex, false)}</div>
-      <div class="expr-sop" style="font-weight:700;color:#059669;">${this.renderLatexToHtml(decLatex, false)}</div>
-    `;
-    exprBox.appendChild(item);
-
+    renderBusExpressionLive(currValA, currValB);
     this.highlightActiveTruthRow();
   }
 
@@ -3540,7 +3592,8 @@ class DigitalSimulator {
     // Al hacer clic en cualquier fila de la tabla de verdad, aplicar esos bits a las entradas del lienzo
     container.querySelectorAll('tr[data-bits]').forEach((tr) => {
       tr.addEventListener('click', () => {
-        const bits = tr.dataset.bits.split('').map(Number);
+        const bitsStr = tr.dataset.bits || '';
+        const bits = bitsStr.split('').map(Number);
         inputNodes.forEach((inpNode, idx) => {
           if (bits[idx] !== undefined) {
             inpNode.state = [bits[idx]];
@@ -3549,7 +3602,9 @@ class DigitalSimulator {
         this.evaluateCircuit();
         this.renderAll();
         this.updateInspector();
+        this.highlightActiveTruthRow();
         this.saveCurrentTabState();
+        this.showToast(`Combinación inyectada: ${bitsStr}`);
       });
     });
 
@@ -3599,13 +3654,13 @@ class DigitalSimulator {
     if (inputNodes.length === 0) return;
 
     const groupA = inputNodes
-      .filter((n) => /^A\d*$/i.test(n.label))
+      .filter((n) => /^A\d+$/i.test(n.label))
       .sort((a, b) => b.label.localeCompare(a.label, undefined, { numeric: true }));
     const groupB = inputNodes
-      .filter((n) => /^B\d*$/i.test(n.label))
+      .filter((n) => /^B\d+$/i.test(n.label))
       .sort((a, b) => b.label.localeCompare(a.label, undefined, { numeric: true }));
 
-    if (this.truthTableMode === 'bus' && groupA.length > 0 && groupB.length > 0) {
+    if (this.truthTableMode === 'bus' && groupA.length >= 2 && groupB.length >= 2) {
       const currA = groupA.map((n) => (n.state && n.state[0] ? 1 : 0)).join('');
       const currB = groupB.map((n) => (n.state && n.state[0] ? 1 : 0)).join('');
       const rows = document.querySelectorAll('#truthTableContainer tr[data-bus-a]');
@@ -4708,6 +4763,62 @@ class DigitalSimulator {
         updateToggleUI();
       });
     });
+
+    // =========================================================================
+    // PANELES LATERALES COLAPSABLES (COMPONENTES / MIS LIENZOS E INSPECTOR)
+    // Y BOTONES DE DESPLAZAMIENTO HORIZONTAL DE PESTAÑAS
+    // =========================================================================
+    const workspace = document.querySelector('.eda-workspace');
+    const btnCollapseLeft = document.getElementById('btnCollapseLeftSidebar');
+    const btnExpandLeft = document.getElementById('btnExpandLeftSidebar');
+    const btnCollapseRight = document.getElementById('btnCollapseRightSidebar');
+    const btnExpandRight = document.getElementById('btnExpandRightSidebar');
+
+    const applySidebarCollapseState = (leftCollapsed, rightCollapsed) => {
+      if (!workspace) return;
+      workspace.classList.toggle('left-collapsed', leftCollapsed);
+      workspace.classList.toggle('right-collapsed', rightCollapsed);
+      btnExpandLeft?.classList.toggle('hidden', !leftCollapsed);
+      btnExpandRight?.classList.toggle('hidden', !rightCollapsed);
+      localStorage.setItem('digilab_left_collapsed', leftCollapsed ? '1' : '0');
+      localStorage.setItem('digilab_right_collapsed', rightCollapsed ? '1' : '0');
+      requestAnimationFrame(() => this.updateTabsScrollButtons());
+    };
+
+    const savedLeftCollapsed = localStorage.getItem('digilab_left_collapsed') === '1';
+    const savedRightCollapsed = localStorage.getItem('digilab_right_collapsed') === '1';
+    if (savedLeftCollapsed || savedRightCollapsed) {
+      applySidebarCollapseState(savedLeftCollapsed, savedRightCollapsed);
+    }
+
+    btnCollapseLeft?.addEventListener('click', () => {
+      const rightCollapsed = workspace?.classList.contains('right-collapsed') || false;
+      applySidebarCollapseState(true, rightCollapsed);
+    });
+
+    btnExpandLeft?.addEventListener('click', () => {
+      const rightCollapsed = workspace?.classList.contains('right-collapsed') || false;
+      applySidebarCollapseState(false, rightCollapsed);
+    });
+
+    btnCollapseRight?.addEventListener('click', () => {
+      const leftCollapsed = workspace?.classList.contains('left-collapsed') || false;
+      applySidebarCollapseState(leftCollapsed, true);
+    });
+
+    btnExpandRight?.addEventListener('click', () => {
+      const leftCollapsed = workspace?.classList.contains('left-collapsed') || false;
+      applySidebarCollapseState(leftCollapsed, false);
+    });
+
+    const tabsBar = document.getElementById('activeWorkTabs');
+    document.getElementById('btnTabsScrollLeft')?.addEventListener('click', () => {
+      if (tabsBar) tabsBar.scrollBy({ left: -200, behavior: 'smooth' });
+    });
+    document.getElementById('btnTabsScrollRight')?.addEventListener('click', () => {
+      if (tabsBar) tabsBar.scrollBy({ left: 200, behavior: 'smooth' });
+    });
+    window.addEventListener('resize', () => this.updateTabsScrollButtons());
   }
 }
 

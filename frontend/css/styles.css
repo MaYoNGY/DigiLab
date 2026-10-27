@@ -1405,7 +1405,7 @@ html.in-workspace-mode #simulatorView {
 }
 
 /* =========================================================================
-   CUERPO CENTRAL EDA DE 3 COLUMNAS
+   CUERPO CENTRAL EDA DE 3 COLUMNAS (CON PANELES LATERALES COLAPSABLES)
    ========================================================================= */
 .eda-workspace {
   flex: 1;
@@ -1413,6 +1413,26 @@ html.in-workspace-mode #simulatorView {
   grid-template-columns: 265px 1fr 295px;
   overflow: hidden;
   position: relative;
+}
+
+.eda-workspace.left-collapsed {
+  grid-template-columns: 1fr 295px;
+}
+
+.eda-workspace.left-collapsed .eda-sidebar-left {
+  display: none;
+}
+
+.eda-workspace.right-collapsed {
+  grid-template-columns: 265px 1fr;
+}
+
+.eda-workspace.right-collapsed .eda-sidebar-right {
+  display: none;
+}
+
+.eda-workspace.left-collapsed.right-collapsed {
+  grid-template-columns: 1fr;
 }
 
 .eda-sidebar-left {
@@ -1426,9 +1446,58 @@ html.in-workspace-mode #simulatorView {
 
 .sidebar-top-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 34px;
+  align-items: center;
   border-bottom: 1px solid var(--border-light);
   background: #fff9fc;
+}
+
+.btn-sidebar-collapse {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #9d174d;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-sidebar-collapse:hover {
+  background: #fce7f3;
+  border-color: #f9a8d4;
+  color: #be185d;
+}
+
+.btn-sidebar-reopen {
+  height: 26px;
+  margin-bottom: 4px;
+  padding: 0 9px;
+  background: #ffffff;
+  border: 1.5px solid #f472b6;
+  color: #9d174d;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(190, 24, 93, 0.08);
+  transition: all 0.15s ease;
+}
+
+.btn-sidebar-reopen:hover {
+  background: #fce7f3;
+  border-color: #db2777;
+  color: #831843;
 }
 
 .side-tab {
@@ -1917,27 +1986,38 @@ html.in-workspace-mode #simulatorView {
   gap: 4px;
   overflow-x: auto;
   overflow-y: hidden;
-  max-width: 62%;
-  scrollbar-width: thin;
-  scrollbar-color: #f472b6 transparent;
+  max-width: 58%;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .work-tabs-list::-webkit-scrollbar {
-  height: 3px;
-  width: 0px;
+  display: none;
+  width: 0;
+  height: 0;
 }
 
-.work-tabs-list::-webkit-scrollbar-track {
-  background: transparent;
+.btn-tab-scroll {
+  width: 22px;
+  height: 24px;
+  margin-bottom: 4px;
+  border: 1px solid #f5bedb;
+  background: #fff5f9;
+  color: #9d174d;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.14s ease;
 }
 
-.work-tabs-list::-webkit-scrollbar-thumb {
-  background: #f472b6;
-  border-radius: 99px;
-}
-
-.work-tabs-list::-webkit-scrollbar-thumb:hover {
-  background: #db2777;
+.btn-tab-scroll:hover {
+  background: #fce7f3;
+  border-color: #db2777;
+  color: #831843;
 }
 
 .work-tab {
@@ -2613,16 +2693,41 @@ html.in-workspace-mode #simulatorView {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  gap: 10px;
+  margin-bottom: 7px;
   font-size: 0.75rem;
+  flex-wrap: nowrap;
+  min-height: 26px;
+}
+
+.dock-col-header-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
 }
 
 .dock-col-header strong {
   color: var(--text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
 }
 
 .dock-col-header span {
   font-size: 0.69rem;
+  color: var(--text-muted);
+}
+
+#truthTableHintText {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 0.68rem;
   color: var(--text-muted);
 }
 
@@ -2632,38 +2737,45 @@ html.in-workspace-mode #simulatorView {
   padding: 2px 7px;
   border-radius: 5px;
   font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .truth-view-switch {
   display: inline-flex;
   align-items: center;
-  background: #f1f5f9;
-  border-radius: 6px;
+  background: #fce7f3;
+  border-radius: 7px;
   padding: 2px;
-  border: 1px solid var(--border-light);
+  border: 1px solid #f9a8d4;
   gap: 2px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .btn-truth-mode {
   border: none;
   background: transparent;
-  color: #64748b;
+  color: #9d174d;
   font-size: 0.68rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 4px;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 5px;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.15s ease;
 }
 
 .btn-truth-mode:hover {
-  color: var(--text-dark);
+  color: #831843;
+  background: rgba(255, 255, 255, 0.55);
 }
 
 .btn-truth-mode.active {
-  background: #ffffff;
-  color: var(--rose-deep);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  background: #db2777;
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(190, 24, 93, 0.25);
 }
 
 .truth-table-wrapper {
@@ -3907,25 +4019,26 @@ kbd {
   margin-top: 8px;
 }
 
-/* SCROLLBARS PERSONALIZADOS CON LA ESTÉTICA ROSA DE LA WEB */
-.catalog-scroll,
-.inspector-body,
-.truth-table-wrapper,
-.expressions-box,
-.sim-results-grid,
-.reference-cards-grid {
-  scrollbar-width: thin;
-  scrollbar-color: #f472b6 #fff5f9;
-}
-
+/* SCROLLBARS PERSONALIZADOS DE ALTO CONTRASTE (SIN FLECHAS NATIVAS DE WINDOWS) */
 .catalog-scroll::-webkit-scrollbar,
 .inspector-body::-webkit-scrollbar,
 .truth-table-wrapper::-webkit-scrollbar,
 .expressions-box::-webkit-scrollbar,
 .sim-results-grid::-webkit-scrollbar,
 .reference-cards-grid::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
+}
+
+.catalog-scroll::-webkit-scrollbar-button,
+.inspector-body::-webkit-scrollbar-button,
+.truth-table-wrapper::-webkit-scrollbar-button,
+.expressions-box::-webkit-scrollbar-button,
+.sim-results-grid::-webkit-scrollbar-button,
+.reference-cards-grid::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .catalog-scroll::-webkit-scrollbar-track,
@@ -3934,7 +4047,8 @@ kbd {
 .expressions-box::-webkit-scrollbar-track,
 .sim-results-grid::-webkit-scrollbar-track,
 .reference-cards-grid::-webkit-scrollbar-track {
-  background: #fff5f9;
+  background: #fce7f3;
+  border-left: 1px solid #f9a8d4;
   border-radius: 99px;
 }
 
@@ -3944,8 +4058,9 @@ kbd {
 .expressions-box::-webkit-scrollbar-thumb,
 .sim-results-grid::-webkit-scrollbar-thumb,
 .reference-cards-grid::-webkit-scrollbar-thumb {
-  background: #f472b6;
+  background: linear-gradient(180deg, #ec4899, #db2777);
   border-radius: 99px;
+  border: 1.5px solid #fce7f3;
 }
 
 .catalog-scroll::-webkit-scrollbar-thumb:hover,
@@ -3954,6 +4069,6 @@ kbd {
 .expressions-box::-webkit-scrollbar-thumb:hover,
 .sim-results-grid::-webkit-scrollbar-thumb:hover,
 .reference-cards-grid::-webkit-scrollbar-thumb:hover {
-  background: #db2777;
+  background: #be185d;
 }
 
