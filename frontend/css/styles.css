@@ -1912,30 +1912,59 @@ html.in-workspace-mode #simulatorView {
 
 .work-tabs-list {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   height: 100%;
-  gap: 3px;
+  gap: 4px;
   overflow-x: auto;
-  max-width: 56%;
+  overflow-y: hidden;
+  max-width: 62%;
+  scrollbar-width: thin;
+  scrollbar-color: #f472b6 transparent;
+}
+
+.work-tabs-list::-webkit-scrollbar {
+  height: 3px;
+  width: 0px;
+}
+
+.work-tabs-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.work-tabs-list::-webkit-scrollbar-thumb {
+  background: #f472b6;
+  border-radius: 99px;
+}
+
+.work-tabs-list::-webkit-scrollbar-thumb:hover {
+  background: #db2777;
 }
 
 .work-tab {
-  height: 32px;
-  margin-top: 6px;
+  height: 31px;
   background: #f8dce9;
   border: 1px solid #efb8d2;
   border-bottom: none;
   border-radius: 8px 8px 0 0;
-  padding: 0 10px 0 12px;
-  display: flex;
+  padding: 0 9px 0 11px;
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 700;
   color: var(--text-body);
   white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.14s;
+}
+
+.work-tab-name {
+  max-width: 175px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
 }
 
 .work-tab:hover {
@@ -3604,26 +3633,14 @@ kbd {
 }
 
 /* =========================================================================
-   NAVEGACIÓN JERÁRQUICA COMPACTA FLOTANTE EN LA PIZARRA (ESQUINA INFERIOR IZQUIERDA)
+   NAVEGACIÓN JERÁRQUICA INTEGRADA EN LA BARRA SUPERIOR DEL LIENZO (CERO MOLESTIA)
    ========================================================================= */
-.hierarchy-nav-bar {
-  position: absolute;
-  bottom: 14px;
-  left: 14px;
-  z-index: 23;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(8px);
-  border: 1.5px solid #f472b6;
-  border-radius: 10px;
-  padding: 4px 8px;
+.hierarchy-inline-group {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   white-space: nowrap;
   flex-wrap: nowrap;
-  box-shadow: 0 6px 20px rgba(157, 23, 77, 0.14);
-  max-width: calc(100% - 210px);
-  overflow-x: auto;
 }
 
 .btn-hierarchy-back {
@@ -3631,7 +3648,8 @@ kbd {
   color: #9d174d;
   border: 1px solid #f9a8d4;
   border-radius: 6px;
-  padding: 3px 8px;
+  height: 26px;
+  padding: 0 8px;
   font-size: 0.7rem;
   font-weight: 800;
   cursor: pointer;
@@ -3648,23 +3666,19 @@ kbd {
   color: #831843;
 }
 
-.hierarchy-sep {
-  width: 1px;
-  height: 16px;
-  background: var(--border-light);
-  margin: 0 1px;
-  flex-shrink: 0;
-}
-
 .btn-hierarchy-step {
   background: #ffffff;
   color: #831843;
   border: 1px solid #f9a8d4;
   border-radius: 6px;
-  padding: 3px 7px;
+  height: 26px;
+  padding: 0 7px;
   font-size: 0.69rem;
   font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   transition: all 0.14s ease;
   flex-shrink: 0;
 }
@@ -3676,7 +3690,7 @@ kbd {
 }
 
 .btn-hierarchy-step:disabled {
-  opacity: 0.38;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
@@ -3705,7 +3719,8 @@ kbd {
   color: #9d174d;
   border: 1px solid #f9a8d4;
   border-radius: 6px;
-  padding: 2px 7px;
+  height: 24px;
+  padding: 0 7px;
   font-size: 0.69rem;
   font-weight: 700;
   cursor: pointer;
@@ -3736,29 +3751,21 @@ kbd {
   user-select: none;
 }
 
-.hierarchy-family-select {
-  background: #fdf2f8;
-  color: #831843;
-  border: 1px solid #f9a8d4;
-  border-radius: 6px;
-  padding: 2px 6px;
-  font-size: 0.69rem;
-  font-weight: 700;
-  font-family: var(--font-sans);
-  outline: none;
-  cursor: pointer;
-  max-width: 155px;
-}
-
 .subtool-drill-btn {
   width: auto !important;
+  height: 26px !important;
   padding: 0 9px !important;
   gap: 5px;
   background: #fdf2f8 !important;
   border: 1px solid #f472b6 !important;
+  border-radius: 6px;
   color: #9d174d !important;
   font-size: 0.71rem;
   font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.14s ease;
 }
 
 .subtool-drill-btn:hover {
@@ -3766,36 +3773,57 @@ kbd {
   color: #ffffff !important;
 }
 
+/* TARJETA DE ARQUITECTURA INTERNA EN EL INSPECTOR (CON ICONOS SVG PUROS) */
 .inspector-hierarchy-card {
   margin-top: 12px;
-  background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
-  border: 1.5px solid #f472b6;
+  background: #fff9fc;
+  border: 1.5px solid #f9a8d4;
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: 11px 12px;
+  box-shadow: 0 3px 10px rgba(190, 24, 93, 0.05);
+}
+
+.inspector-hierarchy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
 .inspector-hierarchy-title {
   font-size: 0.74rem;
   font-weight: 800;
   color: #831843;
-  margin-bottom: 6px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
+  margin: 0;
+}
+
+.inspector-hierarchy-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #be185d;
+  background: #fce7f3;
+  border: 1px solid #f9a8d4;
+  padding: 1px 6px;
+  border-radius: 99px;
+  white-space: nowrap;
 }
 
 .inspector-hierarchy-levels {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   margin: 8px 0;
 }
 
 .inspector-level-btn {
   background: #ffffff;
-  border: 1px solid #f9a8d4;
-  border-radius: 6px;
-  padding: 5px 8px;
+  border: 1px solid #f5d0e6;
+  border-radius: 7px;
+  padding: 6px 8px;
   font-size: 0.71rem;
   font-weight: 700;
   color: #4a1d35;
@@ -3804,19 +3832,128 @@ kbd {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: all 0.13s ease;
+  gap: 8px;
+  transition: all 0.14s ease;
+}
+
+.inspector-level-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+}
+
+.inspector-level-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: #fce7f3;
+  color: #be185d;
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid #f9a8d4;
+}
+
+.inspector-level-text {
+  font-size: 0.7rem;
+  line-height: 1.28;
+  color: #4a1d35;
+  font-weight: 700;
+}
+
+.inspector-level-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: #be185d;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .inspector-level-btn:hover {
+  background: #fdf2f8;
+  border-color: #db2777;
+  transform: translateX(1px);
+}
+
+.inspector-level-btn.current {
+  background: #fce7f3;
+  border: 1.5px solid #db2777;
+  box-shadow: 0 2px 6px rgba(219, 39, 119, 0.1);
+}
+
+.inspector-level-btn.current .inspector-level-num {
   background: #db2777;
   color: #ffffff;
   border-color: #db2777;
 }
 
-.inspector-level-btn.current {
-  background: #fce7f3;
-  border-color: #db2777;
-  color: #9d174d;
+.inspector-level-btn.current .inspector-level-text {
+  color: #831843;
   font-weight: 800;
+}
+
+.inspector-hierarchy-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+/* SCROLLBARS PERSONALIZADOS CON LA ESTÉTICA ROSA DE LA WEB */
+.catalog-scroll,
+.inspector-body,
+.truth-table-wrapper,
+.expressions-box,
+.sim-results-grid,
+.reference-cards-grid {
+  scrollbar-width: thin;
+  scrollbar-color: #f472b6 #fff5f9;
+}
+
+.catalog-scroll::-webkit-scrollbar,
+.inspector-body::-webkit-scrollbar,
+.truth-table-wrapper::-webkit-scrollbar,
+.expressions-box::-webkit-scrollbar,
+.sim-results-grid::-webkit-scrollbar,
+.reference-cards-grid::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.catalog-scroll::-webkit-scrollbar-track,
+.inspector-body::-webkit-scrollbar-track,
+.truth-table-wrapper::-webkit-scrollbar-track,
+.expressions-box::-webkit-scrollbar-track,
+.sim-results-grid::-webkit-scrollbar-track,
+.reference-cards-grid::-webkit-scrollbar-track {
+  background: #fff5f9;
+  border-radius: 99px;
+}
+
+.catalog-scroll::-webkit-scrollbar-thumb,
+.inspector-body::-webkit-scrollbar-thumb,
+.truth-table-wrapper::-webkit-scrollbar-thumb,
+.expressions-box::-webkit-scrollbar-thumb,
+.sim-results-grid::-webkit-scrollbar-thumb,
+.reference-cards-grid::-webkit-scrollbar-thumb {
+  background: #f472b6;
+  border-radius: 99px;
+}
+
+.catalog-scroll::-webkit-scrollbar-thumb:hover,
+.inspector-body::-webkit-scrollbar-thumb:hover,
+.truth-table-wrapper::-webkit-scrollbar-thumb:hover,
+.expressions-box::-webkit-scrollbar-thumb:hover,
+.sim-results-grid::-webkit-scrollbar-thumb:hover,
+.reference-cards-grid::-webkit-scrollbar-thumb:hover {
+  background: #db2777;
 }
 

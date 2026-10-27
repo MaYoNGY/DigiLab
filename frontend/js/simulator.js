@@ -538,21 +538,38 @@ class DigitalSimulator {
     if (!bar) return;
     bar.innerHTML = '';
 
+    if (!bar.dataset.wheelBound) {
+      bar.dataset.wheelBound = '1';
+      bar.addEventListener(
+        'wheel',
+        (e) => {
+          if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+            e.preventDefault();
+            bar.scrollLeft += e.deltaY;
+          }
+        },
+        { passive: false }
+      );
+    }
+
     this.tabs.forEach((tab) => {
       const isActive = tab.tabId === this.activeTabId;
       const el = document.createElement('div');
       el.className = `work-tab ${isActive ? 'active' : ''}`;
+      el.title = tab.title;
       const dotTitle = isActive
         ? 'Lienzo activo · Simulación en tiempo real'
         : 'Circuito en pestaña secundaria (haz clic para alternar)';
       el.innerHTML = `
         <span class="work-tab-dot" title="${dotTitle}"></span>
         <span class="work-tab-name">${tab.title}</span>
-        <button class="work-tab-close" title="Cerrar esta pestaña">✕</button>
+        <button class="work-tab-close" title="Cerrar esta pestaña" aria-label="Cerrar pestaña">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       `;
 
       el.addEventListener('click', (e) => {
-        if (e.target.classList.contains('work-tab-close')) return;
+        if (e.target.closest('.work-tab-close')) return;
         this.switchToTab(tab.tabId);
       });
 
@@ -2046,10 +2063,16 @@ class DigitalSimulator {
     }
 
     const drillBtn = document.getElementById('subtoolDrillDown');
+    const drillSep = document.getElementById('subtoolDrillSep');
     if (drillBtn) {
       const singleNode = selectedCount === 1 ? this.nodes.find((n) => n.id === this.selectedNodeId) : null;
-      const canDrill = singleNode && typeof window.canDrillDownNode === 'function' && window.canDrillDownNode(singleNode.type);
+      const canDrill =
+        !this.hierarchyState &&
+        singleNode &&
+        typeof window.canDrillDownNode === 'function' &&
+        window.canDrillDownNode(singleNode.type);
       drillBtn.classList.toggle('hidden', !canDrill);
+      if (drillSep) drillSep.classList.toggle('hidden', !canDrill);
     }
   }
 
@@ -2144,7 +2167,7 @@ class DigitalSimulator {
     this.renderAll();
     this.generateTruthTable();
     this.updateInspector();
-    this.showToast(`🔍 ${levelObj.title}`);
+    this.showToast(levelObj.title);
   }
 
   stepHierarchy(delta) {
@@ -2188,30 +2211,35 @@ class DigitalSimulator {
     this.generateTruthTable();
     this.updateInspector();
     this.saveCurrentTabState();
-    this.showToast('↩ Has vuelto a tu circuito principal.');
+    this.showToast('Has vuelto a tu circuito principal.');
   }
 
   renderHierarchyNavBar() {
     const bar = document.getElementById('hierarchyNavBar');
+    const formulaBox = document.getElementById('bannerFormulas');
+    const formulaSep = document.getElementById('subtoolFormulaSep');
     if (!bar) return;
 
     if (!this.hierarchyState) {
       bar.classList.add('hidden');
+      if (formulaBox) formulaBox.classList.remove('hidden');
+      if (formulaSep) formulaSep.classList.remove('hidden');
+      this.updateSelectionUI();
       return;
     }
 
     const family = window.HIERARCHY_FAMILIES?.[this.hierarchyState.familyId];
     if (!family) {
       bar.classList.add('hidden');
+      if (formulaBox) formulaBox.classList.remove('hidden');
+      if (formulaSep) formulaSep.classList.remove('hidden');
       return;
     }
 
     bar.classList.remove('hidden');
-
-    const famSelect = document.getElementById('hierarchyFamilySelect');
-    if (famSelect && famSelect.value !== family.id) {
-      famSelect.value = family.id;
-    }
+    if (formulaBox) formulaBox.classList.add('hidden');
+    if (formulaSep) formulaSep.classList.add('hidden');
+    this.updateSelectionUI();
 
     const btnUp = document.getElementById('btnHierarchyUp');
     const btnDown = document.getElementById('btnHierarchyDown');
@@ -2232,8 +2260,10 @@ class DigitalSimulator {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = `hierarchy-crumb ${isCurrent ? 'active' : ''}`;
-        btn.textContent = isCurrent ? lvl.shortName : `N${lvl.level}`;
-        btn.title = `${lvl.title} (Clic para ir a este nivel)`;
+        const cleanShort = String(lvl.shortName || '').replace(/^\d+\.\s*/, '');
+        const compactLabel = cleanShort.length > 22 ? `${cleanShort.slice(0, 20)}…` : cleanShort;
+        btn.textContent = isCurrent ? `N${lvl.level} · ${compactLabel}` : `N${lvl.level}`;
+        btn.title = `${lvl.title} (Clic para ver este nivel)`;
         btn.addEventListener('click', () => {
           this.openHierarchyLevel(family.id, lvl.level);
         });
@@ -3666,13 +3696,26 @@ class DigitalSimulator {
 
         <div class="prop-section-subtitle" style="margin-top:0;padding-top:0;border-top:none;">▾ Acciones en Grupo</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
-          <button id="btnInspMultiRotate" class="btn btn-outline-soft" style="font-size:0.73rem;padding:6px 8px;justify-content:center;">⟳ Rotar 90° (R)</button>
-          <button id="btnInspMultiDup" class="btn btn-outline-soft" style="font-size:0.73rem;padding:6px 8px;justify-content:center;">⧉ Duplicar (Ctrl+D)</button>
-          <button id="btnInspMultiAlignX" class="btn btn-outline-soft" style="font-size:0.73rem;padding:6px 8px;justify-content:center;">⫼ Alinear Columna</button>
-          <button id="btnInspMultiAlignY" class="btn btn-outline-soft" style="font-size:0.73rem;padding:6px 8px;justify-content:center;">⫾ Alinear Fila</button>
+          <button id="btnInspMultiRotate" class="btn btn-outline-soft" style="font-size:0.72rem;padding:6px 8px;justify-content:center;gap:5px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            <span>Rotar 90°</span>
+          </button>
+          <button id="btnInspMultiDup" class="btn btn-outline-soft" style="font-size:0.72rem;padding:6px 8px;justify-content:center;gap:5px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Duplicar</span>
+          </button>
+          <button id="btnInspMultiAlignX" class="btn btn-outline-soft" style="font-size:0.72rem;padding:6px 8px;justify-content:center;gap:5px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><rect x="6" y="6" width="12" height="4" rx="1"/><rect x="8" y="14" width="8" height="4" rx="1"/></svg>
+            <span>Columna X</span>
+          </button>
+          <button id="btnInspMultiAlignY" class="btn btn-outline-soft" style="font-size:0.72rem;padding:6px 8px;justify-content:center;gap:5px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><rect x="6" y="6" width="4" height="12" rx="1"/><rect x="14" y="8" width="4" height="8" rx="1"/></svg>
+            <span>Fila Y</span>
+          </button>
         </div>
-        <button id="btnInspMultiDelete" class="btn btn-danger-solid" style="width:100%;justify-content:center;font-size:0.74rem;padding:7px;">
-          🗑 Eliminar ${selectedList.length} componentes seleccionados
+        <button id="btnInspMultiDelete" class="btn btn-danger-solid" style="width:100%;justify-content:center;font-size:0.73rem;padding:7px;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span>Eliminar ${selectedList.length} seleccionados</span>
         </button>
 
         <div class="prop-section-subtitle">▾ Componentes en la Selección</div>
@@ -3712,26 +3755,62 @@ class DigitalSimulator {
     if (hInfo && hInfo.family) {
       const fam = hInfo.family;
       const activeLvl = this.hierarchyState && this.hierarchyState.familyId === fam.id ? this.hierarchyState.level : hInfo.startLevel;
+      const canGoUp = activeLvl > 1;
+      const canGoDown = activeLvl < fam.levels.length;
+      const nextDownLevel = canGoDown ? activeLvl + 1 : activeLvl;
+
       hierarchyHtml = `
         <div class="inspector-hierarchy-card">
-          <div class="inspector-hierarchy-title">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2.3"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-            <span>Arquitectura Interna (Mayor ↔ Menor)</span>
+          <div class="inspector-hierarchy-header">
+            <h5 class="inspector-hierarchy-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              <span>Arquitectura Interna</span>
+            </h5>
+            <span class="inspector-hierarchy-badge">Mayor ↔ Menor</span>
           </div>
-          <p style="font-size:0.69rem;color:#4a1d35;margin:0 0 6px;line-height:1.35;">
-            Explora el subcircuito interior desde el bloque MSI hasta las compuertas básicas:
+          <p style="font-size:0.68rem;color:var(--text-muted);margin:0 0 6px;line-height:1.35;">
+            Selecciona un nivel para inspeccionar su construcción interna:
           </p>
           <div class="inspector-hierarchy-levels">
-            ${fam.levels.map((lvl) => `
-              <button type="button" class="inspector-level-btn ${lvl.level === activeLvl ? 'current' : ''}" data-hfamily="${fam.id}" data-hlevel="${lvl.level}">
-                <span>${lvl.shortName}</span>
-                <span>${lvl.level === activeLvl ? '● Actual' : 'Ver →'}</span>
-              </button>
-            `).join('')}
+            ${fam.levels.map((lvl) => {
+              const isCurr = lvl.level === activeLvl;
+              const cleanName = String(lvl.shortName || '').replace(/^\d+\.\s*/, '');
+              return `
+                <button type="button" class="inspector-level-btn ${isCurr ? 'current' : ''}" data-hfamily="${fam.id}" data-hlevel="${lvl.level}">
+                  <div class="inspector-level-left">
+                    <span class="inspector-level-num">${lvl.level}</span>
+                    <span class="inspector-level-text">${cleanName}</span>
+                  </div>
+                  <span class="inspector-level-right">
+                    ${isCurr
+                      ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Actual</span>`
+                      : `<span>Ver</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`
+                    }
+                  </span>
+                </button>
+              `;
+            }).join('')}
           </div>
-          <button type="button" id="btnInspectorDrillDown" class="btn btn-rose-solid" style="width:100%;justify-content:center;font-size:0.72rem;padding:6px;margin-top:4px;">
-            🔍 Ver Subcircuito Interior (Nivel ${hInfo.nextLevel})
-          </button>
+          <div class="inspector-hierarchy-actions">
+            ${this.hierarchyState
+              ? `
+                <button type="button" id="btnInspectorStepUp" class="btn btn-outline-soft" style="flex:1;justify-content:center;font-size:0.7rem;padding:5px 6px;gap:4px;" ${!canGoUp ? 'disabled' : ''}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                  <span>Subir (Mayor)</span>
+                </button>
+                <button type="button" id="btnInspectorStepDown" class="btn btn-rose-solid" style="flex:1;justify-content:center;font-size:0.7rem;padding:5px 6px;gap:4px;" ${!canGoDown ? 'disabled' : ''}>
+                  <span>Bajar (Menor)</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              `
+              : `
+                <button type="button" id="btnInspectorDrillDown" class="btn btn-rose-solid" style="width:100%;justify-content:center;font-size:0.71rem;padding:6px 8px;gap:6px;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                  <span>Ver Subcircuito Interior (Nivel ${nextDownLevel})</span>
+                </button>
+              `
+            }
+          </div>
         </div>
       `;
     }
@@ -3825,6 +3904,12 @@ class DigitalSimulator {
 
     document.getElementById('btnInspectorDrillDown')?.addEventListener('click', () => {
       this.drillDownIntoNode(node);
+    });
+    document.getElementById('btnInspectorStepUp')?.addEventListener('click', () => {
+      this.stepHierarchy(-1);
+    });
+    document.getElementById('btnInspectorStepDown')?.addEventListener('click', () => {
+      this.stepHierarchy(1);
     });
 
     document.getElementById('inspectorLabelInput')?.addEventListener('input', (e) => {

@@ -33,7 +33,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Librería KaTeX para renderizado tipográfico de Expresiones Algebraicas y Booleanas -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="./css/styles.css?v=4.7.1" />
+  <link rel="stylesheet" href="./css/styles.css?v=4.7.2" />
 </head>
 <body>
 
@@ -709,12 +709,31 @@
           <button class="subtool-btn" id="subtoolDeleteNode" title="Eliminar Componente(s) Seleccionado(s) (Supr)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
-          <div class="subtool-sep"></div>
-          <button class="subtool-drill-btn" id="subtoolDrillDown" type="button" title="Ver Subcircuito Interno: Navegar de Mayor a Menor y de Menor a Mayor">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-            <span>Interior (Mayor ↔ Menor)</span>
+          <div class="subtool-sep hidden" id="subtoolDrillSep"></div>
+          <button class="subtool-drill-btn hidden" id="subtoolDrillDown" type="button" title="Explorar Subcircuito Interno (Doble clic sobre el componente)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            <span>Ver Interior</span>
           </button>
-          <div class="subtool-sep"></div>
+
+          <!-- NAVEGACIÓN JERÁRQUICA INTEGRADA EN LA MISMA BARRA DE HERRAMIENTAS (SIN OCUPAR ESPACIO EXTRA EN LA PIZARRA) -->
+          <div id="hierarchyNavBar" class="hierarchy-inline-group hidden">
+            <div class="subtool-sep"></div>
+            <button id="btnHierarchyExit" class="btn-hierarchy-back" type="button" title="Salir de la vista interna y volver a tu circuito principal">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+              <span>Volver</span>
+            </button>
+            <button id="btnHierarchyUp" class="btn-hierarchy-step" type="button" title="Subir un nivel de abstracción (Menor → Mayor)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              <span>Mayor</span>
+            </button>
+            <div id="hierarchyBreadcrumbs" class="hierarchy-breadcrumbs"></div>
+            <button id="btnHierarchyDown" class="btn-hierarchy-step btn-step-down" type="button" title="Bajar al subcircuito interno (Mayor → Menor)">
+              <span>Menor</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+
+          <div class="subtool-sep" id="subtoolFormulaSep"></div>
           <div id="bannerFormulas" class="subtool-formulas"></div>
         </div>
 
@@ -728,39 +747,32 @@
           <!-- Recuadro de selección múltiple con la flecha (Marquee Box) -->
           <div id="marqueeSelectionBox" class="marquee-selection-box hidden"></div>
 
-          <!-- PÍLDORA FLOTANTE COMPACTA DE NAVEGACIÓN JERÁRQUICA (DE MAYOR A MENOR Y DE MENOR A MAYOR) -->
-          <div id="hierarchyNavBar" class="hierarchy-nav-bar hidden">
-            <button id="btnHierarchyExit" class="btn-hierarchy-back" type="button" title="Salir de la vista interna y volver a tu circuito principal">
-              <span>↩ Volver</span>
-            </button>
-            <div class="hierarchy-sep"></div>
-            <button id="btnHierarchyUp" class="btn-hierarchy-step" type="button" title="Subir un nivel de abstracción (Menor → Mayor)">
-              <span>◀ Mayor</span>
-            </button>
-            <div id="hierarchyBreadcrumbs" class="hierarchy-breadcrumbs"></div>
-            <button id="btnHierarchyDown" class="btn-hierarchy-step btn-step-down" type="button" title="Bajar al subcircuito interno (Mayor → Menor)">
-              <span>Menor ▶</span>
-            </button>
-            <div class="hierarchy-sep"></div>
-            <select id="hierarchyFamilySelect" class="hierarchy-family-select" title="Cambiar arquitectura integrada a inspeccionar">
-              <option value="ADDER_74283_HIERARCHY">74LS283 Sumador 4B</option>
-              <option value="BCD_7SEG_HIERARCHY">74LS47 / BCD 7-Seg</option>
-              <option value="DECODER_HIERARCHY">Decodificador 4:16 → 2:4</option>
-              <option value="ENCODER_HIERARCHY">Codificador 8:3 / 74LS148</option>
-              <option value="COMPARATOR_HIERARCHY">Comparador 74LS85</option>
-              <option value="MUX_HIERARCHY">Multiplexor 74LS153</option>
-            </select>
-          </div>
-
           <!-- Barra de acciones rápidas cuando hay múltiples elementos seleccionados -->
           <div id="multiSelectFloatingBar" class="multiselect-floating-bar hidden">
-            <span id="multiSelectCountBadge" class="multiselect-count-pill">2 seleccionados</span>
-            <button type="button" id="btnMultiRotate" class="multiselect-action-btn" title="Rotar todos los seleccionados 90° (R)">↻ Rotar</button>
-            <button type="button" id="btnMultiDuplicate" class="multiselect-action-btn" title="Duplicar todos los seleccionados y sus cables (Ctrl+D)">⧉ Duplicar</button>
-            <button type="button" id="btnMultiAlignX" class="multiselect-action-btn" title="Alinear verticalmente en la misma columna X">⫼ Alinear X</button>
-            <button type="button" id="btnMultiAlignY" class="multiselect-action-btn" title="Alinear horizontalmente en la misma fila Y">⫿ Alinear Y</button>
-            <button type="button" id="btnMultiDelete" class="multiselect-action-btn danger" title="Eliminar todos los seleccionados (Supr)">🗑 Eliminar</button>
-            <button type="button" id="btnMultiClearSel" class="multiselect-action-btn subtle" title="Deseleccionar (Esc)">✕</button>
+            <span id="multiSelectCountBadge" class="multiselect-badge">2 seleccionados</span>
+            <button type="button" id="btnMultiRotate" class="multiselect-action-btn" title="Rotar todos los seleccionados 90° (R)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              <span>Rotar</span>
+            </button>
+            <button type="button" id="btnMultiDuplicate" class="multiselect-action-btn" title="Duplicar todos los seleccionados y sus cables (Ctrl+D)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Duplicar</span>
+            </button>
+            <button type="button" id="btnMultiAlignX" class="multiselect-action-btn" title="Alinear verticalmente en la misma columna X">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><rect x="6" y="6" width="12" height="4" rx="1"/><rect x="8" y="14" width="8" height="4" rx="1"/></svg>
+              <span>Alinear X</span>
+            </button>
+            <button type="button" id="btnMultiAlignY" class="multiselect-action-btn" title="Alinear horizontalmente en la misma fila Y">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><rect x="6" y="6" width="4" height="12" rx="1"/><rect x="14" y="8" width="4" height="8" rx="1"/></svg>
+              <span>Alinear Y</span>
+            </button>
+            <button type="button" id="btnMultiDelete" class="multiselect-action-btn danger" title="Eliminar todos los seleccionados (Supr)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <span>Eliminar</span>
+            </button>
+            <button type="button" id="btnMultiClearSel" class="multiselect-action-btn subtle" title="Deseleccionar (Esc)" aria-label="Deseleccionar">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
 
           <!-- CONTROLES DE ZOOM FLOTANTES DIRECTAMENTE EN LA PIZARRA -->
@@ -1192,8 +1204,8 @@
   <!-- Librería KaTeX para renderizar ecuaciones algebraicas y expresiones booleanas -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
-  <script src="./js/components.js?v=4.7.1"></script>
-  <script src="./js/presets.js?v=4.7.1"></script>
-  <script src="./js/simulator.js?v=4.7.1"></script>
+  <script src="./js/components.js?v=4.7.2"></script>
+  <script src="./js/presets.js?v=4.7.2"></script>
+  <script src="./js/simulator.js?v=4.7.2"></script>
 </body>
 </html>
