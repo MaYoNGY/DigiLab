@@ -155,7 +155,7 @@ window.FALLBACK_PRESETS = [
     title: 'Decodificador BCD a 7 Segmentos + Display (Cátodo Común / 74LS48)',
     category: 'Decodificadores y Conversores BCD',
     moduleTag: 'BCD a 7 Segmentos',
-    description: 'Decodificador BCD a 7 segmentos con salidas activas en alto (1) conectado a un Display de Cátodo Común (Pág. 11 del PDF).',
+    description: 'Decodificador BCD a 7 segmentos con salidas activas en alto (1) conectado a un Display de Cátodo Común.',
     formulas: [
       '\\text{BCD } (D,C,B,A) \\implies \\text{Segmentos } a..g \\text{ (Cátodo Común)}'
     ],
@@ -198,9 +198,9 @@ window.FALLBACK_PRESETS = [
   },
   {
     id: 'taller-deco-4-16',
-    title: 'Taller: Decodificador 4 a 16 en base a Decodificadores 2 a 4',
+    title: 'Decodificador 4 a 16 en base a Decodificadores 2 a 4',
     category: 'Decodificadores y Conversores BCD',
-    moduleTag: 'Taller Pág. 18',
+    moduleTag: 'Decodificadores 2:4',
     description: 'Desarrollo de un decodificador 4 a 16 utilizando 5 decodificadores 2 a 4: 1 maestro (A3, A2) que habilita a 4 esclavos (A1, A0).',
     formulas: [
       'E_m = \\text{DEC}_{2:4}(A_3, A_2)',
@@ -251,10 +251,10 @@ window.FALLBACK_PRESETS = [
   },
   {
     id: 'cascade-deco-3-8',
-    title: 'Conexión en Cascada: 2 Decodificadores 3 a 8 (S0..S15)',
+    title: '2 Decodificadores 3 a 8 en Cascada (S0..S15)',
     category: 'Decodificadores y Conversores BCD',
-    moduleTag: 'Cascada Pág. 8',
-    description: 'Utilizando dos decodificadores 3 a 8 pequeños y un inversor en la entrada D se construye un decodificador de 16 salidas (Pág. 8 del PDF).',
+    moduleTag: 'Cascada 3:8',
+    description: 'Utilizando dos decodificadores 3 a 8 pequeños y un inversor en la entrada D se construye un decodificador de 16 salidas.',
     formulas: ["CS_1 = D', \\quad CS_2 = D"],
     isPreset: true,
     nodes: [
@@ -292,7 +292,7 @@ window.FALLBACK_PRESETS = [
   },
   {
     id: 'encoder-8-3-or',
-    title: 'Codificador 8 a 3 con Compuertas OR (Pág. 14)',
+    title: 'Codificador 8 a 3 con Compuertas OR',
     category: 'Codificadores y Prioridad (MSI)',
     moduleTag: 'Codificador 8:3',
     description: 'Codificador octal a binario construido a partir de 3 compuertas OR de 4 entradas (A2, A1, A0).',

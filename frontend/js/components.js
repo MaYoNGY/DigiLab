@@ -2130,8 +2130,8 @@ window.HIERARCHY_FAMILIES = {
       },
       {
         level: 2,
-        shortName: '2. Taller: Árbol de Decodificadores 2 a 4',
-        title: 'Nivel 2: Desarrollo de Decodificador 4 a 16 en base a Decodificadores 2 a 4 (Taller Pág. 18)',
+        shortName: '2. Árbol de Decodificadores 2 a 4',
+        title: 'Nivel 2: Decodificador 4 a 16 en base a Decodificadores 2 a 4',
         subtitle: '1 Decodificador 2 a 4 maestro selecciona cuál de los 4 Decodificadores 2 a 4 esclavos se habilita.',
         formulas: ['E_m = \\text{DEC}_{2:4}(A_3, A_2)', 'O_{4m+k} = E_m \\cdot \\text{DEC}_{2:4}(A_1, A_0)'],
         nodes: [
@@ -2165,7 +2165,7 @@ window.HIERARCHY_FAMILIES = {
       {
         level: 3,
         shortName: '3. Compuertas del Decodificador 2 a 4',
-        title: 'Nivel 3: Interior del Decodificador 2 a 4 con Compuertas Básicas (Pág. 6)',
+        title: 'Nivel 3: Interior del Decodificador 2 a 4 con Compuertas Básicas',
         subtitle: '2 Inversores NOT y 4 Compuertas AND que detectan cada combinación binaria de A1 y A0.',
         formulas: ["O_0 = A_1' A_0'", "O_1 = A_1' A_0", "O_2 = A_1 A_0'", "O_3 = A_1 A_0"],
         nodes: [
@@ -2202,7 +2202,7 @@ window.HIERARCHY_FAMILIES = {
       {
         level: 4,
         shortName: '4. Decodificador Elemental 1 a 2 (Inversor)',
-        title: 'Nivel 4 (Menor): Decodificador 1 a 2 con un solo Inversor NOT (Pág. 5)',
+        title: 'Nivel 4 (Menor): Decodificador 1 a 2 con Inversor NOT',
         subtitle: 'Célula mínima de decodificación: para A0=0 activa O0 y para A0=1 activa O1.',
         formulas: ["O_0 = A_0'", 'O_1 = A_0'],
         nodes: [
@@ -2261,8 +2261,8 @@ window.HIERARCHY_FAMILIES = {
       },
       {
         level: 2,
-        shortName: '2. Compuertas Básicas OR (Pág. 14)',
-        title: 'Nivel 2 (Menor): Implementación Interna del Codificador 8 a 3 con Compuertas OR (Pág. 14)',
+        shortName: '2. Compuertas Básicas OR',
+        title: 'Nivel 2 (Menor): Implementación Interna del Codificador 8 a 3 con Compuertas OR',
         subtitle: 'Construcción mediante 3 compuertas OR de 4 entradas según las ecuaciones de conversión binaria.',
         formulas: ['A_2 = I_4 + I_5 + I_6 + I_7', 'A_1 = I_2 + I_3 + I_6 + I_7', 'A_0 = I_1 + I_3 + I_5 + I_7'],
         nodes: [
