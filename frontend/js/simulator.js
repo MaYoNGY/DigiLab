@@ -4844,19 +4844,22 @@ class DigitalSimulator {
     });
 
     // =========================================================================
-    // PANEL DE COMPONENTES COLAPSABLE + INSPECTOR AUTOMÁTICO AL SELECCIONAR
+    // BOTÓN DE 3 LÍNEAS (☰) JUNTO AL LOGO DIGILAB PARA MOSTRAR/OCULTAR COMPONENTES
+    // E INSPECTOR AUTOMÁTICO AL SELECCIONAR UN COMPONENTE
     // =========================================================================
     const workspace = document.querySelector('.eda-workspace');
-    const btnCollapseLeft = document.getElementById('btnCollapseLeftSidebar');
-    const btnExpandLeft = document.getElementById('btnExpandLeftSidebar');
-    const subtoolLeftSep = document.getElementById('subtoolLeftSep');
+    const btnHamburgerLeft = document.getElementById('btnToggleLeftSidebar');
     const btnCollapseRight = document.getElementById('btnCollapseRightSidebar');
 
     const applyLeftSidebarState = (leftCollapsed) => {
       if (!workspace) return;
       workspace.classList.toggle('left-collapsed', leftCollapsed);
-      btnExpandLeft?.classList.toggle('hidden', !leftCollapsed);
-      subtoolLeftSep?.classList.toggle('hidden', !leftCollapsed);
+      btnHamburgerLeft?.classList.toggle('panel-hidden', leftCollapsed);
+      if (btnHamburgerLeft) {
+        btnHamburgerLeft.title = leftCollapsed
+          ? 'Mostrar panel de Componentes y Mis Lienzos'
+          : 'Ocultar panel de Componentes y Mis Lienzos';
+      }
       localStorage.setItem('digilab_left_collapsed', leftCollapsed ? '1' : '0');
       requestAnimationFrame(() => this.updateTabsScrollButtons());
     };
@@ -4866,12 +4869,11 @@ class DigitalSimulator {
       applyLeftSidebarState(true);
     }
 
-    btnCollapseLeft?.addEventListener('click', () => {
-      applyLeftSidebarState(true);
-    });
-
-    btnExpandLeft?.addEventListener('click', () => {
-      applyLeftSidebarState(false);
+    btnHamburgerLeft?.addEventListener('click', () => {
+      if (window.innerWidth > 1100) {
+        const isCurrentlyCollapsed = workspace?.classList.contains('left-collapsed') || false;
+        applyLeftSidebarState(!isCurrentlyCollapsed);
+      }
     });
 
     // Cerrar el Inspector deselecciona el componente actual (vuelve a abrirse automáticamente al hacer clic en cualquier componente)

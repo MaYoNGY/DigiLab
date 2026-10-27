@@ -33,7 +33,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Librería KaTeX para renderizado tipográfico de Expresiones Algebraicas y Booleanas -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="./css/styles.css?v=4.7.7" />
+  <link rel="stylesheet" href="./css/styles.css?v=4.7.8" />
 </head>
 <body>
 
@@ -372,8 +372,8 @@
     <!-- FILA SUPERIOR 1: BARRA DE MENÚ CON DESPLEGABLES FUNCIONALES (SIN SALIR A LOGIN SALVO CERRAR SESIÓN) -->
     <header class="app-menubar">
       <div class="menubar-left">
-        <button id="btnToggleLeftSidebar" class="btn-icon-only mobile-only" title="Componentes">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <button id="btnToggleLeftSidebar" class="btn-hamburger-sidebar" type="button" title="Mostrar / Ocultar panel de Componentes y Mis Lienzos">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
 
         <div class="app-brand" style="cursor:default;">
@@ -640,9 +640,6 @@
         <div class="sidebar-top-tabs">
           <button class="side-tab active" data-lefttab="leftCatalog">Componentes</button>
           <button class="side-tab" data-lefttab="leftMyWork">Mis Lienzos</button>
-          <button id="btnCollapseLeftSidebar" class="btn-sidebar-collapse" type="button" title="Ocultar panel de Componentes y Mis Lienzos para ver más pizarra">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
-          </button>
         </div>
 
         <!-- TAB 1: CATÁLOGO DE COMPONENTES -->
@@ -695,11 +692,6 @@
 
         <!-- Sub-barra de herramientas flotante sobre el lienzo (Todos los botones auditados y funcionales) -->
         <div class="canvas-subtoolbar">
-          <button class="subtool-sidebar-btn hidden" id="btnExpandLeftSidebar" type="button" title="Mostrar panel de Componentes y Mis Lienzos">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><polyline points="13 9 16 12 13 15"/></svg>
-            <span>Componentes</span>
-          </button>
-          <div class="subtool-sep hidden" id="subtoolLeftSep"></div>
           <button class="subtool-btn active" id="subtoolSelectMode" title="Modo Selección (Flecha): Haz clic o arrastra en el lienzo para seleccionar uno o varios elementos (V)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l7 18 2.5-7.5L20 11 3 3z"/></svg>
           </button>
@@ -1223,8 +1215,8 @@
   <!-- Librería KaTeX para renderizar ecuaciones algebraicas y expresiones booleanas -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
-  <script src="./js/components.js?v=4.7.7"></script>
-  <script src="./js/presets.js?v=4.7.7"></script>
-  <script src="./js/simulator.js?v=4.7.7"></script>
+  <script src="./js/components.js?v=4.7.8"></script>
+  <script src="./js/presets.js?v=4.7.8"></script>
+  <script src="./js/simulator.js?v=4.7.8"></script>
 </body>
 </html>

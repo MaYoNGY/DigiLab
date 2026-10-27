@@ -1446,10 +1446,37 @@ html.in-workspace-mode #simulatorView {
 
 .sidebar-top-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr 34px;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
   border-bottom: 1px solid var(--border-light);
   background: #fff9fc;
+}
+
+.btn-hamburger-sidebar {
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid #f9a8d4;
+  background: #fff5f9;
+  color: #9d174d;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.16s ease;
+}
+
+.btn-hamburger-sidebar:hover {
+  background: #fce7f3;
+  border-color: #db2777;
+  color: #831843;
+}
+
+.btn-hamburger-sidebar.panel-hidden {
+  background: #ffffff;
+  border-color: #e9c3d8;
+  color: #6b435b;
 }
 
 .btn-sidebar-collapse {
@@ -1471,31 +1498,6 @@ html.in-workspace-mode #simulatorView {
   background: #fce7f3;
   border-color: #f9a8d4;
   color: #be185d;
-}
-
-.subtool-sidebar-btn {
-  height: 28px;
-  padding: 0 9px;
-  background: #fdf2f8;
-  border: 1.5px solid #f472b6;
-  color: #9d174d;
-  border-radius: 6px;
-  font-family: var(--font-sans);
-  font-size: 0.71rem;
-  font-weight: 800;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: all 0.15s ease;
-}
-
-.subtool-sidebar-btn:hover {
-  background: #fce7f3;
-  border-color: #db2777;
-  color: #831843;
 }
 
 .side-tab {
