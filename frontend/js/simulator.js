@@ -331,7 +331,7 @@ class DigitalSimulator {
   }
 
   getTabStorageKey() {
-    return this.currentUser ? `digilab_open_tabs_${this.currentUser.id}` : 'digilab_open_tabs_guest';
+    return this.currentUser ? `digilab_open_tabs_v2_${this.currentUser.id}` : 'digilab_open_tabs_v2_guest';
   }
 
   persistWorkspaceTabsToSession() {
@@ -958,22 +958,14 @@ class DigitalSimulator {
       this.updateUserHeaderUI();
       await this.fetchUserCircuits();
 
-      // Si por alguna razón no había pestañas restauradas en la sesión activa, abrir sus circuitos
+      // Si no había pestañas abiertas en la sesión actual, abrir únicamente 1 pestaña de trabajo limpia
+      // (los lienzos guardados permanecen en "Mis Lienzos" para que el usuario abra solo el que desee)
       if (this.tabs.length === 0) {
-        if (this.userCircuits.length > 0) {
-          this.userCircuits.forEach((circuit) => {
-            this.openCircuitInNewTab(circuit, false);
-          });
-          if (this.tabs.length > 0) {
-            this.switchToTab(this.tabs[0].tabId, false);
-          }
+        const defaultPreset = this.presets.find((p) => p.id === 'full-adder') || this.presets[0];
+        if (defaultPreset) {
+          this.openCircuitInNewTab(defaultPreset, true);
         } else {
-          const defaultPreset = this.presets.find((p) => p.id === 'full-adder') || this.presets[0];
-          if (defaultPreset) {
-            this.openCircuitInNewTab(defaultPreset, true);
-          } else {
-            this.createNewBlankTab('Circuito 1');
-          }
+          this.createNewBlankTab('Circuito 1');
         }
       }
       this.renderTabsBar();
@@ -1001,28 +993,19 @@ class DigitalSimulator {
     this.updateUserHeaderUI();
     await this.fetchUserCircuits();
 
-    // VACIAR PESTAÑAS Y MEMORIA: Aislamiento total absoluto entre cuentas
+    // VACIAR PESTAÑAS Y MEMORIA: Aislamiento total entre cuentas
     this.tabs = [];
     this.activeTabId = null;
     this.nodes = [];
     this.wires = [];
 
-    // ÚNICAMENTE abrir los circuitos que le pertenecen a ESTE usuario autenticado
-    if (this.userCircuits.length > 0) {
-      this.userCircuits.forEach((circuit) => {
-        this.openCircuitInNewTab(circuit, false);
-      });
-      if (this.tabs.length > 0) {
-        this.switchToTab(this.tabs[0].tabId, false);
-      }
+    // Abrir únicamente 1 pestaña inicial limpia; las pizarras guardadas quedan en "Mis Lienzos"
+    // para que el usuario abra solo la que necesite sin saturar la barra de pestañas
+    const defaultPreset = this.presets.find((p) => p.id === 'full-adder') || this.presets[0];
+    if (defaultPreset) {
+      this.openCircuitInNewTab(defaultPreset, true);
     } else {
-      // Si el usuario es nuevo y no tiene circuitos, abrir un lienzo inicial limpio
-      const defaultPreset = this.presets.find((p) => p.id === 'full-adder') || this.presets[0];
-      if (defaultPreset) {
-        this.openCircuitInNewTab(defaultPreset, true);
-      } else {
-        this.createNewBlankTab('Circuito 1');
-      }
+      this.createNewBlankTab('Circuito 1');
     }
 
     this.renderTabsBar();
@@ -1032,7 +1015,7 @@ class DigitalSimulator {
 
     if (showWelcomeToast) {
       if (this.userCircuits.length > 0) {
-        this.showToast(`¡Hola ${user.name}! Se abrieron tus circuitos guardados.`);
+        this.showToast(`¡Hola ${user.name}! Tienes ${this.userCircuits.length} pizarra(s) disponible(s) en "Mis Lienzos".`);
       } else {
         this.showToast(`¡Bienvenido, ${user.name}!`);
       }
@@ -2067,6 +2050,13 @@ class DigitalSimulator {
     return this.nodes.filter((n) => this.isNodeSelected(n.id));
   }
 
+  syncSelectedNodeClasses() {
+    if (!this.nodesLayer) return;
+    this.nodesLayer.querySelectorAll('.circuit-node').forEach((el) => {
+      el.classList.toggle('selected', this.isNodeSelected(el.dataset.id));
+    });
+  }
+
   updateSelectionUI() {
     const multiBar = document.getElementById('multiSelectFloatingBar');
     const countBadge = document.getElementById('multiSelectCountBadge');
@@ -2865,7 +2855,7 @@ class DigitalSimulator {
         // Selección múltiple con Shift+Clic
         if (e.shiftKey) {
           this.toggleNodeInSelection(node.id);
-          this.renderAll();
+          this.syncSelectedNodeClasses();
           this.updateInspector();
           return;
         }
@@ -2879,6 +2869,14 @@ class DigitalSimulator {
         }
 
         this.selectedWireId = null;
+
+        // Si es el segundo clic de un doble clic (con la flechita), entrar directamente al interior sin iniciar arrastre
+        if (e.detail >= 2 && typeof window.canDrillDownNode === 'function' && window.canDrillDownNode(node.type)) {
+          this.draggingNode = null;
+          this.drillDownIntoNode(node);
+          return;
+        }
+
         this.draggingNode = node;
         this.dragMoved = false;
         const coords = this.clientToWorld(e.clientX, e.clientY);
@@ -2887,7 +2885,7 @@ class DigitalSimulator {
         this.draggingGroupInitialPositions = new Map(
           this.getSelectedNodesList().map((n) => [n.id, { x: n.x, y: n.y }])
         );
-        this.renderAll();
+        this.syncSelectedNodeClasses();
         this.updateInspector();
       });
 
@@ -2912,7 +2910,7 @@ class DigitalSimulator {
         this.draggingGroupInitialPositions = new Map(
           this.getSelectedNodesList().map((n) => [n.id, { x: n.x, y: n.y }])
         );
-        this.renderAll();
+        this.syncSelectedNodeClasses();
         this.updateInspector();
       }, { passive: true });
 
@@ -4461,7 +4459,10 @@ class DigitalSimulator {
         const dx = Math.round((coords.x - this.dragStartWorld.x) / 6) * 6;
         const dy = Math.round((coords.y - this.dragStartWorld.y) / 6) * 6;
 
-        if (!this.dragMoved && (Math.abs(dx) >= 6 || Math.abs(dy) >= 6)) {
+        if (!this.dragMoved) {
+          if (Math.abs(dx) < 6 && Math.abs(dy) < 6) {
+            return;
+          }
           this.pushUndoSnapshot();
           this.dragMoved = true;
         }
@@ -4566,7 +4567,8 @@ class DigitalSimulator {
         const coords = this.clientToWorld(touch.clientX, touch.clientY);
         const dx = Math.round((coords.x - this.dragStartWorld.x) / 6) * 6;
         const dy = Math.round((coords.y - this.dragStartWorld.y) / 6) * 6;
-        if (!this.dragMoved && (Math.abs(dx) >= 6 || Math.abs(dy) >= 6)) {
+        if (!this.dragMoved) {
+          if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
           this.pushUndoSnapshot();
           this.dragMoved = true;
         }
