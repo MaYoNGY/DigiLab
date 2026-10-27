@@ -3604,154 +3604,150 @@ kbd {
 }
 
 /* =========================================================================
-   NAVEGACIÓN JERÁRQUICA DE CIRCUITOS (DE MAYOR A MENOR Y DE MENOR A MAYOR)
+   NAVEGACIÓN JERÁRQUICA COMPACTA FLOTANTE EN LA PIZARRA (ESQUINA INFERIOR IZQUIERDA)
    ========================================================================= */
 .hierarchy-nav-bar {
-  background: linear-gradient(90deg, #500724 0%, #831843 55%, #9d174d 100%);
-  border-bottom: 2px solid #f472b6;
-  padding: 6px 12px;
-  display: flex;
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 23;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid #f472b6;
+  border-radius: 10px;
+  padding: 4px 8px;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  z-index: 24;
-  flex-wrap: wrap;
-  box-shadow: 0 4px 14px rgba(80, 7, 36, 0.22);
-}
-
-.hierarchy-nav-left {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  gap: 5px;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+  box-shadow: 0 6px 20px rgba(157, 23, 77, 0.14);
+  max-width: calc(100% - 210px);
+  overflow-x: auto;
 }
 
 .btn-hierarchy-back {
-  background: #ffffff;
-  color: #831843;
-  border: 1.5px solid #f9a8d4;
-  border-radius: 7px;
-  padding: 4px 10px;
-  font-size: 0.72rem;
+  background: #fdf2f8;
+  color: #9d174d;
+  border: 1px solid #f9a8d4;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.7rem;
   font-weight: 800;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   transition: all 0.14s ease;
+  flex-shrink: 0;
 }
 
 .btn-hierarchy-back:hover {
-  background: #fdf2f8;
+  background: #fce7f3;
   border-color: #db2777;
-  transform: translateX(-1px);
+  color: #831843;
 }
 
 .hierarchy-sep {
   width: 1px;
-  height: 18px;
-  background: rgba(251, 207, 232, 0.35);
-  margin: 0 2px;
+  height: 16px;
+  background: var(--border-light);
+  margin: 0 1px;
+  flex-shrink: 0;
 }
 
 .btn-hierarchy-step {
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
-  border: 1px solid rgba(249, 168, 212, 0.45);
+  background: #ffffff;
+  color: #831843;
+  border: 1px solid #f9a8d4;
   border-radius: 6px;
-  padding: 4px 9px;
-  font-size: 0.71rem;
+  padding: 3px 7px;
+  font-size: 0.69rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.14s ease;
+  flex-shrink: 0;
 }
 
 .btn-hierarchy-step:hover:not(:disabled) {
-  background: #db2777;
-  border-color: #fbcfe8;
+  background: #fdf2f8;
+  border-color: #db2777;
+  color: #db2777;
 }
 
 .btn-hierarchy-step:disabled {
-  opacity: 0.4;
+  opacity: 0.38;
   cursor: not-allowed;
 }
 
 .btn-hierarchy-step.btn-step-down {
-  background: #ec4899;
-  border-color: #fbcfe8;
+  background: #fce7f3;
+  color: #be185d;
+  border-color: #f472b6;
   font-weight: 800;
 }
 
 .btn-hierarchy-step.btn-step-down:hover:not(:disabled) {
   background: #db2777;
+  color: #ffffff;
+  border-color: #db2777;
 }
 
 .hierarchy-breadcrumbs {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
-  flex-wrap: wrap;
-  flex: 1;
-  justify-content: center;
+  gap: 3px;
+  flex-wrap: nowrap;
 }
 
 .hierarchy-crumb {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fce7f3;
-  border: 1px solid rgba(251, 207, 232, 0.35);
-  border-radius: 99px;
-  padding: 3px 10px;
-  font-size: 0.7rem;
+  background: #fdf2f8;
+  color: #9d174d;
+  border: 1px solid #f9a8d4;
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: 0.69rem;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   transition: all 0.14s ease;
+  white-space: nowrap;
 }
 
 .hierarchy-crumb:hover {
-  background: rgba(255, 255, 255, 0.24);
-  color: #ffffff;
+  background: #fce7f3;
+  border-color: #db2777;
 }
 
 .hierarchy-crumb.active {
-  background: #ffffff;
-  color: #831843;
-  border-color: #f472b6;
+  background: var(--rose-primary);
+  color: #ffffff;
+  border-color: var(--rose-primary);
   font-weight: 800;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 2px 6px rgba(219, 39, 119, 0.25);
 }
 
 .hierarchy-crumb-arrow {
-  color: #f9a8d4;
-  font-size: 0.72rem;
+  color: #f472b6;
+  font-size: 0.65rem;
   font-weight: 800;
   user-select: none;
 }
 
-.hierarchy-nav-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.hierarchy-family-label {
-  font-size: 0.69rem;
-  font-weight: 700;
-  color: #fbcfe8;
-}
-
 .hierarchy-family-select {
-  background: rgba(46, 9, 30, 0.85);
-  color: #ffffff;
-  border: 1px solid #f472b6;
+  background: #fdf2f8;
+  color: #831843;
+  border: 1px solid #f9a8d4;
   border-radius: 6px;
-  padding: 3px 8px;
-  font-size: 0.71rem;
+  padding: 2px 6px;
+  font-size: 0.69rem;
   font-weight: 700;
   font-family: var(--font-sans);
   outline: none;
   cursor: pointer;
+  max-width: 155px;
 }
 
 .subtool-drill-btn {

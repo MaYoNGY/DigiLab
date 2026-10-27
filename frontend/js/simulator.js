@@ -2225,14 +2225,15 @@ class DigitalSimulator {
         if (idx > 0) {
           const arrow = document.createElement('span');
           arrow.className = 'hierarchy-crumb-arrow';
-          arrow.textContent = '➔';
+          arrow.textContent = '›';
           crumbsContainer.appendChild(arrow);
         }
+        const isCurrent = lvl.level === this.hierarchyState.level;
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = `hierarchy-crumb ${lvl.level === this.hierarchyState.level ? 'active' : ''}`;
-        btn.textContent = lvl.shortName;
-        btn.title = lvl.title;
+        btn.className = `hierarchy-crumb ${isCurrent ? 'active' : ''}`;
+        btn.textContent = isCurrent ? lvl.shortName : `N${lvl.level}`;
+        btn.title = `${lvl.title} (Clic para ir a este nivel)`;
         btn.addEventListener('click', () => {
           this.openHierarchyLevel(family.id, lvl.level);
         });

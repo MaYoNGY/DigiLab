@@ -33,7 +33,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Librería KaTeX para renderizado tipográfico de Expresiones Algebraicas y Booleanas -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="./css/styles.css?v=4.7.0" />
+  <link rel="stylesheet" href="./css/styles.css?v=4.7.1" />
 </head>
 <body>
 
@@ -684,32 +684,6 @@
           </div>
         </div>
 
-        <!-- BARRA DE NAVEGACIÓN JERÁRQUICA: DE MAYOR A MENOR Y DE MENOR A MAYOR (SUBCIRCUITOS INTERNOS) -->
-        <div id="hierarchyNavBar" class="hierarchy-nav-bar hidden">
-          <div class="hierarchy-nav-left">
-            <button id="btnHierarchyExit" class="btn-hierarchy-back" type="button" title="Salir de la vista jerárquica y volver a tu circuito original">
-              <span>↩ Circuito Base</span>
-            </button>
-            <button id="btnHierarchyUp" class="btn-hierarchy-step" type="button" title="Subir un nivel de abstracción (De Menor a Mayor)">
-              <span>🔼 Menor → Mayor</span>
-            </button>
-            <button id="btnHierarchyDown" class="btn-hierarchy-step primary" type="button" title="Adentrarse en el subcircuito interno (De Mayor a Menor)">
-              <span>🔽 Mayor → Menor</span>
-            </button>
-          </div>
-          <div id="hierarchyBreadcrumbs" class="hierarchy-breadcrumbs"></div>
-          <div class="hierarchy-nav-right">
-            <select id="hierarchyFamilySelect" class="hierarchy-family-select" title="Cambiar arquitectura jerárquica a explorar">
-              <option value="ADDER_74283_HIERARCHY">Jerarquía: 74LS283 Sumador 4B (4 Niveles)</option>
-              <option value="BCD_7SEG_HIERARCHY">Jerarquía: 74LS47 / BCD a 7-Seg + Display</option>
-              <option value="DECODER_HIERARCHY">Jerarquía: Decodificadores 4:16 → 2:4 → 1:2</option>
-              <option value="ENCODER_HIERARCHY">Jerarquía: Codificador 8:3 / 74LS148</option>
-              <option value="COMPARATOR_HIERARCHY">Jerarquía: Comparador 74LS85 (4B → 1B)</option>
-              <option value="MUX_HIERARCHY">Jerarquía: Multiplexor 74LS153</option>
-            </select>
-          </div>
-        </div>
-
         <!-- Sub-barra de herramientas flotante sobre el lienzo (Todos los botones auditados y funcionales) -->
         <div class="canvas-subtoolbar">
           <button class="subtool-btn active" id="subtoolSelectMode" title="Modo Selección (Flecha): Haz clic o arrastra en el lienzo para seleccionar uno o varios elementos (V)">
@@ -738,7 +712,7 @@
           <div class="subtool-sep"></div>
           <button class="subtool-drill-btn" id="subtoolDrillDown" type="button" title="Ver Subcircuito Interno: Navegar de Mayor a Menor y de Menor a Mayor">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-            <span>Subcircuito (Mayor ↔ Menor)</span>
+            <span>Interior (Mayor ↔ Menor)</span>
           </button>
           <div class="subtool-sep"></div>
           <div id="bannerFormulas" class="subtool-formulas"></div>
@@ -753,6 +727,30 @@
 
           <!-- Recuadro de selección múltiple con la flecha (Marquee Box) -->
           <div id="marqueeSelectionBox" class="marquee-selection-box hidden"></div>
+
+          <!-- PÍLDORA FLOTANTE COMPACTA DE NAVEGACIÓN JERÁRQUICA (DE MAYOR A MENOR Y DE MENOR A MAYOR) -->
+          <div id="hierarchyNavBar" class="hierarchy-nav-bar hidden">
+            <button id="btnHierarchyExit" class="btn-hierarchy-back" type="button" title="Salir de la vista interna y volver a tu circuito principal">
+              <span>↩ Volver</span>
+            </button>
+            <div class="hierarchy-sep"></div>
+            <button id="btnHierarchyUp" class="btn-hierarchy-step" type="button" title="Subir un nivel de abstracción (Menor → Mayor)">
+              <span>◀ Mayor</span>
+            </button>
+            <div id="hierarchyBreadcrumbs" class="hierarchy-breadcrumbs"></div>
+            <button id="btnHierarchyDown" class="btn-hierarchy-step btn-step-down" type="button" title="Bajar al subcircuito interno (Mayor → Menor)">
+              <span>Menor ▶</span>
+            </button>
+            <div class="hierarchy-sep"></div>
+            <select id="hierarchyFamilySelect" class="hierarchy-family-select" title="Cambiar arquitectura integrada a inspeccionar">
+              <option value="ADDER_74283_HIERARCHY">74LS283 Sumador 4B</option>
+              <option value="BCD_7SEG_HIERARCHY">74LS47 / BCD 7-Seg</option>
+              <option value="DECODER_HIERARCHY">Decodificador 4:16 → 2:4</option>
+              <option value="ENCODER_HIERARCHY">Codificador 8:3 / 74LS148</option>
+              <option value="COMPARATOR_HIERARCHY">Comparador 74LS85</option>
+              <option value="MUX_HIERARCHY">Multiplexor 74LS153</option>
+            </select>
+          </div>
 
           <!-- Barra de acciones rápidas cuando hay múltiples elementos seleccionados -->
           <div id="multiSelectFloatingBar" class="multiselect-floating-bar hidden">
@@ -1194,8 +1192,8 @@
   <!-- Librería KaTeX para renderizar ecuaciones algebraicas y expresiones booleanas -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
-  <script src="./js/components.js?v=4.7.0"></script>
-  <script src="./js/presets.js?v=4.7.0"></script>
-  <script src="./js/simulator.js?v=4.7.0"></script>
+  <script src="./js/components.js?v=4.7.1"></script>
+  <script src="./js/presets.js?v=4.7.1"></script>
+  <script src="./js/simulator.js?v=4.7.1"></script>
 </body>
 </html>
