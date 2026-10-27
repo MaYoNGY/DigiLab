@@ -33,7 +33,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Librería KaTeX para renderizado tipográfico de Expresiones Algebraicas y Booleanas -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="./css/styles.css?v=4.6.0" />
+  <link rel="stylesheet" href="./css/styles.css?v=4.7.0" />
 </head>
 <body>
 
@@ -630,27 +630,6 @@
           <option value="">-- Cargar ejemplo --</option>
         </select>
       </div>
-
-      <!-- 6. ZOOM & CENTRADO (ALINEADO A LA DERECHA) -->
-      <div class="zoom-controls-group toolbar-zoom-right">
-        <button id="btnZoomOut" class="btn-icon-only" title="Alejar (Zoom Out)">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-        <span id="zoomLabel" class="zoom-badge">100%</span>
-        <button id="btnZoomIn" class="btn-icon-only" title="Acercar (Zoom In)">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-        <button id="btnResetView" class="btn-icon-only" title="Restablecer vista (100% y centrar)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="9"/>
-            <line x1="12" y1="3" x2="12" y2="7"/>
-            <line x1="12" y1="17" x2="12" y2="21"/>
-            <line x1="3" y1="12" x2="7" y2="12"/>
-            <line x1="17" y1="12" x2="21" y2="12"/>
-            <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
-          </svg>
-        </button>
-      </div>
     </div>
 
     <!-- CUERPO CENTRAL DE 3 COLUMNAS -->
@@ -667,7 +646,7 @@
         <div id="leftCatalog" class="left-tab-body active">
           <div class="search-box-wrap" id="searchBoxWrap">
             <svg class="search-icon-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9d174d" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" id="searchComponent" placeholder="Buscar componente (ej: 74LS10, NAND 3, MUX)..." class="search-input-clean" autocomplete="off" spellcheck="false" />
+            <input type="text" id="searchComponent" placeholder="Buscar componente (ej: 74LS47, Display, Decodificador)..." class="search-input-clean" autocomplete="off" spellcheck="false" />
             <button id="btnClearSearch" class="search-clear-btn hidden" type="button" title="Limpiar búsqueda">✕</button>
 
             <!-- MENÚ DESPLEGABLE TIPO AUTOCOMPLETE (ESTILO YOUTUBE) -->
@@ -691,7 +670,7 @@
         </div>
       </aside>
 
-      <!-- COLUMNA CENTRAL: BARRA MULTIPESTAÑA + SUB-BARRA + LIENZO + DOCK INFERIOR -->
+      <!-- COLUMNA CENTRAL: BARRA MULTIPESTAÑA + BARRA JERÁRQUICA + SUB-BARRA + LIENZO + DOCK INFERIOR -->
       <section class="eda-center-area">
         
         <!-- BARRA DE PESTAÑAS REALES -->
@@ -705,12 +684,38 @@
           </div>
         </div>
 
+        <!-- BARRA DE NAVEGACIÓN JERÁRQUICA: DE MAYOR A MENOR Y DE MENOR A MAYOR (SUBCIRCUITOS INTERNOS) -->
+        <div id="hierarchyNavBar" class="hierarchy-nav-bar hidden">
+          <div class="hierarchy-nav-left">
+            <button id="btnHierarchyExit" class="btn-hierarchy-back" type="button" title="Salir de la vista jerárquica y volver a tu circuito original">
+              <span>↩ Circuito Base</span>
+            </button>
+            <button id="btnHierarchyUp" class="btn-hierarchy-step" type="button" title="Subir un nivel de abstracción (De Menor a Mayor)">
+              <span>🔼 Menor → Mayor</span>
+            </button>
+            <button id="btnHierarchyDown" class="btn-hierarchy-step primary" type="button" title="Adentrarse en el subcircuito interno (De Mayor a Menor)">
+              <span>🔽 Mayor → Menor</span>
+            </button>
+          </div>
+          <div id="hierarchyBreadcrumbs" class="hierarchy-breadcrumbs"></div>
+          <div class="hierarchy-nav-right">
+            <select id="hierarchyFamilySelect" class="hierarchy-family-select" title="Cambiar arquitectura jerárquica a explorar">
+              <option value="ADDER_74283_HIERARCHY">Jerarquía: 74LS283 Sumador 4B (4 Niveles)</option>
+              <option value="BCD_7SEG_HIERARCHY">Jerarquía: 74LS47 / BCD a 7-Seg + Display</option>
+              <option value="DECODER_HIERARCHY">Jerarquía: Decodificadores 4:16 → 2:4 → 1:2</option>
+              <option value="ENCODER_HIERARCHY">Jerarquía: Codificador 8:3 / 74LS148</option>
+              <option value="COMPARATOR_HIERARCHY">Jerarquía: Comparador 74LS85 (4B → 1B)</option>
+              <option value="MUX_HIERARCHY">Jerarquía: Multiplexor 74LS153</option>
+            </select>
+          </div>
+        </div>
+
         <!-- Sub-barra de herramientas flotante sobre el lienzo (Todos los botones auditados y funcionales) -->
         <div class="canvas-subtoolbar">
-          <button class="subtool-btn active" id="subtoolSelectMode" title="Modo Selección y Movimiento de Nodos (V)">
+          <button class="subtool-btn active" id="subtoolSelectMode" title="Modo Selección (Flecha): Haz clic o arrastra en el lienzo para seleccionar uno o varios elementos (V)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l7 18 2.5-7.5L20 11 3 3z"/></svg>
           </button>
-          <button class="subtool-btn" id="subtoolPanMode" title="Modo Mano: Arrastrar para desplazar el lienzo (H)">
+          <button class="subtool-btn" id="subtoolPanMode" title="Modo Mano: Arrastrar para desplazar el lienzo (H o Espacio+Arrastre)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
           </button>
           <div class="subtool-sep"></div>
@@ -721,14 +726,19 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="2" y1="12" x2="9" y2="12"/><circle cx="14" cy="12" r="5" fill="currentColor"/></svg>
           </button>
           <div class="subtool-sep"></div>
-          <button class="subtool-btn" id="subtoolRotateNode" title="Rotar Componente Seleccionado 90° (R)">
+          <button class="subtool-btn" id="subtoolRotateNode" title="Rotar Componente(s) Seleccionado(s) 90° (R)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
           </button>
-          <button class="subtool-btn" id="subtoolDuplicateNode" title="Duplicar Componente Seleccionado (Ctrl+D)">
+          <button class="subtool-btn" id="subtoolDuplicateNode" title="Duplicar Componente(s) Seleccionado(s) (Ctrl+D)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           </button>
-          <button class="subtool-btn" id="subtoolDeleteNode" title="Eliminar Componente Seleccionado (Supr)">
+          <button class="subtool-btn" id="subtoolDeleteNode" title="Eliminar Componente(s) Seleccionado(s) (Supr)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div class="subtool-sep"></div>
+          <button class="subtool-drill-btn" id="subtoolDrillDown" type="button" title="Ver Subcircuito Interno: Navegar de Mayor a Menor y de Menor a Mayor">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            <span>Subcircuito (Mayor ↔ Menor)</span>
           </button>
           <div class="subtool-sep"></div>
           <div id="bannerFormulas" class="subtool-formulas"></div>
@@ -740,6 +750,43 @@
             <svg id="wiresSvg" class="wires-layer"></svg>
             <div id="nodesLayer" class="nodes-layer"></div>
           </div>
+
+          <!-- Recuadro de selección múltiple con la flecha (Marquee Box) -->
+          <div id="marqueeSelectionBox" class="marquee-selection-box hidden"></div>
+
+          <!-- Barra de acciones rápidas cuando hay múltiples elementos seleccionados -->
+          <div id="multiSelectFloatingBar" class="multiselect-floating-bar hidden">
+            <span id="multiSelectCountBadge" class="multiselect-count-pill">2 seleccionados</span>
+            <button type="button" id="btnMultiRotate" class="multiselect-action-btn" title="Rotar todos los seleccionados 90° (R)">↻ Rotar</button>
+            <button type="button" id="btnMultiDuplicate" class="multiselect-action-btn" title="Duplicar todos los seleccionados y sus cables (Ctrl+D)">⧉ Duplicar</button>
+            <button type="button" id="btnMultiAlignX" class="multiselect-action-btn" title="Alinear verticalmente en la misma columna X">⫼ Alinear X</button>
+            <button type="button" id="btnMultiAlignY" class="multiselect-action-btn" title="Alinear horizontalmente en la misma fila Y">⫿ Alinear Y</button>
+            <button type="button" id="btnMultiDelete" class="multiselect-action-btn danger" title="Eliminar todos los seleccionados (Supr)">🗑 Eliminar</button>
+            <button type="button" id="btnMultiClearSel" class="multiselect-action-btn subtle" title="Deseleccionar (Esc)">✕</button>
+          </div>
+
+          <!-- CONTROLES DE ZOOM FLOTANTES DIRECTAMENTE EN LA PIZARRA -->
+          <div class="zoom-controls-group canvas-zoom-floating" title="Controles de Zoom en la Pizarra">
+            <button id="btnZoomOut" class="btn-icon-only" title="Alejar pizarra (Zoom Out)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <span id="zoomLabel" class="zoom-badge" title="Clic para restablecer zoom al 100%">100%</span>
+            <button id="btnZoomIn" class="btn-icon-only" title="Acercar pizarra (Zoom In)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <div class="subtool-sep" style="height:16px;margin:0 2px;"></div>
+            <button id="btnResetView" class="btn-icon-only" title="Centrar y restablecer vista (100%)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <line x1="12" y1="3" x2="12" y2="7"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+                <line x1="3" y1="12" x2="7" y2="12"/>
+                <line x1="17" y1="12" x2="21" y2="12"/>
+                <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
+
           <div id="canvasEmptyGuide" class="canvas-empty-guide hidden">
             <div class="empty-guide-card">
               <div class="empty-guide-icon">
@@ -1003,6 +1050,12 @@
           <button class="chip-select-btn" data-chip="74LS86">74LS86 (XOR)</button>
           <button class="chip-select-btn" data-chip="74LS283">74LS283 (Sumador 4B)</button>
           <button class="chip-select-btn" data-chip="74LS85">74LS85 (Comp 4B)</button>
+          <button class="chip-select-btn" data-chip="74LS47">74LS47 (BCD 7-Seg)</button>
+          <button class="chip-select-btn" data-chip="74LS138">74LS138 (DEC 3:8)</button>
+          <button class="chip-select-btn" data-chip="74LS139">74LS139 (DEC 2:4)</button>
+          <button class="chip-select-btn" data-chip="74LS42">74LS42 (BCD-Dec)</button>
+          <button class="chip-select-btn" data-chip="74LS147">74LS147 (ENC 10:4)</button>
+          <button class="chip-select-btn" data-chip="74LS148">74LS148 (ENC 8:3)</button>
           <button class="chip-select-btn" data-chip="74LS151">74LS151 (MUX 8:1)</button>
         </div>
         <div id="chipDiagramContainer" class="chip-diagram-container"></div>
@@ -1141,8 +1194,8 @@
   <!-- Librería KaTeX para renderizar ecuaciones algebraicas y expresiones booleanas -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
-  <script src="./js/components.js?v=4.6.0"></script>
-  <script src="./js/presets.js?v=4.6.0"></script>
-  <script src="./js/simulator.js?v=4.6.0"></script>
+  <script src="./js/components.js?v=4.7.0"></script>
+  <script src="./js/presets.js?v=4.7.0"></script>
+  <script src="./js/simulator.js?v=4.7.0"></script>
 </body>
 </html>

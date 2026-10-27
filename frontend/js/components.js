@@ -87,6 +87,44 @@ window.COMPONENT_DEFS = {
       return [val];
     }
   },
+  DISPLAY_7SEG_CC: {
+    name: 'Display 7-Seg (Cátodo Común)',
+    sub: 'Segmentos a..g activos en ALTO (1)',
+    ic: '7SEG-CC',
+    kind: 'display_7seg',
+    commonAnode: false,
+    family: 'Visualizador 7-Seg',
+    manufacturer: 'DigiLab Optics',
+    pkg: 'DIP-10 LED',
+    inputs: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'dp'],
+    outputs: [],
+    width: 132,
+    height: 184,
+    pinYInputs: [20, 40, 60, 80, 100, 120, 140, 160],
+    pinYOutputs: [],
+    formula: 'Cátodo Común: Segmento ON con 1 lógico',
+    desc: 'Display de 7 segmentos de cátodo común. Cada segmento (a..g, dp) se enciende cuando recibe un 1 lógico (compatible con BCD_7SEG / 74LS48).',
+    evaluate: (inVals) => inVals.map((v) => (v ? 1 : 0))
+  },
+  DISPLAY_7SEG_CA: {
+    name: 'Display 7-Seg (Ánodo Común)',
+    sub: 'Segmentos a..g activos en BAJO (0)',
+    ic: '7SEG-CA',
+    kind: 'display_7seg',
+    commonAnode: true,
+    family: 'Visualizador 7-Seg',
+    manufacturer: 'DigiLab Optics',
+    pkg: 'DIP-10 LED',
+    inputs: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'dp'],
+    outputs: [],
+    width: 132,
+    height: 184,
+    pinYInputs: [20, 40, 60, 80, 100, 120, 140, 160],
+    pinYOutputs: [],
+    formula: 'Ánodo Común: Segmento ON con 0 lógico',
+    desc: 'Display de 7 segmentos de ánodo común. Cada segmento (a..g, dp) se enciende cuando recibe un 0 lógico (compatible directo con el CI 74LS47).',
+    evaluate: (inVals) => inVals.map((v) => (v ? 0 : 1))
+  },
 
   // COMPUERTAS LÓGICAS ESQUEMÁTICAS PURAS (ESTÁNDAR IEEE)
   AND: {
@@ -762,6 +800,331 @@ window.COMPONENT_DEFS = {
       out[idx] = 1;
       return out;
     }
+  },
+  DEC_1_2: {
+    name: 'Decodificador 1 a 2',
+    sub: '1 entrada (A0) a 2 salidas (O0, O1)',
+    ic: 'DEC 1:2',
+    kind: 'ic',
+    family: 'Conversor de Código',
+    manufacturer: 'DigiLab MSI',
+    pkg: 'Bloque MSI',
+    inputs: ['A0'],
+    outputs: ['O0', 'O1'],
+    width: 132,
+    height: 92,
+    formula: "O0 = A0' | O1 = A0",
+    desc: 'Decodificador elemental de 1 entrada y 2 salidas realizado con un inversor lógico.',
+    evaluate: (inVals) => {
+      const a0 = inVals[0] ? 1 : 0;
+      return [a0 === 0 ? 1 : 0, a0 === 1 ? 1 : 0];
+    }
+  },
+  DEC_2_4: {
+    name: 'Decodificador 2 a 4',
+    sub: '2 entradas (A1,A0) a 4 salidas (O0..O3)',
+    ic: 'DEC 2:4',
+    kind: 'ic',
+    family: 'Conversor de Código',
+    manufacturer: 'DigiLab MSI',
+    pkg: 'Bloque MSI',
+    inputs: ['A1', 'A0'],
+    outputs: ['O0', 'O1', 'O2', 'O3'],
+    width: 138,
+    height: 144,
+    formula: "O0=A1'A0', O1=A1'A0, O2=A1·A0', O3=A1·A0",
+    desc: 'Decodificador binario de 2 a 4 líneas con salidas activas en alto.',
+    evaluate: (inVals) => {
+      const idx = ((inVals[0] || 0) << 1) | (inVals[1] || 0);
+      const out = [0, 0, 0, 0];
+      out[idx] = 1;
+      return out;
+    }
+  },
+  DEC_2_4_EN: {
+    name: 'Decodificador 2 a 4 (con Enable)',
+    sub: 'A1, A0 + Enable E → O0..O3 (Cascada)',
+    ic: '74LS139',
+    kind: 'ic',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-16',
+    inputs: ['A1', 'A0', 'E'],
+    outputs: ['O0', 'O1', 'O2', 'O3'],
+    width: 142,
+    height: 152,
+    formula: 'Habilitado cuando E = 1 (Ideal para árboles 4 a 16)',
+    desc: 'Decodificador 2 a 4 con entrada habilitadora E para construir decodificadores 4 a 16 en cascada.',
+    evaluate: (inVals) => {
+      const en = inVals[2] || 0;
+      if (!en) return [0, 0, 0, 0];
+      const idx = ((inVals[0] || 0) << 1) | (inVals[1] || 0);
+      const out = [0, 0, 0, 0];
+      out[idx] = 1;
+      return out;
+    }
+  },
+  DEC_3_8_EN: {
+    name: 'Decodificador 3 a 8 (con Enable)',
+    sub: 'A2,A1,A0 + Enable CS → S0..S7',
+    ic: '74LS138-EN',
+    kind: 'ic',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-16',
+    inputs: ['A2', 'A1', 'A0', 'CS'],
+    outputs: ['S0', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7'],
+    width: 150,
+    height: 228,
+    formula: 'S_k = CS · m_k(A2,A1,A0)',
+    desc: 'Decodificador 3 a 8 con pin habilitador CS para expandir a 16 salidas en cascada.',
+    evaluate: (inVals) => {
+      const cs = inVals[3] || 0;
+      if (!cs) return [0, 0, 0, 0, 0, 0, 0, 0];
+      const idx = ((inVals[0] || 0) << 2) | ((inVals[1] || 0) << 1) | (inVals[2] || 0);
+      const out = [0, 0, 0, 0, 0, 0, 0, 0];
+      out[idx] = 1;
+      return out;
+    }
+  },
+  IC_7442: {
+    name: 'Decodificador BCD a Decimal (74LS42)',
+    sub: '4 entradas BCD (D..A) a 10 salidas (O0..O9)',
+    ic: '74LS42',
+    kind: 'ic',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-16',
+    inputs: ['D', 'C', 'B', 'A'],
+    outputs: ['O0', 'O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O8', 'O9'],
+    width: 156,
+    height: 260,
+    formula: 'Activa O_k para códigos BCD válidos (0 ≤ k ≤ 9)',
+    desc: 'Conversor de código BCD (4 bits) a 10 líneas decimales (0 a 9). Para entradas ≥ 10 todas las salidas permanecen en 0.',
+    evaluate: (inVals) => {
+      const val = ((inVals[0] || 0) << 3) | ((inVals[1] || 0) << 2) | ((inVals[2] || 0) << 1) | (inVals[3] || 0);
+      const out = new Array(10).fill(0);
+      if (val >= 0 && val <= 9) out[val] = 1;
+      return out;
+    }
+  },
+  IC_74154: {
+    name: 'Decodificador 4 a 16 (74LS154)',
+    sub: '4 entradas (A3..A0) a 16 salidas (O0..O15)',
+    ic: '74LS154',
+    kind: 'ic',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-24',
+    inputs: ['A3', 'A2', 'A1', 'A0'],
+    outputs: ['O0', 'O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O8', 'O9', 'O10', 'O11', 'O12', 'O13', 'O14', 'O15'],
+    width: 162,
+    height: 368,
+    formula: 'O_k = 1 para k = (A3,A2,A1,A0)',
+    desc: 'Decodificador de 4 líneas a 16 líneas (direccionamiento de 2⁴ = 16 combinaciones).',
+    evaluate: (inVals) => {
+      const val = ((inVals[0] || 0) << 3) | ((inVals[1] || 0) << 2) | ((inVals[2] || 0) << 1) | (inVals[3] || 0);
+      const out = new Array(16).fill(0);
+      out[val] = 1;
+      return out;
+    }
+  },
+  BCD_7SEG: {
+    name: 'Decodificador BCD a 7-Seg (74LS48)',
+    sub: 'Salidas a..g activas en ALTO (Cátodo Común)',
+    ic: '74LS48',
+    kind: 'ic',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-16',
+    inputs: ['D', 'C', 'B', 'A'],
+    outputs: ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+    width: 156,
+    height: 208,
+    formula: 'BCD (D,C,B,A) → Segmentos a..g activos en 1',
+    desc: 'Decodificador BCD a 7 segmentos con salidas activas en alto (1) para Display de Cátodo Común.',
+    evaluate: (inVals) => {
+      const val = ((inVals[0] || 0) << 3) | ((inVals[1] || 0) << 2) | ((inVals[2] || 0) << 1) | (inVals[3] || 0);
+      const table = [
+        [1, 1, 1, 1, 1, 1, 0], // 0
+        [0, 1, 1, 0, 0, 0, 0], // 1
+        [1, 1, 0, 1, 1, 0, 1], // 2
+        [1, 1, 1, 1, 0, 0, 1], // 3
+        [0, 1, 1, 0, 0, 1, 1], // 4
+        [1, 0, 1, 1, 0, 1, 1], // 5
+        [1, 0, 1, 1, 1, 1, 1], // 6
+        [1, 1, 1, 0, 0, 0, 0], // 7
+        [1, 1, 1, 1, 1, 1, 1], // 8
+        [1, 1, 1, 1, 0, 1, 1], // 9
+        [0, 0, 0, 1, 1, 0, 1], // 10
+        [0, 0, 1, 1, 0, 0, 1], // 11
+        [0, 1, 0, 0, 0, 1, 1], // 12
+        [1, 0, 0, 1, 0, 1, 1], // 13
+        [0, 0, 0, 1, 1, 1, 1], // 14
+        [0, 0, 0, 0, 0, 0, 0]  // 15
+      ];
+      return table[val] || [0, 0, 0, 0, 0, 0, 0];
+    }
+  },
+  IC_7447: {
+    name: 'Decodificador BCD a 7-Seg (74LS47)',
+    sub: 'Salidas a..g activas en BAJO (Ánodo Común)',
+    ic: '74LS47',
+    kind: 'ic',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-16',
+    inputs: ['D', 'C', 'B', 'A'],
+    outputs: ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+    width: 156,
+    height: 208,
+    formula: 'BCD (D,C,B,A) → Segmentos a..g activos en 0 (Ánodo Común)',
+    desc: 'Circuito integrado 74LS47: decodificador BCD a 7 segmentos para display de ánodo común con salidas activas en bajo (0).',
+    evaluate: (inVals) => {
+      const val = ((inVals[0] || 0) << 3) | ((inVals[1] || 0) << 2) | ((inVals[2] || 0) << 1) | (inVals[3] || 0);
+      // Tabla de verdad oficial SN7447A (L = 0 enciende el segmento, H = 1 apaga)
+      const table = [
+        [0, 0, 0, 0, 0, 0, 1], // 0
+        [1, 0, 0, 1, 1, 1, 1], // 1
+        [0, 0, 1, 0, 0, 1, 0], // 2
+        [0, 0, 0, 0, 1, 1, 0], // 3
+        [1, 0, 0, 1, 1, 0, 0], // 4
+        [0, 1, 0, 0, 1, 0, 0], // 5
+        [1, 1, 0, 0, 0, 0, 0], // 6
+        [0, 0, 0, 1, 1, 1, 1], // 7
+        [0, 0, 0, 0, 0, 0, 0], // 8
+        [0, 0, 0, 1, 1, 0, 0], // 9
+        [1, 1, 1, 0, 0, 1, 0], // 10
+        [1, 1, 0, 0, 1, 1, 0], // 11
+        [1, 0, 1, 1, 1, 0, 0], // 12
+        [0, 1, 1, 0, 1, 0, 0], // 13
+        [1, 1, 1, 0, 0, 0, 0], // 14
+        [1, 1, 1, 1, 1, 1, 1]  // 15
+      ];
+      return table[val] || [1, 1, 1, 1, 1, 1, 1];
+    }
+  },
+  ENC_4_2: {
+    name: 'Codificador 4 a 2',
+    sub: '4 entradas (I0..I3) a 2 salidas (A1, A0)',
+    ic: 'ENC 4:2',
+    kind: 'ic',
+    family: 'Conversor de Código',
+    manufacturer: 'DigiLab MSI',
+    pkg: 'Bloque MSI',
+    inputs: ['I0', 'I1', 'I2', 'I3'],
+    outputs: ['A1', 'A0'],
+    width: 138,
+    height: 144,
+    formula: 'A1 = I2 + I3 | A0 = I1 + I3',
+    desc: 'Codificador binario de 4 líneas a 2 bits.',
+    evaluate: (inVals) => {
+      const i1 = inVals[1] || 0;
+      const i2 = inVals[2] || 0;
+      const i3 = inVals[3] || 0;
+      return [(i2 | i3) ? 1 : 0, (i1 | i3) ? 1 : 0];
+    }
+  },
+  ENC_8_3: {
+    name: 'Codificador 8 a 3',
+    sub: '8 entradas (I0..I7) a 3 bits (A2,A1,A0)',
+    ic: 'ENC 8:3',
+    kind: 'ic',
+    family: 'Conversor de Código',
+    manufacturer: 'DigiLab MSI',
+    pkg: 'Bloque MSI',
+    inputs: ['I0', 'I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7'],
+    outputs: ['A2', 'A1', 'A0'],
+    width: 150,
+    height: 224,
+    formula: 'A2=I4+I5+I6+I7 | A1=I2+I3+I6+I7 | A0=I1+I3+I5+I7',
+    desc: 'Codificador digital 8 a 3 que realiza la operación inversa del decodificador mediante 3 compuertas OR de 4 entradas.',
+    evaluate: (inVals) => {
+      const a2 = (inVals[4] | inVals[5] | inVals[6] | inVals[7]) ? 1 : 0;
+      const a1 = (inVals[2] | inVals[3] | inVals[6] | inVals[7]) ? 1 : 0;
+      const a0 = (inVals[1] | inVals[3] | inVals[5] | inVals[7]) ? 1 : 0;
+      return [a2, a1, a0];
+    }
+  },
+  ENC_PRIO_8_3: {
+    name: 'Codificador con Prioridad 8 a 3',
+    sub: 'Prioridad mayor en I7..I0 → A2, A1, A0',
+    ic: 'PRIO 8:3',
+    kind: 'ic',
+    family: 'Conversor de Código',
+    manufacturer: 'Texas Instruments',
+    pkg: 'Bloque MSI',
+    inputs: ['I0', 'I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7'],
+    outputs: ['A2', 'A1', 'A0'],
+    width: 152,
+    height: 224,
+    formula: 'Codifica el índice mayor activo entre I7..I0',
+    desc: 'Codificador con prioridad de 8 a 3 líneas: permite que varias entradas estén activadas simultáneamente codificando la de mayor peso.',
+    evaluate: (inVals) => {
+      for (let i = 7; i >= 0; i--) {
+        if (inVals[i]) {
+          return [(i >> 2) & 1, (i >> 1) & 1, i & 1];
+        }
+      }
+      return [0, 0, 0];
+    }
+  },
+  IC_74148: {
+    name: 'Codificador Prioridad 8 a 3 (74LS148)',
+    sub: 'SN74LS148 (Entradas/Salidas Activas en Bajo)',
+    ic: '74LS148',
+    kind: 'ic',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-16',
+    inputs: ['EI', 'I0', 'I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7'],
+    outputs: ['A2', 'A1', 'A0', 'GS', 'EO'],
+    width: 156,
+    height: 244,
+    formula: 'SN74LS148: Prioridad I7 > I6 > ... > I0 (Nivel Activo Bajo L=0)',
+    desc: 'Circuito integrado SN74LS148: codificador de prioridad de 8 a 3 líneas con entradas y salidas activas en nivel bajo (L).',
+    evaluate: (inVals) => {
+      const ei = inVals[0] || 0;
+      if (ei === 1) {
+        return [1, 1, 1, 1, 1];
+      }
+      for (let i = 7; i >= 0; i--) {
+        if ((inVals[i + 1] || 0) === 0) {
+          const a2 = ((i >> 2) & 1) ? 0 : 1;
+          const a1 = ((i >> 1) & 1) ? 0 : 1;
+          const a0 = (i & 1) ? 0 : 1;
+          return [a2, a1, a0, 0, 1];
+        }
+      }
+      return [1, 1, 1, 1, 0];
+    }
+  },
+  IC_74147: {
+    name: 'Codificador Prioridad 10 a 4 BCD (74LS147)',
+    sub: 'SN74LS147 Decimal a BCD (Activo Bajo)',
+    ic: '74LS147',
+    kind: 'ic',
+    family: '74LS (TTL)',
+    manufacturer: 'Texas Instruments',
+    pkg: 'DIP-16',
+    inputs: ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'I9'],
+    outputs: ['D', 'C', 'B', 'A'],
+    width: 156,
+    height: 244,
+    formula: 'SN74LS147: Prioridad I9 > I8 > ... > I1 → BCD Invertido',
+    desc: 'Circuito integrado SN74LS147: codificador de prioridad de 10 líneas decimales a 4 bits BCD con entradas y salidas activas en bajo.',
+    evaluate: (inVals) => {
+      for (let i = 9; i >= 1; i--) {
+        if ((inVals[i - 1] || 0) === 0) {
+          const d = ((i >> 3) & 1) ? 0 : 1;
+          const c = ((i >> 2) & 1) ? 0 : 1;
+          const b = ((i >> 1) & 1) ? 0 : 1;
+          const a = (i & 1) ? 0 : 1;
+          return [d, c, b, a];
+        }
+      }
+      return [1, 1, 1, 1];
+    }
   }
 };
 
@@ -814,6 +1177,25 @@ window.getCatalogIconSvg = function (type) {
       return `<svg width="34" height="22" viewBox="0 0 36 24">
         <rect x="8" y="2" width="20" height="20" rx="3" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
         <text x="18" y="16" text-anchor="middle" fill="${stroke}" font-size="11" font-weight="800" font-family="JetBrains Mono">8</text>
+      </svg>`;
+    case 'DISPLAY_7SEG_CC':
+    case 'DISPLAY_7SEG_CA':
+      return `<svg width="34" height="22" viewBox="0 0 36 24">
+        <rect x="8" y="1" width="20" height="22" rx="3" fill="#231229" stroke="${stroke}" stroke-width="1.8"/>
+        <line x1="14" y1="5" x2="22" y2="5" stroke="#ff2a6d" stroke-width="2.2" stroke-linecap="round"/>
+        <line x1="22" y1="5" x2="22" y2="12" stroke="#ff2a6d" stroke-width="2.2" stroke-linecap="round"/>
+        <line x1="22" y1="12" x2="22" y2="19" stroke="#ff2a6d" stroke-width="2.2" stroke-linecap="round"/>
+        <line x1="14" y1="19" x2="22" y2="19" stroke="#ff2a6d" stroke-width="2.2" stroke-linecap="round"/>
+        <line x1="14" y1="12" x2="14" y2="19" stroke="#4a2854" stroke-width="2" stroke-linecap="round"/>
+        <line x1="14" y1="5" x2="14" y2="12" stroke="#ff2a6d" stroke-width="2.2" stroke-linecap="round"/>
+        <line x1="14" y1="12" x2="22" y2="12" stroke="#ff2a6d" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>`;
+    case 'BCD_7SEG':
+    case 'IC_7447':
+      return `<svg width="36" height="24" viewBox="0 0 38 24">
+        <rect x="6" y="2" width="26" height="20" rx="2.5" fill="${fill}" stroke="${stroke}" stroke-width="1.8"/>
+        <text x="19" y="11" text-anchor="middle" fill="${stroke}" font-size="6.8" font-weight="800" font-family="JetBrains Mono">BCD</text>
+        <text x="19" y="18.5" text-anchor="middle" fill="#831843" font-size="6.5" font-weight="800" font-family="JetBrains Mono">7SEG</text>
       </svg>`;
     case 'AND':
     case 'AND3':
@@ -1146,6 +1528,87 @@ window.renderSchematicNodeSvg = function (node, inVals, outVals) {
           <line x1="${w - 8}" y1="45" x2="${w}" y2="45" stroke="${inCinActive ? '#10b981' : stroke}" stroke-width="2.4"/>
           <text x="${w - 14}" y="49" text-anchor="end" fill="#4a1d35" font-size="9.5" font-weight="800" font-family="JetBrains Mono, monospace">Cin</text>
         ` : ''}
+        <text x="${w / 2}" y="${h / 2 + 19}" text-anchor="middle" fill="#db2777" font-size="7.5" font-weight="700" font-family="Plus Jakarta Sans">▾ Subcircuito</text>
+      </svg>
+    `;
+  }
+
+  // 3.5. DISPLAY DE 7 SEGMENTOS REALISTA (ÁNODO COMÚN Y CÁTODO COMÚN)
+  if (def.kind === 'display_7seg') {
+    const isCommonAnode = !!def.commonAnode;
+    const segOn = (idx) => {
+      const bit = inVals[idx] !== undefined ? inVals[idx] : (isCommonAnode ? 1 : 0);
+      return isCommonAnode ? bit === 0 : bit === 1;
+    };
+
+    const aOn = segOn(0);
+    const bOn = segOn(1);
+    const cOn = segOn(2);
+    const dOn = segOn(3);
+    const eOn = segOn(4);
+    const fOn = segOn(5);
+    const gOn = segOn(6);
+    const dpOn = segOn(7);
+
+    const activeColor = '#ff2a6d';
+    const offColor = '#3a203e';
+    const boxLeft = 16;
+    const boxW = w - boxLeft - 4;
+
+    const inPinsSvg = def.inputs
+      .map((pName, idx) => {
+        const y = window.getPinOffsetY(node.type, idx, false);
+        const rawActive = inVals[idx] === 1;
+        return `
+          <line x1="0" y1="${y}" x2="${boxLeft}" y2="${y}" stroke="${rawActive ? '#10b981' : stroke}" stroke-width="2.2"/>
+          <text x="${boxLeft + 5}" y="${y + 3}" fill="#fbcfe8" font-size="8.5" font-weight="700" font-family="JetBrains Mono">${pName}</text>
+        `;
+      })
+      .join('');
+
+    // Coordenadas de los 7 segmentos dentro de la pantalla (x: 44..108, y: 28..148)
+    const sx = 48;
+    const sy = 32;
+    const sw = 48;
+    const sh = 46;
+    const t = 7; // grosor del segmento
+
+    const segPolys = [
+      // a (arriba horizontal)
+      { on: aOn, label: 'a', lx: sx + sw / 2, ly: sy - 4, pts: `${sx + 4},${sy} ${sx + sw - 4},${sy} ${sx + sw - 8},${sy + t} ${sx + 8},${sy + t}` },
+      // b (arriba derecha vertical)
+      { on: bOn, label: 'b', lx: sx + sw + 7, ly: sy + sh / 2, pts: `${sx + sw},${sy + 3} ${sx + sw},${sy + sh - 2} ${sx + sw - t},${sy + sh - 6} ${sx + sw - t},${sy + 7}` },
+      // c (abajo derecha vertical)
+      { on: cOn, label: 'c', lx: sx + sw + 7, ly: sy + sh + sh / 2, pts: `${sx + sw},${sy + sh + 2} ${sx + sw},${sy + sh * 2 - 3} ${sx + sw - t},${sy + sh * 2 - 7} ${sx + sw - t},${sy + sh + 6}` },
+      // d (abajo horizontal)
+      { on: dOn, label: 'd', lx: sx + sw / 2, ly: sy + sh * 2 + 10, pts: `${sx + 8},${sy + sh * 2 - t} ${sx + sw - 8},${sy + sh * 2 - t} ${sx + sw - 4},${sy + sh * 2} ${sx + 4},${sy + sh * 2}` },
+      // e (abajo izquierda vertical)
+      { on: eOn, label: 'e', lx: sx - 6, ly: sy + sh + sh / 2, pts: `${sx},${sy + sh + 2} ${sx + t},${sy + sh + 6} ${sx + t},${sy + sh * 2 - 7} ${sx},${sy + sh * 2 - 3}` },
+      // f (arriba izquierda vertical)
+      { on: fOn, label: 'f', lx: sx - 6, ly: sy + sh / 2, pts: `${sx},${sy + 3} ${sx + t},${sy + 7} ${sx + t},${sy + sh - 6} ${sx},${sy + sh - 2}` },
+      // g (centro horizontal)
+      { on: gOn, label: 'g', lx: sx + sw / 2, ly: sy + sh - 5, pts: `${sx + 4},${sy + sh} ${sx + 8},${sy + sh - t / 2} ${sx + sw - 8},${sy + sh - t / 2} ${sx + sw - 4},${sy + sh} ${sx + sw - 8},${sy + sh + t / 2} ${sx + 8},${sy + sh + t / 2}` }
+    ];
+
+    const segmentsSvg = segPolys
+      .map((s) => `
+        <polygon points="${s.pts}" fill="${s.on ? activeColor : offColor}"
+                 style="${s.on ? 'filter: drop-shadow(0 0 6px #ff2a6d);' : ''}"/>
+      `)
+      .join('');
+
+    return `
+      <svg class="schematic-svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+        <rect x="${boxLeft}" y="6" width="${boxW}" height="${h - 12}" rx="7" fill="#1b0e20" stroke="#be185d" stroke-width="2.5"/>
+        <rect x="${boxLeft + 22}" y="18" width="${boxW - 28}" height="${h - 44}" rx="4" fill="#120816" stroke="#4a1d35" stroke-width="1.2"/>
+        ${inPinsSvg}
+        ${segmentsSvg}
+        <circle cx="${sx + sw + 9}" cy="${sy + sh * 2 - 2}" r="4"
+                fill="${dpOn ? activeColor : offColor}"
+                style="${dpOn ? 'filter: drop-shadow(0 0 6px #ff2a6d);' : ''}"/>
+        <text x="${boxLeft + boxW / 2 + 8}" y="${h - 12}" text-anchor="middle" fill="#f9a8d4" font-size="7.8" font-weight="800" font-family="Plus Jakarta Sans">
+          ${isCommonAnode ? 'ÁNODO COMÚN (0)' : 'CÁTODO COMÚN (1)'}
+        </text>
       </svg>
     `;
   }
@@ -1178,6 +1641,7 @@ window.renderSchematicNodeSvg = function (node, inVals, outVals) {
     .join('');
 
   const cy = h / 2;
+  const hasDrill = window.canDrillDownNode && window.canDrillDownNode(node.type);
   return `
     <svg class="schematic-svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
       <rect x="${boxLeft}" y="6" width="${boxW}" height="${h - 12}" rx="4" fill="#ffffff" stroke="${stroke}" stroke-width="2.6"/>
@@ -1186,6 +1650,7 @@ window.renderSchematicNodeSvg = function (node, inVals, outVals) {
       ${outPinsSvg}
       <text x="${w / 2}" y="${cy - 4}" text-anchor="middle" fill="#1f122b" font-size="13" font-weight="800" font-family="Plus Jakarta Sans">${def.ic || def.name}</text>
       <text x="${w / 2}" y="${cy + 11}" text-anchor="middle" fill="#831843" font-size="8.5" font-weight="600" font-family="Plus Jakarta Sans">${def.sub.slice(0, 20)}</text>
+      ${hasDrill ? `<text x="${w / 2}" y="${cy + 24}" text-anchor="middle" fill="#db2777" font-size="7.5" font-weight="800" font-family="Plus Jakarta Sans">▾ Doble clic: Interior</text>` : ''}
     </svg>
   `;
 };
@@ -1296,5 +1761,764 @@ window.IC_PINOUT_DATA = {
     pins: 14,
     left: ['1: A', '2: B', '3: C', '4: D', '5: E', '6: F', '7: GND'],
     right: ['14: VCC (+5V)', '13: NC', '12: Y (Out)', '11: H', '10: NC', '9: NC', '8: G']
+  },
+  '74LS47': {
+    title: '74LS47 · Decodificador/Controlador BCD a 7 Segmentos (Ánodo Común)',
+    package: 'Encapsulado DIP-16 · Conversor de Código Display',
+    pins: 16,
+    left: ['1: B (In)', '2: C (In)', "3: LT' (Lamp Test)", "4: BI'/RBO'", "5: RBI'", '6: D (In)', '7: A (In)', '8: GND'],
+    right: ['16: VCC (+5V)', "15: f' (Seg)", "14: g' (Seg)", "13: a' (Seg)", "12: b' (Seg)", "11: c' (Seg)", "10: d' (Seg)", "9: e' (Seg)"]
+  },
+  '74LS138': {
+    title: '74LS138 · Decodificador / Demultiplexor de 3 a 8 Líneas',
+    package: 'Encapsulado DIP-16 · Decodificador Binario',
+    pins: 16,
+    left: ['1: A0 (Select)', '2: A1 (Select)', '3: A2 (Select)', "4: E1' (Enable)", "5: E2' (Enable)", '6: E3 (Enable)', "7: O7' (Out)", '8: GND'],
+    right: ['16: VCC (+5V)', "15: O0' (Out)", "14: O1' (Out)", "13: O2' (Out)", "12: O3' (Out)", "11: O4' (Out)", "10: O5' (Out)", "9: O6' (Out)"]
+  },
+  '74LS139': {
+    title: '74LS139 · Doble Decodificador / Demultiplexor de 2 a 4 Líneas',
+    package: 'Encapsulado DIP-16 · Decodificador Dual',
+    pins: 16,
+    left: ["1: 1E' (Enable)", '2: 1A0', '3: 1A1', "4: 1O0'", "5: 1O1'", "6: 1O2'", "7: 1O3'", '8: GND'],
+    right: ['16: VCC (+5V)', "15: 2E' (Enable)", '14: 2A0', '13: 2A1', "12: 2O0'", "11: 2O1'", "10: 2O2'", "9: 2O3'"]
+  },
+  '74LS147': {
+    title: 'SN74LS147 · Codificador de Prioridad de 10 a 4 Líneas (Decimal a BCD)',
+    package: 'Encapsulado DIP-16 · Codificador con Prioridad',
+    pins: 16,
+    left: ["1: I4'", "2: I5'", "3: I6'", "4: I7'", "5: I8'", "6: C' (Out)", "7: B' (Out)", '8: GND'],
+    right: ['16: VCC (+5V)', '15: NC', "14: D' (Out)", "13: I3'", "12: I2'", "11: I1'", "10: I9'", "9: A' (Out)"]
+  },
+  '74LS148': {
+    title: 'SN74LS148 · Codificador de Prioridad de 8 a 3 Líneas (Cascadable)',
+    package: 'Encapsulado DIP-16 · Codificador Octal con Prioridad',
+    pins: 16,
+    left: ["1: I4'", "2: I5'", "3: I6'", "4: I7'", "5: EI' (Enable In)", "6: A2' (Out)", "7: A1' (Out)", '8: GND'],
+    right: ['16: VCC (+5V)', "15: EO' (Enable Out)", "14: GS' (Group)", "13: I3'", "12: I2'", "11: I1'", "10: I0'", "9: A0' (Out)"]
+  },
+  '74LS42': {
+    title: '74LS42 · Decodificador de BCD a Decimal (4 a 10 Líneas)',
+    package: 'Encapsulado DIP-16 · Conversor de Código',
+    pins: 16,
+    left: ["1: O0'", "2: O1'", "3: O2'", "4: O3'", "5: O4'", "6: O5'", "7: O6'", '8: GND'],
+    right: ['16: VCC (+5V)', '15: A (LSB)', '14: B', '13: C', '12: D (MSB)', "11: O9'", "10: O8'", "9: O7'"]
   }
+};
+
+// ============================================================================
+// ARQUITECTURA JERÁRQUICA MULTINIVEL (DE MAYOR A MENOR Y DE MENOR A MAYOR)
+// Permite adentrarse en cualquier circuito integrado o bloque MSI hasta sus compuertas básicas
+// ============================================================================
+window.HIERARCHY_FAMILIES = {
+  // 1. ARQUITECTURA INTERNA DEL 74LS283 Y SUMADORES (4 NIVELES DE MAYOR A MENOR)
+  ADDER_74283_HIERARCHY: {
+    id: 'ADDER_74283_HIERARCHY',
+    title: 'Arquitectura Jerárquica del 74LS283 (Sumador de 4 Bits)',
+    levels: [
+      {
+        level: 1,
+        shortName: '1. CI 74LS283 (4 bits)',
+        title: 'Nivel 1 (Mayor): Circuito Integrado 74LS283 — Sumador Binario de 4 Bits',
+        subtitle: 'Encapsulado MSI completo que recibe dos palabras de 4 bits (A4..A1 y B4..B1) y C0.',
+        formulas: ['\\Sigma = A + B + C_0 \\pmod{16}', 'C_4 = \\text{Carry Out}'],
+        nodes: [
+          { id: 'a4', type: 'INPUT', label: 'A4', x: 110, y: 34, state: [0] },
+          { id: 'a3', type: 'INPUT', label: 'A3', x: 110, y: 70, state: [1] },
+          { id: 'a2', type: 'INPUT', label: 'A2', x: 110, y: 106, state: [0] },
+          { id: 'a1', type: 'INPUT', label: 'A1', x: 110, y: 142, state: [1] },
+          { id: 'b4', type: 'INPUT', label: 'B4', x: 110, y: 184, state: [0] },
+          { id: 'b3', type: 'INPUT', label: 'B3', x: 110, y: 220, state: [0] },
+          { id: 'b2', type: 'INPUT', label: 'B2', x: 110, y: 256, state: [1] },
+          { id: 'b1', type: 'INPUT', label: 'B1', x: 110, y: 292, state: [1] },
+          { id: 'c0', type: 'INPUT', label: 'C0', x: 110, y: 334, state: [0] },
+          { id: 'ic283', type: 'IC_74283', label: '74LS283', x: 340, y: 80 },
+          { id: 'c4', type: 'OUTPUT', label: 'C4', x: 580, y: 76 },
+          { id: 's4', type: 'OUTPUT', label: 'Σ4', x: 580, y: 132 },
+          { id: 's3', type: 'OUTPUT', label: 'Σ3', x: 580, y: 188 },
+          { id: 's2', type: 'OUTPUT', label: 'Σ2', x: 580, y: 244 },
+          { id: 's1', type: 'OUTPUT', label: 'Σ1', x: 580, y: 300 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'a4', fromPin: 0, toNode: 'ic283', toPin: 0 },
+          { id: 'w2', fromNode: 'a3', fromPin: 0, toNode: 'ic283', toPin: 1 },
+          { id: 'w3', fromNode: 'a2', fromPin: 0, toNode: 'ic283', toPin: 2 },
+          { id: 'w4', fromNode: 'a1', fromPin: 0, toNode: 'ic283', toPin: 3 },
+          { id: 'w5', fromNode: 'b4', fromPin: 0, toNode: 'ic283', toPin: 4 },
+          { id: 'w6', fromNode: 'b3', fromPin: 0, toNode: 'ic283', toPin: 5 },
+          { id: 'w7', fromNode: 'b2', fromPin: 0, toNode: 'ic283', toPin: 6 },
+          { id: 'w8', fromNode: 'b1', fromPin: 0, toNode: 'ic283', toPin: 7 },
+          { id: 'w9', fromNode: 'c0', fromPin: 0, toNode: 'ic283', toPin: 8 },
+          { id: 'w10', fromNode: 'ic283', fromPin: 0, toNode: 'c4', toPin: 0 },
+          { id: 'w11', fromNode: 'ic283', fromPin: 1, toNode: 's4', toPin: 0 },
+          { id: 'w12', fromNode: 'ic283', fromPin: 2, toNode: 's3', toPin: 0 },
+          { id: 'w13', fromNode: 'ic283', fromPin: 3, toNode: 's2', toPin: 0 },
+          { id: 'w14', fromNode: 'ic283', fromPin: 4, toNode: 's1', toPin: 0 }
+        ]
+      },
+      {
+        level: 2,
+        shortName: '2. Bloques Full Adders',
+        title: 'Nivel 2: Bloques Sumadores Completos en Cascada (4 Etapas de 1 Bit)',
+        subtitle: 'Interior del 74LS283 descompuesto en bloques sumadores que procesan cada par de bits (Ai, Bi) y propagan el acarreo.',
+        formulas: ['S_i = A_i \\oplus B_i \\oplus C_{i-1}', 'C_i = A_i B_i + C_{i-1}(A_i \\oplus B_i)'],
+        nodes: [
+          { id: 'inA3', type: 'INPUT', label: 'A3', x: 110, y: 45, state: [0] },
+          { id: 'inB3', type: 'INPUT', label: 'B3', x: 110, y: 100, state: [0] },
+          { id: 'inA2', type: 'INPUT', label: 'A2', x: 290, y: 45, state: [1] },
+          { id: 'inB2', type: 'INPUT', label: 'B2', x: 290, y: 100, state: [0] },
+          { id: 'inA1', type: 'INPUT', label: 'A1', x: 470, y: 45, state: [0] },
+          { id: 'inB1', type: 'INPUT', label: 'B1', x: 470, y: 100, state: [1] },
+          { id: 'inA0', type: 'INPUT', label: 'A0', x: 650, y: 45, state: [1] },
+          { id: 'inB0', type: 'INPUT', label: 'B0', x: 650, y: 100, state: [1] },
+          { id: 'sc3', type: 'BLOCK_SC', label: 'FA3 (S.C.)', x: 180, y: 170 },
+          { id: 'sc2', type: 'BLOCK_SC', label: 'FA2 (S.C.)', x: 360, y: 170 },
+          { id: 'sc1', type: 'BLOCK_SC', label: 'FA1 (S.C.)', x: 540, y: 170 },
+          { id: 'ms0', type: 'BLOCK_MS', label: 'FA0 (M.S.)', x: 720, y: 170 },
+          { id: 'outCout', type: 'OUTPUT', label: 'Cout', x: 40, y: 197 },
+          { id: 'outS3', type: 'OUTPUT', label: 'S3', x: 250, y: 310 },
+          { id: 'outS2', type: 'OUTPUT', label: 'S2', x: 430, y: 310 },
+          { id: 'outS1', type: 'OUTPUT', label: 'S1', x: 610, y: 310 },
+          { id: 'outS0', type: 'OUTPUT', label: 'S0', x: 790, y: 310 }
+        ],
+        wires: [
+          { id: 'wA3', fromNode: 'inA3', fromPin: 0, toNode: 'sc3', toPin: 0 },
+          { id: 'wB3', fromNode: 'inB3', fromPin: 0, toNode: 'sc3', toPin: 1 },
+          { id: 'wA2', fromNode: 'inA2', fromPin: 0, toNode: 'sc2', toPin: 0 },
+          { id: 'wB2', fromNode: 'inB2', fromPin: 0, toNode: 'sc2', toPin: 1 },
+          { id: 'wA1', fromNode: 'inA1', fromPin: 0, toNode: 'sc1', toPin: 0 },
+          { id: 'wB1', fromNode: 'inB1', fromPin: 0, toNode: 'sc1', toPin: 1 },
+          { id: 'wA0', fromNode: 'inA0', fromPin: 0, toNode: 'ms0', toPin: 0 },
+          { id: 'wB0', fromNode: 'inB0', fromPin: 0, toNode: 'ms0', toPin: 1 },
+          { id: 'wC0', fromNode: 'ms0', fromPin: 1, toNode: 'sc1', toPin: 2 },
+          { id: 'wC1', fromNode: 'sc1', fromPin: 1, toNode: 'sc2', toPin: 2 },
+          { id: 'wC2', fromNode: 'sc2', fromPin: 1, toNode: 'sc3', toPin: 2 },
+          { id: 'wC3', fromNode: 'sc3', fromPin: 1, toNode: 'outCout', toPin: 0 },
+          { id: 'wS0', fromNode: 'ms0', fromPin: 0, toNode: 'outS0', toPin: 0 },
+          { id: 'wS1', fromNode: 'sc1', fromPin: 0, toNode: 'outS1', toPin: 0 },
+          { id: 'wS2', fromNode: 'sc2', fromPin: 0, toNode: 'outS2', toPin: 0 },
+          { id: 'wS3', fromNode: 'sc3', fromPin: 0, toNode: 'outS3', toPin: 0 }
+        ]
+      },
+      {
+        level: 3,
+        shortName: '3. Subcircuitos Suma y Acarreo',
+        title: 'Nivel 3: Circuitos Lógicos de Suma Parcial y Acarreo (2 Medios Sumadores + OR)',
+        subtitle: 'Interior de un Sumador Completo: dos bloques de Media Suma (P = A⊕B, G = A·B) y combinación de acarreos.',
+        formulas: ['P = A \\oplus B, \\; G = A \\cdot B', 'S = P \\oplus C_{\\text{in}}, \\; C_{\\text{out}} = G + P \\cdot C_{\\text{in}}'],
+        nodes: [
+          { id: 'inA', type: 'INPUT', label: 'A', x: 100, y: 70, state: [1] },
+          { id: 'inB', type: 'INPUT', label: 'B', x: 100, y: 130, state: [1] },
+          { id: 'inCin', type: 'INPUT', label: 'Cin', x: 100, y: 240, state: [0] },
+          { id: 'ha1', type: 'HALF_ADDER', label: 'M.S. 1 (Suma Parcial)', x: 260, y: 68 },
+          { id: 'ha2', type: 'HALF_ADDER', label: 'M.S. 2 (Suma Final)', x: 470, y: 120 },
+          { id: 'orCarry', type: 'OR', label: 'U_Carry', x: 660, y: 210 },
+          { id: 'outS', type: 'OUTPUT', label: 'S', x: 680, y: 122 },
+          { id: 'outCout', type: 'OUTPUT', label: 'Cout', x: 810, y: 222 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'inA', fromPin: 0, toNode: 'ha1', toPin: 0 },
+          { id: 'w2', fromNode: 'inB', fromPin: 0, toNode: 'ha1', toPin: 1 },
+          { id: 'w3', fromNode: 'ha1', fromPin: 0, toNode: 'ha2', toPin: 0 },
+          { id: 'w4', fromNode: 'inCin', fromPin: 0, toNode: 'ha2', toPin: 1 },
+          { id: 'w5', fromNode: 'ha2', fromPin: 0, toNode: 'outS', toPin: 0 },
+          { id: 'w6', fromNode: 'ha1', fromPin: 1, toNode: 'orCarry', toPin: 0 },
+          { id: 'w7', fromNode: 'ha2', fromPin: 1, toNode: 'orCarry', toPin: 1 },
+          { id: 'w8', fromNode: 'orCarry', fromPin: 0, toNode: 'outCout', toPin: 0 }
+        ]
+      },
+      {
+        level: 4,
+        shortName: '4. Compuertas Básicas (AND, OR, XOR)',
+        title: 'Nivel 4 (Menor): Compuertas Lógicas Básicas (AND, OR y XOR)',
+        subtitle: 'Nivel atómico: implementación física con compuertas elementales XOR (74LS86), AND (74LS08) y OR (74LS32).',
+        formulas: ['S = (A \\oplus B) \\oplus C_{\\text{in}}', 'C_{\\text{out}} = (A \\cdot B) + ((A \\oplus B) \\cdot C_{\\text{in}})'],
+        nodes: [
+          { id: 'inA', type: 'INPUT', label: 'A', x: 100, y: 60, state: [1] },
+          { id: 'inB', type: 'INPUT', label: 'B', x: 100, y: 115, state: [0] },
+          { id: 'inCin', type: 'INPUT', label: 'Cin', x: 100, y: 250, state: [1] },
+          { id: 'xor1', type: 'XOR', label: 'U1 (XOR)', x: 270, y: 62 },
+          { id: 'and1', type: 'AND', label: 'U2 (AND)', x: 270, y: 165 },
+          { id: 'xor2', type: 'XOR', label: 'U3 (XOR)', x: 480, y: 80 },
+          { id: 'and2', type: 'AND', label: 'U4 (AND)', x: 480, y: 225 },
+          { id: 'or1', type: 'OR', label: 'U5 (OR)', x: 640, y: 195 },
+          { id: 'outS', type: 'OUTPUT', label: 'S', x: 760, y: 92 },
+          { id: 'outCout', type: 'OUTPUT', label: 'Cout', x: 780, y: 207 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'inA', fromPin: 0, toNode: 'xor1', toPin: 0 },
+          { id: 'w2', fromNode: 'inB', fromPin: 0, toNode: 'xor1', toPin: 1 },
+          { id: 'w3', fromNode: 'inA', fromPin: 0, toNode: 'and1', toPin: 0 },
+          { id: 'w4', fromNode: 'inB', fromPin: 0, toNode: 'and1', toPin: 1 },
+          { id: 'w5', fromNode: 'xor1', fromPin: 0, toNode: 'xor2', toPin: 0 },
+          { id: 'w6', fromNode: 'inCin', fromPin: 0, toNode: 'xor2', toPin: 1 },
+          { id: 'w7', fromNode: 'xor1', fromPin: 0, toNode: 'and2', toPin: 0 },
+          { id: 'w8', fromNode: 'inCin', fromPin: 0, toNode: 'and2', toPin: 1 },
+          { id: 'w9', fromNode: 'and1', fromPin: 0, toNode: 'or1', toPin: 0 },
+          { id: 'w10', fromNode: 'and2', fromPin: 0, toNode: 'or1', toPin: 1 },
+          { id: 'w11', fromNode: 'xor2', fromPin: 0, toNode: 'outS', toPin: 0 },
+          { id: 'w12', fromNode: 'or1', fromPin: 0, toNode: 'outCout', toPin: 0 }
+        ]
+      }
+    ]
+  },
+
+  // 2. ARQUITECTURA INTERNA DEL DECODIFICADOR BCD A 7 SEGMENTOS (74LS47 / 74LS48 + DISPLAY)
+  BCD_7SEG_HIERARCHY: {
+    id: 'BCD_7SEG_HIERARCHY',
+    title: 'Arquitectura Jerárquica del Decodificador BCD a 7 Segmentos (74LS47 / 74LS48)',
+    levels: [
+      {
+        level: 1,
+        shortName: '1. CI 74LS47 / 74LS48 + Display',
+        title: 'Nivel 1 (Mayor): Decodificador BCD a 7 Segmentos Conectado a Display',
+        subtitle: 'Convierte el código binario BCD (D, C, B, A) en las 7 señales (a..g) que iluminan el dígito decimal en el Display.',
+        formulas: ['\\text{Entrada BCD } (D,C,B,A) \\implies \\text{Segmentos } (a,b,c,d,e,f,g)'],
+        nodes: [
+          { id: 'inD', type: 'INPUT', label: 'D', x: 100, y: 65, state: [0] },
+          { id: 'inC', type: 'INPUT', label: 'C', x: 100, y: 115, state: [1] },
+          { id: 'inB', type: 'INPUT', label: 'B', x: 100, y: 165, state: [0] },
+          { id: 'inA', type: 'INPUT', label: 'A', x: 100, y: 215, state: [1] },
+          { id: 'decoBcd', type: 'BCD_7SEG', label: '74LS48 (BCD-7Seg)', x: 280, y: 55 },
+          { id: 'disp7', type: 'DISPLAY_7SEG_CC', label: 'Display 7-Seg', x: 540, y: 55 },
+          { id: 'outA', type: 'OUTPUT', label: 'a', x: 720, y: 40 },
+          { id: 'outB', type: 'OUTPUT', label: 'b', x: 720, y: 78 },
+          { id: 'outC', type: 'OUTPUT', label: 'c', x: 720, y: 116 },
+          { id: 'outD', type: 'OUTPUT', label: 'd', x: 720, y: 154 },
+          { id: 'outE', type: 'OUTPUT', label: 'e', x: 720, y: 192 },
+          { id: 'outF', type: 'OUTPUT', label: 'f', x: 720, y: 230 },
+          { id: 'outG', type: 'OUTPUT', label: 'g', x: 720, y: 268 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'inD', fromPin: 0, toNode: 'decoBcd', toPin: 0 },
+          { id: 'w2', fromNode: 'inC', fromPin: 0, toNode: 'decoBcd', toPin: 1 },
+          { id: 'w3', fromNode: 'inB', fromPin: 0, toNode: 'decoBcd', toPin: 2 },
+          { id: 'w4', fromNode: 'inA', fromPin: 0, toNode: 'decoBcd', toPin: 3 },
+          { id: 'ws0', fromNode: 'decoBcd', fromPin: 0, toNode: 'disp7', toPin: 0 },
+          { id: 'ws1', fromNode: 'decoBcd', fromPin: 1, toNode: 'disp7', toPin: 1 },
+          { id: 'ws2', fromNode: 'decoBcd', fromPin: 2, toNode: 'disp7', toPin: 2 },
+          { id: 'ws3', fromNode: 'decoBcd', fromPin: 3, toNode: 'disp7', toPin: 3 },
+          { id: 'ws4', fromNode: 'decoBcd', fromPin: 4, toNode: 'disp7', toPin: 4 },
+          { id: 'ws5', fromNode: 'decoBcd', fromPin: 5, toNode: 'disp7', toPin: 5 },
+          { id: 'ws6', fromNode: 'decoBcd', fromPin: 6, toNode: 'disp7', toPin: 6 },
+          { id: 'wo0', fromNode: 'decoBcd', fromPin: 0, toNode: 'outA', toPin: 0 },
+          { id: 'wo1', fromNode: 'decoBcd', fromPin: 1, toNode: 'outB', toPin: 0 },
+          { id: 'wo2', fromNode: 'decoBcd', fromPin: 2, toNode: 'outC', toPin: 0 },
+          { id: 'wo3', fromNode: 'decoBcd', fromPin: 3, toNode: 'outD', toPin: 0 },
+          { id: 'wo4', fromNode: 'decoBcd', fromPin: 4, toNode: 'outE', toPin: 0 },
+          { id: 'wo5', fromNode: 'decoBcd', fromPin: 5, toNode: 'outF', toPin: 0 },
+          { id: 'wo6', fromNode: 'decoBcd', fromPin: 6, toNode: 'outG', toPin: 0 }
+        ]
+      },
+      {
+        level: 2,
+        shortName: '2. Etapa Decodificador BCD + Sumadores SOP',
+        title: 'Nivel 2: Decodificador BCD a Decimal (74LS42) + Matriz OR de Segmentos',
+        subtitle: 'El código BCD se decodifica primero en sus minitérminos decimales (0..9) y luego se suman con compuertas OR para cada segmento.',
+        formulas: ['a = \\sum m(0,2,3,5,6,7,8,9)', 'b = \\sum m(0,1,2,3,4,7,8,9)'],
+        nodes: [
+          { id: 'inD', type: 'INPUT', label: 'D', x: 80, y: 70, state: [0] },
+          { id: 'inC', type: 'INPUT', label: 'C', x: 80, y: 120, state: [1] },
+          { id: 'inB', type: 'INPUT', label: 'B', x: 80, y: 170, state: [0] },
+          { id: 'inA', type: 'INPUT', label: 'A', x: 80, y: 220, state: [1] },
+          { id: 'dec42', type: 'IC_7442', label: 'DEC BCD 4:10', x: 230, y: 50 },
+          { id: 'orSegA', type: 'OR8', label: 'OR Seg a', x: 460, y: 30 },
+          { id: 'orSegB', type: 'OR8', label: 'OR Seg b', x: 460, y: 240 },
+          { id: 'outSegA', type: 'OUTPUT', label: 'a', x: 650, y: 110 },
+          { id: 'outSegB', type: 'OUTPUT', label: 'b', x: 650, y: 320 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'inD', fromPin: 0, toNode: 'dec42', toPin: 0 },
+          { id: 'w2', fromNode: 'inC', fromPin: 0, toNode: 'dec42', toPin: 1 },
+          { id: 'w3', fromNode: 'inB', fromPin: 0, toNode: 'dec42', toPin: 2 },
+          { id: 'w4', fromNode: 'inA', fromPin: 0, toNode: 'dec42', toPin: 3 },
+          { id: 'wa0', fromNode: 'dec42', fromPin: 0, toNode: 'orSegA', toPin: 0 },
+          { id: 'wa2', fromNode: 'dec42', fromPin: 2, toNode: 'orSegA', toPin: 1 },
+          { id: 'wa3', fromNode: 'dec42', fromPin: 3, toNode: 'orSegA', toPin: 2 },
+          { id: 'wa5', fromNode: 'dec42', fromPin: 5, toNode: 'orSegA', toPin: 3 },
+          { id: 'wa6', fromNode: 'dec42', fromPin: 6, toNode: 'orSegA', toPin: 4 },
+          { id: 'wa7', fromNode: 'dec42', fromPin: 7, toNode: 'orSegA', toPin: 5 },
+          { id: 'wa8', fromNode: 'dec42', fromPin: 8, toNode: 'orSegA', toPin: 6 },
+          { id: 'wa9', fromNode: 'dec42', fromPin: 9, toNode: 'orSegA', toPin: 7 },
+          { id: 'wb0', fromNode: 'dec42', fromPin: 0, toNode: 'orSegB', toPin: 0 },
+          { id: 'wb1', fromNode: 'dec42', fromPin: 1, toNode: 'orSegB', toPin: 1 },
+          { id: 'wb2', fromNode: 'dec42', fromPin: 2, toNode: 'orSegB', toPin: 2 },
+          { id: 'wb3', fromNode: 'dec42', fromPin: 3, toNode: 'orSegB', toPin: 3 },
+          { id: 'wb4', fromNode: 'dec42', fromPin: 4, toNode: 'orSegB', toPin: 4 },
+          { id: 'wb7', fromNode: 'dec42', fromPin: 7, toNode: 'orSegB', toPin: 5 },
+          { id: 'wb8', fromNode: 'dec42', fromPin: 8, toNode: 'orSegB', toPin: 6 },
+          { id: 'wb9', fromNode: 'dec42', fromPin: 9, toNode: 'orSegB', toPin: 7 },
+          { id: 'woa', fromNode: 'orSegA', fromPin: 0, toNode: 'outSegA', toPin: 0 },
+          { id: 'wob', fromNode: 'orSegB', fromPin: 0, toNode: 'outSegB', toPin: 0 }
+        ]
+      },
+      {
+        level: 3,
+        shortName: '3. Compuertas Básicas (NOT, AND, OR)',
+        title: 'Nivel 3 (Menor): Compuertas Lógicas Básicas de Síntesis de Segmentos (a, b, c)',
+        subtitle: 'Implementación mediante mapas de Karnaugh con inversores NOT, compuertas AND y OR para los segmentos del display.',
+        formulas: ["a = D + B + C\\cdot A + C'\\cdot A'", "c = C + B' + A"],
+        nodes: [
+          { id: 'inD', type: 'INPUT', label: 'D', x: 80, y: 40, state: [0] },
+          { id: 'inC', type: 'INPUT', label: 'C', x: 80, y: 105, state: [1] },
+          { id: 'inB', type: 'INPUT', label: 'B', x: 80, y: 170, state: [0] },
+          { id: 'inA', type: 'INPUT', label: 'A', x: 80, y: 235, state: [1] },
+          { id: 'notC', type: 'NOT', label: 'NOT_C', x: 220, y: 115 },
+          { id: 'notB', type: 'NOT', label: 'NOT_B', x: 220, y: 180 },
+          { id: 'notA', type: 'NOT', label: 'NOT_A', x: 220, y: 245 },
+          { id: 'andCA', type: 'AND', label: 'C·A', x: 370, y: 85 },
+          { id: 'andNcNa', type: 'AND', label: "C'·A'", x: 370, y: 165 },
+          { id: 'orSegA', type: 'OR4', label: 'OR_a', x: 540, y: 65 },
+          { id: 'orSegC', type: 'OR3', label: 'OR_c', x: 540, y: 210 },
+          { id: 'outA', type: 'OUTPUT', label: 'a', x: 700, y: 92 },
+          { id: 'outC', type: 'OUTPUT', label: 'c', x: 700, y: 228 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'inC', fromPin: 0, toNode: 'notC', toPin: 0 },
+          { id: 'w2', fromNode: 'inB', fromPin: 0, toNode: 'notB', toPin: 0 },
+          { id: 'w3', fromNode: 'inA', fromPin: 0, toNode: 'notA', toPin: 0 },
+          { id: 'w4', fromNode: 'inC', fromPin: 0, toNode: 'andCA', toPin: 0 },
+          { id: 'w5', fromNode: 'inA', fromPin: 0, toNode: 'andCA', toPin: 1 },
+          { id: 'w6', fromNode: 'notC', fromPin: 0, toNode: 'andNcNa', toPin: 0 },
+          { id: 'w7', fromNode: 'notA', fromPin: 0, toNode: 'andNcNa', toPin: 1 },
+          { id: 'w8', fromNode: 'inD', fromPin: 0, toNode: 'orSegA', toPin: 0 },
+          { id: 'w9', fromNode: 'inB', fromPin: 0, toNode: 'orSegA', toPin: 1 },
+          { id: 'w10', fromNode: 'andCA', fromPin: 0, toNode: 'orSegA', toPin: 2 },
+          { id: 'w11', fromNode: 'andNcNa', fromPin: 0, toNode: 'orSegA', toPin: 3 },
+          { id: 'w12', fromNode: 'inC', fromPin: 0, toNode: 'orSegC', toPin: 0 },
+          { id: 'w13', fromNode: 'notB', fromPin: 0, toNode: 'orSegC', toPin: 1 },
+          { id: 'w14', fromNode: 'inA', fromPin: 0, toNode: 'orSegC', toPin: 2 },
+          { id: 'w15', fromNode: 'orSegA', fromPin: 0, toNode: 'outA', toPin: 0 },
+          { id: 'w16', fromNode: 'orSegC', fromPin: 0, toNode: 'outC', toPin: 0 }
+        ]
+      }
+    ]
+  },
+
+  // 3. ARQUITECTURA INTERNA DE DECODIFICADORES (4 A 16 -> 3 A 8 -> 2 A 4 -> COMPUERTAS)
+  DECODER_HIERARCHY: {
+    id: 'DECODER_HIERARCHY',
+    title: 'Arquitectura Jerárquica de Decodificadores Binarios (De 4:16 a Compuertas)',
+    levels: [
+      {
+        level: 1,
+        shortName: '1. Decodificador 4 a 16 (74LS154)',
+        title: 'Nivel 1 (Mayor): Circuito Integrado Decodificador 4 a 16 (74LS154)',
+        subtitle: 'Bloque MSI de 4 entradas (A3..A0) que direcciona 2⁴ = 16 líneas de salida.',
+        formulas: ['O_k = 1 \\iff k = (A_3 A_2 A_1 A_0)_2'],
+        nodes: [
+          { id: 'a3', type: 'INPUT', label: 'A3', x: 110, y: 80, state: [0] },
+          { id: 'a2', type: 'INPUT', label: 'A2', x: 110, y: 140, state: [1] },
+          { id: 'a1', type: 'INPUT', label: 'A1', x: 110, y: 200, state: [0] },
+          { id: 'a0', type: 'INPUT', label: 'A0', x: 110, y: 260, state: [1] },
+          { id: 'ic154', type: 'IC_74154', label: 'DEC 4a16', x: 310, y: 30 },
+          { id: 'o0', type: 'OUTPUT', label: 'O0', x: 560, y: 40 },
+          { id: 'o5', type: 'OUTPUT', label: 'O5', x: 560, y: 150 },
+          { id: 'o10', type: 'OUTPUT', label: 'O10', x: 560, y: 260 },
+          { id: 'o15', type: 'OUTPUT', label: 'O15', x: 560, y: 360 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'a3', fromPin: 0, toNode: 'ic154', toPin: 0 },
+          { id: 'w2', fromNode: 'a2', fromPin: 0, toNode: 'ic154', toPin: 1 },
+          { id: 'w3', fromNode: 'a1', fromPin: 0, toNode: 'ic154', toPin: 2 },
+          { id: 'w4', fromNode: 'a0', fromPin: 0, toNode: 'ic154', toPin: 3 },
+          { id: 'wo0', fromNode: 'ic154', fromPin: 0, toNode: 'o0', toPin: 0 },
+          { id: 'wo5', fromNode: 'ic154', fromPin: 5, toNode: 'o5', toPin: 0 },
+          { id: 'wo10', fromNode: 'ic154', fromPin: 10, toNode: 'o10', toPin: 0 },
+          { id: 'wo15', fromNode: 'ic154', fromPin: 15, toNode: 'o15', toPin: 0 }
+        ]
+      },
+      {
+        level: 2,
+        shortName: '2. Taller: Árbol de Decodificadores 2 a 4',
+        title: 'Nivel 2: Desarrollo de Decodificador 4 a 16 en base a Decodificadores 2 a 4 (Taller Pág. 18)',
+        subtitle: '1 Decodificador 2 a 4 maestro selecciona cuál de los 4 Decodificadores 2 a 4 esclavos se habilita.',
+        formulas: ['E_m = \\text{DEC}_{2:4}(A_3, A_2)', 'O_{4m+k} = E_m \\cdot \\text{DEC}_{2:4}(A_1, A_0)'],
+        nodes: [
+          { id: 'a3', type: 'INPUT', label: 'A3', x: 70, y: 60, state: [0] },
+          { id: 'a2', type: 'INPUT', label: 'A2', x: 70, y: 110, state: [1] },
+          { id: 'a1', type: 'INPUT', label: 'A1', x: 70, y: 240, state: [0] },
+          { id: 'a0', type: 'INPUT', label: 'A0', x: 70, y: 290, state: [1] },
+          { id: 'decMaster', type: 'DEC_2_4', label: 'DEC0 (Maestro)', x: 220, y: 50 },
+          { id: 'decS0', type: 'DEC_2_4_EN', label: 'DEC1 (O0..O3)', x: 450, y: 20 },
+          { id: 'decS1', type: 'DEC_2_4_EN', label: 'DEC2 (O4..O7)', x: 450, y: 190 },
+          { id: 'outO0', type: 'OUTPUT', label: 'O0', x: 670, y: 30 },
+          { id: 'outO1', type: 'OUTPUT', label: 'O1', x: 670, y: 75 },
+          { id: 'outO4', type: 'OUTPUT', label: 'O4', x: 670, y: 200 },
+          { id: 'outO5', type: 'OUTPUT', label: 'O5', x: 670, y: 245 }
+        ],
+        wires: [
+          { id: 'wm1', fromNode: 'a3', fromPin: 0, toNode: 'decMaster', toPin: 0 },
+          { id: 'wm2', fromNode: 'a2', fromPin: 0, toNode: 'decMaster', toPin: 1 },
+          { id: 'we0', fromNode: 'decMaster', fromPin: 0, toNode: 'decS0', toPin: 2 },
+          { id: 'we1', fromNode: 'decMaster', fromPin: 1, toNode: 'decS1', toPin: 2 },
+          { id: 'wa10', fromNode: 'a1', fromPin: 0, toNode: 'decS0', toPin: 0 },
+          { id: 'wa00', fromNode: 'a0', fromPin: 0, toNode: 'decS0', toPin: 1 },
+          { id: 'wa11', fromNode: 'a1', fromPin: 0, toNode: 'decS1', toPin: 0 },
+          { id: 'wa01', fromNode: 'a0', fromPin: 0, toNode: 'decS1', toPin: 1 },
+          { id: 'wo0', fromNode: 'decS0', fromPin: 0, toNode: 'outO0', toPin: 0 },
+          { id: 'wo1', fromNode: 'decS0', fromPin: 1, toNode: 'outO1', toPin: 0 },
+          { id: 'wo4', fromNode: 'decS1', fromPin: 0, toNode: 'outO4', toPin: 0 },
+          { id: 'wo5', fromNode: 'decS1', fromPin: 1, toNode: 'outO5', toPin: 0 }
+        ]
+      },
+      {
+        level: 3,
+        shortName: '3. Compuertas del Decodificador 2 a 4',
+        title: 'Nivel 3: Interior del Decodificador 2 a 4 con Compuertas Básicas (Pág. 6)',
+        subtitle: '2 Inversores NOT y 4 Compuertas AND que detectan cada combinación binaria de A1 y A0.',
+        formulas: ["O_0 = A_1' A_0'", "O_1 = A_1' A_0", "O_2 = A_1 A_0'", "O_3 = A_1 A_0"],
+        nodes: [
+          { id: 'inA1', type: 'INPUT', label: 'A1', x: 90, y: 65, state: [1] },
+          { id: 'inA0', type: 'INPUT', label: 'A0', x: 90, y: 165, state: [0] },
+          { id: 'notA1', type: 'NOT', label: 'NOT1', x: 230, y: 60 },
+          { id: 'notA0', type: 'NOT', label: 'NOT0', x: 230, y: 160 },
+          { id: 'and0', type: 'AND', label: 'AND0', x: 420, y: 35 },
+          { id: 'and1', type: 'AND', label: 'AND1', x: 420, y: 115 },
+          { id: 'and2', type: 'AND', label: 'AND2', x: 420, y: 195 },
+          { id: 'and3', type: 'AND', label: 'AND3', x: 420, y: 275 },
+          { id: 'outO0', type: 'OUTPUT', label: 'O0', x: 590, y: 47 },
+          { id: 'outO1', type: 'OUTPUT', label: 'O1', x: 590, y: 127 },
+          { id: 'outO2', type: 'OUTPUT', label: 'O2', x: 590, y: 207 },
+          { id: 'outO3', type: 'OUTPUT', label: 'O3', x: 590, y: 287 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'inA1', fromPin: 0, toNode: 'notA1', toPin: 0 },
+          { id: 'w2', fromNode: 'inA0', fromPin: 0, toNode: 'notA0', toPin: 0 },
+          { id: 'w3', fromNode: 'notA1', fromPin: 0, toNode: 'and0', toPin: 0 },
+          { id: 'w4', fromNode: 'notA0', fromPin: 0, toNode: 'and0', toPin: 1 },
+          { id: 'w5', fromNode: 'notA1', fromPin: 0, toNode: 'and1', toPin: 0 },
+          { id: 'w6', fromNode: 'inA0', fromPin: 0, toNode: 'and1', toPin: 1 },
+          { id: 'w7', fromNode: 'inA1', fromPin: 0, toNode: 'and2', toPin: 0 },
+          { id: 'w8', fromNode: 'notA0', fromPin: 0, toNode: 'and2', toPin: 1 },
+          { id: 'w9', fromNode: 'inA1', fromPin: 0, toNode: 'and3', toPin: 0 },
+          { id: 'w10', fromNode: 'inA0', fromPin: 0, toNode: 'and3', toPin: 1 },
+          { id: 'w11', fromNode: 'and0', fromPin: 0, toNode: 'outO0', toPin: 0 },
+          { id: 'w12', fromNode: 'and1', fromPin: 0, toNode: 'outO1', toPin: 0 },
+          { id: 'w13', fromNode: 'and2', fromPin: 0, toNode: 'outO2', toPin: 0 },
+          { id: 'w14', fromNode: 'and3', fromPin: 0, toNode: 'outO3', toPin: 0 }
+        ]
+      },
+      {
+        level: 4,
+        shortName: '4. Decodificador Elemental 1 a 2 (Inversor)',
+        title: 'Nivel 4 (Menor): Decodificador 1 a 2 con un solo Inversor NOT (Pág. 5)',
+        subtitle: 'Célula mínima de decodificación: para A0=0 activa O0 y para A0=1 activa O1.',
+        formulas: ["O_0 = A_0'", 'O_1 = A_0'],
+        nodes: [
+          { id: 'inA0', type: 'INPUT', label: 'A0', x: 140, y: 120, state: [0] },
+          { id: 'not0', type: 'NOT', label: 'U1 (NOT)', x: 320, y: 80 },
+          { id: 'outO0', type: 'OUTPUT', label: 'O0', x: 500, y: 88 },
+          { id: 'outO1', type: 'OUTPUT', label: 'O1', x: 500, y: 168 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'inA0', fromPin: 0, toNode: 'not0', toPin: 0 },
+          { id: 'w2', fromNode: 'not0', fromPin: 0, toNode: 'outO0', toPin: 0 },
+          { id: 'w3', fromNode: 'inA0', fromPin: 0, toNode: 'outO1', toPin: 0 }
+        ]
+      }
+    ]
+  },
+
+  // 4. ARQUITECTURA INTERNA DE CODIFICADORES (74LS148 / 8 A 3 -> COMPUERTAS OR)
+  ENCODER_HIERARCHY: {
+    id: 'ENCODER_HIERARCHY',
+    title: 'Arquitectura Jerárquica de Codificadores (8 a 3 y Prioridad 74LS148)',
+    levels: [
+      {
+        level: 1,
+        shortName: '1. Bloque Codificador 8 a 3',
+        title: 'Nivel 1 (Mayor): Circuito Integrado Codificador 8 a 3 (SN74LS148 / ENC 8:3)',
+        subtitle: 'Convierte 8 líneas de entrada (I0..I7) en su código binario de 3 bits (A2, A1, A0).',
+        formulas: ['A_2 = I_4+I_5+I_6+I_7', 'A_1 = I_2+I_3+I_6+I_7', 'A_0 = I_1+I_3+I_5+I_7'],
+        nodes: [
+          { id: 'i0', type: 'INPUT', label: 'I0', x: 100, y: 30, state: [0] },
+          { id: 'i1', type: 'INPUT', label: 'I1', x: 100, y: 70, state: [0] },
+          { id: 'i2', type: 'INPUT', label: 'I2', x: 100, y: 110, state: [0] },
+          { id: 'i3', type: 'INPUT', label: 'I3', x: 100, y: 150, state: [0] },
+          { id: 'i4', type: 'INPUT', label: 'I4', x: 100, y: 190, state: [0] },
+          { id: 'i5', type: 'INPUT', label: 'I5', x: 100, y: 230, state: [1] },
+          { id: 'i6', type: 'INPUT', label: 'I6', x: 100, y: 270, state: [0] },
+          { id: 'i7', type: 'INPUT', label: 'I7', x: 100, y: 310, state: [0] },
+          { id: 'enc', type: 'ENC_PRIO_8_3', label: 'ENC 8:3', x: 320, y: 70 },
+          { id: 'a2', type: 'OUTPUT', label: 'A2', x: 560, y: 100 },
+          { id: 'a1', type: 'OUTPUT', label: 'A1', x: 560, y: 165 },
+          { id: 'a0', type: 'OUTPUT', label: 'A0', x: 560, y: 230 }
+        ],
+        wires: [
+          { id: 'w0', fromNode: 'i0', fromPin: 0, toNode: 'enc', toPin: 0 },
+          { id: 'w1', fromNode: 'i1', fromPin: 0, toNode: 'enc', toPin: 1 },
+          { id: 'w2', fromNode: 'i2', fromPin: 0, toNode: 'enc', toPin: 2 },
+          { id: 'w3', fromNode: 'i3', fromPin: 0, toNode: 'enc', toPin: 3 },
+          { id: 'w4', fromNode: 'i4', fromPin: 0, toNode: 'enc', toPin: 4 },
+          { id: 'w5', fromNode: 'i5', fromPin: 0, toNode: 'enc', toPin: 5 },
+          { id: 'w6', fromNode: 'i6', fromPin: 0, toNode: 'enc', toPin: 6 },
+          { id: 'w7', fromNode: 'i7', fromPin: 0, toNode: 'enc', toPin: 7 },
+          { id: 'wa2', fromNode: 'enc', fromPin: 0, toNode: 'a2', toPin: 0 },
+          { id: 'wa1', fromNode: 'enc', fromPin: 1, toNode: 'a1', toPin: 0 },
+          { id: 'wa0', fromNode: 'enc', fromPin: 2, toNode: 'a0', toPin: 0 }
+        ]
+      },
+      {
+        level: 2,
+        shortName: '2. Compuertas Básicas OR (Pág. 14)',
+        title: 'Nivel 2 (Menor): Implementación Interna del Codificador 8 a 3 con Compuertas OR (Pág. 14)',
+        subtitle: 'Construcción mediante 3 compuertas OR de 4 entradas según las ecuaciones de conversión binaria.',
+        formulas: ['A_2 = I_4 + I_5 + I_6 + I_7', 'A_1 = I_2 + I_3 + I_6 + I_7', 'A_0 = I_1 + I_3 + I_5 + I_7'],
+        nodes: [
+          { id: 'i0', type: 'INPUT', label: 'I0', x: 100, y: 24, state: [0] },
+          { id: 'i1', type: 'INPUT', label: 'I1', x: 100, y: 66, state: [0] },
+          { id: 'i2', type: 'INPUT', label: 'I2', x: 100, y: 108, state: [0] },
+          { id: 'i3', type: 'INPUT', label: 'I3', x: 100, y: 150, state: [0] },
+          { id: 'i4', type: 'INPUT', label: 'I4', x: 100, y: 192, state: [0] },
+          { id: 'i5', type: 'INPUT', label: 'I5', x: 100, y: 234, state: [1] },
+          { id: 'i6', type: 'INPUT', label: 'I6', x: 100, y: 276, state: [0] },
+          { id: 'i7', type: 'INPUT', label: 'I7', x: 100, y: 318, state: [0] },
+          { id: 'orA2', type: 'OR4', label: 'OR_A2', x: 380, y: 40 },
+          { id: 'orA1', type: 'OR4', label: 'OR_A1', x: 380, y: 150 },
+          { id: 'orA0', type: 'OR4', label: 'OR_A0', x: 380, y: 260 },
+          { id: 'outA2', type: 'OUTPUT', label: 'A2', x: 580, y: 67 },
+          { id: 'outA1', type: 'OUTPUT', label: 'A1', x: 580, y: 177 },
+          { id: 'outA0', type: 'OUTPUT', label: 'A0', x: 580, y: 287 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'i4', fromPin: 0, toNode: 'orA2', toPin: 0 },
+          { id: 'w2', fromNode: 'i5', fromPin: 0, toNode: 'orA2', toPin: 1 },
+          { id: 'w3', fromNode: 'i6', fromPin: 0, toNode: 'orA2', toPin: 2 },
+          { id: 'w4', fromNode: 'i7', fromPin: 0, toNode: 'orA2', toPin: 3 },
+          { id: 'w5', fromNode: 'i2', fromPin: 0, toNode: 'orA1', toPin: 0 },
+          { id: 'w6', fromNode: 'i3', fromPin: 0, toNode: 'orA1', toPin: 1 },
+          { id: 'w7', fromNode: 'i6', fromPin: 0, toNode: 'orA1', toPin: 2 },
+          { id: 'w8', fromNode: 'i7', fromPin: 0, toNode: 'orA1', toPin: 3 },
+          { id: 'w9', fromNode: 'i1', fromPin: 0, toNode: 'orA0', toPin: 0 },
+          { id: 'w10', fromNode: 'i3', fromPin: 0, toNode: 'orA0', toPin: 1 },
+          { id: 'w11', fromNode: 'i5', fromPin: 0, toNode: 'orA0', toPin: 2 },
+          { id: 'w12', fromNode: 'i7', fromPin: 0, toNode: 'orA0', toPin: 3 },
+          { id: 'wo2', fromNode: 'orA2', fromPin: 0, toNode: 'outA2', toPin: 0 },
+          { id: 'wo1', fromNode: 'orA1', fromPin: 0, toNode: 'outA1', toPin: 0 },
+          { id: 'wo0', fromNode: 'orA0', fromPin: 0, toNode: 'outA0', toPin: 0 }
+        ]
+      }
+    ]
+  },
+
+  // 5. ARQUITECTURA INTERNA DE COMPARADORES (74LS85 -> 1 BIT -> COMPUERTAS)
+  COMPARATOR_HIERARCHY: {
+    id: 'COMPARATOR_HIERARCHY',
+    title: 'Arquitectura Jerárquica del Comparador de Magnitud (74LS85)',
+    levels: [
+      {
+        level: 1,
+        shortName: '1. CI 74LS85 (4 bits)',
+        title: 'Nivel 1 (Mayor): Circuito Integrado Comparador de 4 Bits (74LS85)',
+        subtitle: 'Compara dos palabras de 4 bits (A y B) determinando si A > B, A = B o A < B.',
+        formulas: ['(A > B), \\quad (A = B), \\quad (A < B)'],
+        nodes: [
+          { id: 'a3', type: 'INPUT', label: 'A3', x: 110, y: 34, state: [1] },
+          { id: 'a2', type: 'INPUT', label: 'A2', x: 110, y: 68, state: [0] },
+          { id: 'a1', type: 'INPUT', label: 'A1', x: 110, y: 102, state: [1] },
+          { id: 'a0', type: 'INPUT', label: 'A0', x: 110, y: 136, state: [0] },
+          { id: 'b3', type: 'INPUT', label: 'B3', x: 110, y: 178, state: [0] },
+          { id: 'b2', type: 'INPUT', label: 'B2', x: 110, y: 212, state: [1] },
+          { id: 'b1', type: 'INPUT', label: 'B1', x: 110, y: 246, state: [1] },
+          { id: 'b0', type: 'INPUT', label: 'B0', x: 110, y: 280, state: [0] },
+          { id: 'gndGT', type: 'GND', label: 'I>', x: 110, y: 320 },
+          { id: 'vccEQ', type: 'VCC', label: 'I=', x: 110, y: 354 },
+          { id: 'gndLT', type: 'GND', label: 'I<', x: 110, y: 388 },
+          { id: 'ic85', type: 'IC_7485', label: '74LS85', x: 340, y: 80 },
+          { id: 'outGT', type: 'OUTPUT', label: 'A > B', x: 580, y: 86 },
+          { id: 'outEQ', type: 'OUTPUT', label: 'A = B', x: 580, y: 202 },
+          { id: 'outLT', type: 'OUTPUT', label: 'A < B', x: 580, y: 318 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'a3', fromPin: 0, toNode: 'ic85', toPin: 0 },
+          { id: 'w2', fromNode: 'a2', fromPin: 0, toNode: 'ic85', toPin: 1 },
+          { id: 'w3', fromNode: 'a1', fromPin: 0, toNode: 'ic85', toPin: 2 },
+          { id: 'w4', fromNode: 'a0', fromPin: 0, toNode: 'ic85', toPin: 3 },
+          { id: 'w5', fromNode: 'b3', fromPin: 0, toNode: 'ic85', toPin: 4 },
+          { id: 'w6', fromNode: 'b2', fromPin: 0, toNode: 'ic85', toPin: 5 },
+          { id: 'w7', fromNode: 'b1', fromPin: 0, toNode: 'ic85', toPin: 6 },
+          { id: 'w8', fromNode: 'b0', fromPin: 0, toNode: 'ic85', toPin: 7 },
+          { id: 'w9', fromNode: 'gndGT', fromPin: 0, toNode: 'ic85', toPin: 8 },
+          { id: 'w10', fromNode: 'vccEQ', fromPin: 0, toNode: 'ic85', toPin: 9 },
+          { id: 'w11', fromNode: 'gndLT', fromPin: 0, toNode: 'ic85', toPin: 10 },
+          { id: 'w12', fromNode: 'ic85', fromPin: 0, toNode: 'outGT', toPin: 0 },
+          { id: 'w13', fromNode: 'ic85', fromPin: 1, toNode: 'outEQ', toPin: 0 },
+          { id: 'w14', fromNode: 'ic85', fromPin: 2, toNode: 'outLT', toPin: 0 }
+        ]
+      },
+      {
+        level: 2,
+        shortName: '2. Bloque Comparador 1 Bit',
+        title: 'Nivel 2: Módulo Comparador Elemental de 1 Bit',
+        subtitle: 'Célula comparadora de un par de bits (Ai, Bi).',
+        formulas: ["(A>B) = A\\cdot B'", '(A=B) = (A\\oplus B)\'', "(A<B) = A'\\cdot B"],
+        nodes: [
+          { id: 'inA', type: 'INPUT', label: 'A', x: 140, y: 90, state: [1] },
+          { id: 'inB', type: 'INPUT', label: 'B', x: 140, y: 170, state: [0] },
+          { id: 'comp1', type: 'COMP_1BIT', label: 'COMP 1B', x: 320, y: 80 },
+          { id: 'outGT', type: 'OUTPUT', label: 'A > B', x: 540, y: 82 },
+          { id: 'outEQ', type: 'OUTPUT', label: 'A = B', x: 540, y: 128 },
+          { id: 'outLT', type: 'OUTPUT', label: 'A < B', x: 540, y: 174 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'inA', fromPin: 0, toNode: 'comp1', toPin: 0 },
+          { id: 'w2', fromNode: 'inB', fromPin: 0, toNode: 'comp1', toPin: 1 },
+          { id: 'w3', fromNode: 'comp1', fromPin: 0, toNode: 'outGT', toPin: 0 },
+          { id: 'w4', fromNode: 'comp1', fromPin: 1, toNode: 'outEQ', toPin: 0 },
+          { id: 'w5', fromNode: 'comp1', fromPin: 2, toNode: 'outLT', toPin: 0 }
+        ]
+      },
+      {
+        level: 3,
+        shortName: '3. Compuertas Básicas (NOT, AND, NOR)',
+        title: 'Nivel 3 (Menor): Compuertas Lógicas Básicas del Comparador',
+        subtitle: 'Implementación mediante inversores NOT, compuertas AND y compuerta NOR de igualdad.',
+        formulas: ["(A < B) = A'B", "(A = B) = (A'B + AB')'", "(A > B) = AB'"],
+        nodes: [
+          { id: 'inA', type: 'INPUT', label: 'A', x: 110, y: 90, state: [1] },
+          { id: 'inB', type: 'INPUT', label: 'B', x: 110, y: 240, state: [0] },
+          { id: 'notA', type: 'NOT', label: 'U1', x: 250, y: 65 },
+          { id: 'notB', type: 'NOT', label: 'U2', x: 250, y: 255 },
+          { id: 'andLess', type: 'AND', label: 'U3', x: 410, y: 75 },
+          { id: 'andGreater', type: 'AND', label: 'U4', x: 410, y: 235 },
+          { id: 'norEq', type: 'NOR', label: 'U5', x: 560, y: 155 },
+          { id: 'outLess', type: 'OUTPUT', label: 'A < B', x: 720, y: 87 },
+          { id: 'outEq', type: 'OUTPUT', label: 'A = B', x: 720, y: 167 },
+          { id: 'outGreater', type: 'OUTPUT', label: 'A > B', x: 720, y: 247 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'inA', fromPin: 0, toNode: 'notA', toPin: 0 },
+          { id: 'w2', fromNode: 'inB', fromPin: 0, toNode: 'notB', toPin: 0 },
+          { id: 'w3', fromNode: 'notA', fromPin: 0, toNode: 'andLess', toPin: 0 },
+          { id: 'w4', fromNode: 'inB', fromPin: 0, toNode: 'andLess', toPin: 1 },
+          { id: 'w5', fromNode: 'inA', fromPin: 0, toNode: 'andGreater', toPin: 0 },
+          { id: 'w6', fromNode: 'notB', fromPin: 0, toNode: 'andGreater', toPin: 1 },
+          { id: 'w7', fromNode: 'andLess', fromPin: 0, toNode: 'norEq', toPin: 0 },
+          { id: 'w8', fromNode: 'andGreater', fromPin: 0, toNode: 'norEq', toPin: 1 },
+          { id: 'w9', fromNode: 'andLess', fromPin: 0, toNode: 'outLess', toPin: 0 },
+          { id: 'w10', fromNode: 'norEq', fromPin: 0, toNode: 'outEq', toPin: 0 },
+          { id: 'w11', fromNode: 'andGreater', fromPin: 0, toNode: 'outGreater', toPin: 0 }
+        ]
+      }
+    ]
+  },
+
+  // 6. ARQUITECTURA INTERNA DE MULTIPLEXORES (MUX -> DECODIFICADOR + COMPUERTAS)
+  MUX_HIERARCHY: {
+    id: 'MUX_HIERARCHY',
+    title: 'Arquitectura Jerárquica de Multiplexores (74LS153 / 74LS151)',
+    levels: [
+      {
+        level: 1,
+        shortName: '1. Bloque Multiplexor 4:1',
+        title: 'Nivel 1 (Mayor): Circuito Integrado Multiplexor 4:1 (74LS153)',
+        subtitle: 'Selecciona uno de los 4 canales de entrada (I0..I3) según los bits de control S1 y S0.',
+        formulas: ["Y = I_0 S_1' S_0' + I_1 S_1' S_0 + I_2 S_1 S_0' + I_3 S_1 S_0"],
+        nodes: [
+          { id: 'i0', type: 'INPUT', label: 'I0', x: 130, y: 55, state: [1] },
+          { id: 'i1', type: 'INPUT', label: 'I1', x: 130, y: 95, state: [0] },
+          { id: 'i2', type: 'INPUT', label: 'I2', x: 130, y: 135, state: [1] },
+          { id: 'i3', type: 'INPUT', label: 'I3', x: 130, y: 175, state: [0] },
+          { id: 's1', type: 'INPUT', label: 'S1', x: 130, y: 225, state: [0] },
+          { id: 's0', type: 'INPUT', label: 'S0', x: 130, y: 265, state: [0] },
+          { id: 'mux4', type: 'MUX_4_1', label: 'MUX 4:1', x: 350, y: 80 },
+          { id: 'outY', type: 'OUTPUT', label: 'Y', x: 560, y: 150 }
+        ],
+        wires: [
+          { id: 'w1', fromNode: 'i0', fromPin: 0, toNode: 'mux4', toPin: 0 },
+          { id: 'w2', fromNode: 'i1', fromPin: 0, toNode: 'mux4', toPin: 1 },
+          { id: 'w3', fromNode: 'i2', fromPin: 0, toNode: 'mux4', toPin: 2 },
+          { id: 'w4', fromNode: 'i3', fromPin: 0, toNode: 'mux4', toPin: 3 },
+          { id: 'w5', fromNode: 's1', fromPin: 0, toNode: 'mux4', toPin: 4 },
+          { id: 'w6', fromNode: 's0', fromPin: 0, toNode: 'mux4', toPin: 5 },
+          { id: 'w7', fromNode: 'mux4', fromPin: 0, toNode: 'outY', toPin: 0 }
+        ]
+      },
+      {
+        level: 2,
+        shortName: '2. Decodificador 2:4 + Compuertas AND/OR',
+        title: 'Nivel 2: Decodificador de Selección (2 a 4) + Habilitación de Canales',
+        subtitle: 'Un decodificador 2 a 4 decodifica (S1, S0) y habilita la compuerta AND del canal seleccionado.',
+        formulas: ['m_k = \\text{DEC}_{2:4}(S_1, S_0)', 'Y = \\sum_{k=0}^{3} I_k \\cdot m_k'],
+        nodes: [
+          { id: 'i0', type: 'INPUT', label: 'I0', x: 90, y: 30, state: [1] },
+          { id: 'i1', type: 'INPUT', label: 'I1', x: 90, y: 95, state: [0] },
+          { id: 'i2', type: 'INPUT', label: 'I2', x: 90, y: 160, state: [1] },
+          { id: 'i3', type: 'INPUT', label: 'I3', x: 90, y: 225, state: [0] },
+          { id: 's1', type: 'INPUT', label: 'S1', x: 90, y: 295, state: [0] },
+          { id: 's0', type: 'INPUT', label: 'S0', x: 90, y: 345, state: [0] },
+          { id: 'decSel', type: 'DEC_2_4', label: 'DEC Sel', x: 220, y: 265 },
+          { id: 'and0', type: 'AND', label: 'CH0', x: 420, y: 25 },
+          { id: 'and1', type: 'AND', label: 'CH1', x: 420, y: 95 },
+          { id: 'and2', type: 'AND', label: 'CH2', x: 420, y: 165 },
+          { id: 'and3', type: 'AND', label: 'CH3', x: 420, y: 235 },
+          { id: 'orFinal', type: 'OR4', label: 'OR_MUX', x: 580, y: 115 },
+          { id: 'outY', type: 'OUTPUT', label: 'Y', x: 740, y: 142 }
+        ],
+        wires: [
+          { id: 'ws1', fromNode: 's1', fromPin: 0, toNode: 'decSel', toPin: 0 },
+          { id: 'ws0', fromNode: 's0', fromPin: 0, toNode: 'decSel', toPin: 1 },
+          { id: 'wi0', fromNode: 'i0', fromPin: 0, toNode: 'and0', toPin: 0 },
+          { id: 'wd0', fromNode: 'decSel', fromPin: 0, toNode: 'and0', toPin: 1 },
+          { id: 'wi1', fromNode: 'i1', fromPin: 0, toNode: 'and1', toPin: 0 },
+          { id: 'wd1', fromNode: 'decSel', fromPin: 1, toNode: 'and1', toPin: 1 },
+          { id: 'wi2', fromNode: 'i2', fromPin: 0, toNode: 'and2', toPin: 0 },
+          { id: 'wd2', fromNode: 'decSel', fromPin: 2, toNode: 'and2', toPin: 1 },
+          { id: 'wi3', fromNode: 'i3', fromPin: 0, toNode: 'and3', toPin: 0 },
+          { id: 'wd3', fromNode: 'decSel', fromPin: 3, toNode: 'and3', toPin: 1 },
+          { id: 'wo0', fromNode: 'and0', fromPin: 0, toNode: 'orFinal', toPin: 0 },
+          { id: 'wo1', fromNode: 'and1', fromPin: 0, toNode: 'orFinal', toPin: 1 },
+          { id: 'wo2', fromNode: 'and2', fromPin: 0, toNode: 'orFinal', toPin: 2 },
+          { id: 'wo3', fromNode: 'and3', fromPin: 0, toNode: 'orFinal', toPin: 3 },
+          { id: 'wy', fromNode: 'orFinal', fromPin: 0, toNode: 'outY', toPin: 0 }
+        ]
+      }
+    ]
+  }
+};
+
+// Mapeo de cada tipo de componente a su familia jerárquica y nivel inicial correspondiente
+window.NODE_TO_HIERARCHY_MAP = {
+  IC_74283: { family: 'ADDER_74283_HIERARCHY', startLevel: 1, nextLevel: 2 },
+  FULL_ADDER: { family: 'ADDER_74283_HIERARCHY', startLevel: 2, nextLevel: 3 },
+  BLOCK_SC: { family: 'ADDER_74283_HIERARCHY', startLevel: 2, nextLevel: 3 },
+  HALF_ADDER: { family: 'ADDER_74283_HIERARCHY', startLevel: 3, nextLevel: 4 },
+  BLOCK_MS: { family: 'ADDER_74283_HIERARCHY', startLevel: 3, nextLevel: 4 },
+  BCD_7SEG: { family: 'BCD_7SEG_HIERARCHY', startLevel: 1, nextLevel: 2 },
+  IC_7447: { family: 'BCD_7SEG_HIERARCHY', startLevel: 1, nextLevel: 2 },
+  IC_7442: { family: 'BCD_7SEG_HIERARCHY', startLevel: 2, nextLevel: 3 },
+  IC_74154: { family: 'DECODER_HIERARCHY', startLevel: 1, nextLevel: 2 },
+  DECO_3_8: { family: 'DECODER_HIERARCHY', startLevel: 2, nextLevel: 3 },
+  DEC_3_8_EN: { family: 'DECODER_HIERARCHY', startLevel: 2, nextLevel: 3 },
+  DEC_2_4: { family: 'DECODER_HIERARCHY', startLevel: 2, nextLevel: 3 },
+  DEC_2_4_EN: { family: 'DECODER_HIERARCHY', startLevel: 2, nextLevel: 3 },
+  DEC_1_2: { family: 'DECODER_HIERARCHY', startLevel: 3, nextLevel: 4 },
+  ENC_8_3: { family: 'ENCODER_HIERARCHY', startLevel: 1, nextLevel: 2 },
+  ENC_PRIO_8_3: { family: 'ENCODER_HIERARCHY', startLevel: 1, nextLevel: 2 },
+  IC_74148: { family: 'ENCODER_HIERARCHY', startLevel: 1, nextLevel: 2 },
+  IC_74147: { family: 'ENCODER_HIERARCHY', startLevel: 1, nextLevel: 2 },
+  ENC_4_2: { family: 'ENCODER_HIERARCHY', startLevel: 1, nextLevel: 2 },
+  IC_7485: { family: 'COMPARATOR_HIERARCHY', startLevel: 1, nextLevel: 2 },
+  COMP_1BIT: { family: 'COMPARATOR_HIERARCHY', startLevel: 2, nextLevel: 3 },
+  MUX_2_1: { family: 'MUX_HIERARCHY', startLevel: 1, nextLevel: 2 },
+  MUX_4_1: { family: 'MUX_HIERARCHY', startLevel: 1, nextLevel: 2 },
+  MUX_8_1: { family: 'MUX_HIERARCHY', startLevel: 1, nextLevel: 2 },
+  DEMUX_1_4: { family: 'DECODER_HIERARCHY', startLevel: 2, nextLevel: 3 }
+};
+
+window.canDrillDownNode = function (type) {
+  return !!window.NODE_TO_HIERARCHY_MAP[type];
+};
+
+window.getHierarchyInfoForNode = function (type) {
+  const mapInfo = window.NODE_TO_HIERARCHY_MAP[type];
+  if (!mapInfo) return null;
+  const fam = window.HIERARCHY_FAMILIES[mapInfo.family];
+  if (!fam) return null;
+  return {
+    family: fam,
+    startLevel: mapInfo.startLevel,
+    nextLevel: mapInfo.nextLevel
+  };
 };

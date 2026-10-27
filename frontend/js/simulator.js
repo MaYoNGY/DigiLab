@@ -12,7 +12,20 @@ class DigitalSimulator {
     this.wires = [];
     this.currentCircuitId = null;
     this.selectedNodeId = null;
+    this.selectedNodeIds = new Set();
     this.selectedWireId = null;
+
+    // Selección múltiple por rectángulo (flecha) y arrastre grupal
+    this.isMarqueeSelecting = false;
+    this.marqueeStartViewport = { x: 0, y: 0 };
+    this.marqueeStartWorld = { x: 0, y: 0 };
+    this.draggingGroupInitialPositions = null;
+    this.dragStartWorld = { x: 0, y: 0 };
+    this.isSpacePressed = false;
+
+    // Estado de navegación jerárquica (De Mayor a Menor y de Menor a Mayor)
+    this.hierarchyState = null;
+    this.hierarchyOriginSnapshot = null;
 
     // Sistema Multipestaña Real
     this.tabs = [];
@@ -453,6 +466,11 @@ class DigitalSimulator {
     this.panX = tab.panX || 0;
     this.panY = tab.panY || 0;
     this.selectedNodeId = tab.selectedNodeId || null;
+    this.selectedNodeIds = new Set(this.selectedNodeId ? [this.selectedNodeId] : []);
+    this.hierarchyState = tab.hierarchyState || null;
+    this.hierarchyOriginSnapshot = tab.hierarchyOriginSnapshot || null;
+    this.renderHierarchyNavBar();
+    this.updateSelectionUI();
 
     const bannerTag = document.getElementById('bannerModuleTag');
     if (bannerTag) bannerTag.textContent = tab.moduleTag || 'Diseño Digital';
@@ -583,6 +601,8 @@ class DigitalSimulator {
     this.nodes = prev.nodes;
     this.wires = prev.wires;
     this.selectedNodeId = prev.selectedNodeId;
+    this.selectedNodeIds = new Set(this.selectedNodeId ? [this.selectedNodeId] : []);
+    this.updateSelectionUI();
 
     this.evaluateCircuit();
     this.renderAll();
@@ -610,6 +630,8 @@ class DigitalSimulator {
     this.nodes = next.nodes;
     this.wires = next.wires;
     this.selectedNodeId = next.selectedNodeId;
+    this.selectedNodeIds = new Set(this.selectedNodeId ? [this.selectedNodeId] : []);
+    this.updateSelectionUI();
 
     this.evaluateCircuit();
     this.renderAll();
@@ -1110,7 +1132,7 @@ class DigitalSimulator {
 
     document.getElementById('menuEditDelete')?.addEventListener('click', () => {
       closeAllDropdowns();
-      if (this.selectedNodeId) this.deleteNode(this.selectedNodeId);
+      this.deleteSelectedNodes();
     });
 
     document.getElementById('menuEditClear')?.addEventListener('click', () => {
@@ -1962,6 +1984,263 @@ class DigitalSimulator {
     }
   }
 
+  // =========================================================================
+  // SELECCIÓN MÚLTIPLE CON LA FLECHA Y ACCIONES GRUPALES
+  // =========================================================================
+  isNodeSelected(nodeId) {
+    return this.selectedNodeIds.has(nodeId) || this.selectedNodeId === nodeId;
+  }
+
+  selectSingleNode(nodeId) {
+    this.selectedNodeIds.clear();
+    if (nodeId) {
+      this.selectedNodeIds.add(nodeId);
+    }
+    this.selectedNodeId = nodeId || null;
+    this.updateSelectionUI();
+  }
+
+  toggleNodeInSelection(nodeId) {
+    if (!nodeId) return;
+    if (this.selectedNodeIds.has(nodeId)) {
+      this.selectedNodeIds.delete(nodeId);
+    } else {
+      this.selectedNodeIds.add(nodeId);
+    }
+    const remaining = Array.from(this.selectedNodeIds);
+    this.selectedNodeId = remaining.length > 0 ? remaining[remaining.length - 1] : null;
+    this.updateSelectionUI();
+  }
+
+  setMultipleSelectedNodes(idArray) {
+    this.selectedNodeIds = new Set(idArray || []);
+    const arr = Array.from(this.selectedNodeIds);
+    this.selectedNodeId = arr.length > 0 ? arr[0] : null;
+    this.updateSelectionUI();
+  }
+
+  clearSelection() {
+    this.selectedNodeIds.clear();
+    this.selectedNodeId = null;
+    this.updateSelectionUI();
+  }
+
+  getSelectedNodesList() {
+    return this.nodes.filter((n) => this.isNodeSelected(n.id));
+  }
+
+  updateSelectionUI() {
+    const multiBar = document.getElementById('multiSelectFloatingBar');
+    const countBadge = document.getElementById('multiSelectCountBadge');
+    const selectedCount = this.selectedNodeIds.size;
+
+    if (multiBar) {
+      if (selectedCount >= 2) {
+        multiBar.classList.remove('hidden');
+        if (countBadge) {
+          countBadge.textContent = `${selectedCount} seleccionados`;
+        }
+      } else {
+        multiBar.classList.add('hidden');
+      }
+    }
+
+    const drillBtn = document.getElementById('subtoolDrillDown');
+    if (drillBtn) {
+      const singleNode = selectedCount === 1 ? this.nodes.find((n) => n.id === this.selectedNodeId) : null;
+      const canDrill = singleNode && typeof window.canDrillDownNode === 'function' && window.canDrillDownNode(singleNode.type);
+      drillBtn.classList.toggle('hidden', !canDrill);
+    }
+  }
+
+  // =========================================================================
+  // NAVEGACIÓN JERÁRQUICA DE MAYOR A MENOR Y DE MENOR A MAYOR
+  // =========================================================================
+  drillDownIntoNode(node) {
+    const targetNode = node || this.nodes.find((n) => n.id === this.selectedNodeId);
+    if (!targetNode) {
+      this.showToast('Selecciona un circuito integrado o bloque MSI para ver su interior.');
+      return;
+    }
+
+    const hInfo = typeof window.getHierarchyInfoForNode === 'function'
+      ? window.getHierarchyInfoForNode(targetNode.type)
+      : null;
+
+    if (!hInfo) {
+      this.showToast(`"${targetNode.label}" ya está en el nivel de compuertas o terminales básicos.`);
+      return;
+    }
+
+    // Si ya estamos dentro de esa misma familia jerárquica, bajar al siguiente nivel
+    let targetLevel = hInfo.nextLevel || 2;
+    if (this.hierarchyState && this.hierarchyState.familyId === hInfo.family.id) {
+      targetLevel = Math.min(hInfo.family.levels.length, this.hierarchyState.level + 1);
+    }
+
+    this.openHierarchyLevel(hInfo.family.id, targetLevel);
+  }
+
+  openHierarchyLevel(familyId, levelNum = 1) {
+    const families = window.HIERARCHY_FAMILIES || {};
+    const family = families[familyId];
+    if (!family || !Array.isArray(family.levels) || family.levels.length === 0) return;
+
+    const levelObj = family.levels.find((l) => l.level === Number(levelNum)) || family.levels[0];
+
+    // Guardar copia de respaldo del circuito original de la pestaña si aún no estamos en modo jerárquico
+    if (!this.hierarchyState && !this.hierarchyOriginSnapshot) {
+      this.hierarchyOriginSnapshot = {
+        title: document.getElementById('activeCircuitTitleInput')?.value || 'Circuito',
+        moduleTag: document.getElementById('bannerModuleTag')?.textContent || 'Diseño Digital',
+        description: document.getElementById('bannerDesc')?.textContent || '',
+        nodes: JSON.parse(JSON.stringify(this.nodes)),
+        wires: JSON.parse(JSON.stringify(this.wires)),
+        zoom: this.zoom,
+        panX: this.panX,
+        panY: this.panY
+      };
+    }
+
+    this.hierarchyState = {
+      familyId: family.id,
+      level: levelObj.level
+    };
+
+    const tab = this.tabs.find((t) => t.tabId === this.activeTabId);
+    if (tab) {
+      tab.hierarchyState = this.hierarchyState;
+      tab.hierarchyOriginSnapshot = this.hierarchyOriginSnapshot;
+    }
+
+    this.nodes = JSON.parse(JSON.stringify(levelObj.nodes || []));
+    this.wires = JSON.parse(JSON.stringify(levelObj.wires || []));
+    this.zoom = 1;
+    this.panX = 0;
+    this.panY = 0;
+
+    const firstMsiNode = this.nodes.find((n) => !['INPUT', 'OUTPUT', 'VCC', 'GND'].includes(n.type)) || this.nodes[0];
+    this.selectSingleNode(firstMsiNode ? firstMsiNode.id : null);
+
+    const bannerTag = document.getElementById('bannerModuleTag');
+    if (bannerTag) bannerTag.textContent = `Nivel ${levelObj.level} de ${family.levels.length}`;
+
+    const bannerDesc = document.getElementById('bannerDesc');
+    if (bannerDesc) bannerDesc.textContent = levelObj.subtitle || levelObj.title;
+
+    const formulasContainer = document.getElementById('bannerFormulas');
+    if (formulasContainer) {
+      formulasContainer.innerHTML = (levelObj.formulas || [])
+        .map((f) => {
+          const latex = this.convertFormulaStringToLatex(f);
+          return `<span class="formula-chip">${this.renderLatexToHtml(latex, false)}</span>`;
+        })
+        .join('');
+    }
+
+    this.updateWorldTransform();
+    this.evaluateCircuit();
+    this.renderHierarchyNavBar();
+    this.renderAll();
+    this.generateTruthTable();
+    this.updateInspector();
+    this.showToast(`🔍 ${levelObj.title}`);
+  }
+
+  stepHierarchy(delta) {
+    if (!this.hierarchyState) return;
+    const family = window.HIERARCHY_FAMILIES?.[this.hierarchyState.familyId];
+    if (!family) return;
+    const nextLevel = this.hierarchyState.level + delta;
+    if (nextLevel < 1 || nextLevel > family.levels.length) return;
+    this.openHierarchyLevel(family.id, nextLevel);
+  }
+
+  exitHierarchyView() {
+    if (!this.hierarchyState) return;
+    const snap = this.hierarchyOriginSnapshot;
+    this.hierarchyState = null;
+    this.hierarchyOriginSnapshot = null;
+
+    const tab = this.tabs.find((t) => t.tabId === this.activeTabId);
+    if (tab) {
+      tab.hierarchyState = null;
+      tab.hierarchyOriginSnapshot = null;
+    }
+
+    if (snap) {
+      this.nodes = JSON.parse(JSON.stringify(snap.nodes || []));
+      this.wires = JSON.parse(JSON.stringify(snap.wires || []));
+      this.zoom = snap.zoom || 1;
+      this.panX = snap.panX || 0;
+      this.panY = snap.panY || 0;
+      const bannerTag = document.getElementById('bannerModuleTag');
+      if (bannerTag) bannerTag.textContent = snap.moduleTag || 'Diseño Digital';
+      const bannerDesc = document.getElementById('bannerDesc');
+      if (bannerDesc) bannerDesc.textContent = snap.description || '';
+    }
+
+    this.clearSelection();
+    this.renderHierarchyNavBar();
+    this.updateWorldTransform();
+    this.evaluateCircuit();
+    this.renderAll();
+    this.generateTruthTable();
+    this.updateInspector();
+    this.saveCurrentTabState();
+    this.showToast('↩ Has vuelto a tu circuito principal.');
+  }
+
+  renderHierarchyNavBar() {
+    const bar = document.getElementById('hierarchyNavBar');
+    if (!bar) return;
+
+    if (!this.hierarchyState) {
+      bar.classList.add('hidden');
+      return;
+    }
+
+    const family = window.HIERARCHY_FAMILIES?.[this.hierarchyState.familyId];
+    if (!family) {
+      bar.classList.add('hidden');
+      return;
+    }
+
+    bar.classList.remove('hidden');
+
+    const famSelect = document.getElementById('hierarchyFamilySelect');
+    if (famSelect && famSelect.value !== family.id) {
+      famSelect.value = family.id;
+    }
+
+    const btnUp = document.getElementById('btnHierarchyUp');
+    const btnDown = document.getElementById('btnHierarchyDown');
+    if (btnUp) btnUp.disabled = this.hierarchyState.level <= 1;
+    if (btnDown) btnDown.disabled = this.hierarchyState.level >= family.levels.length;
+
+    const crumbsContainer = document.getElementById('hierarchyBreadcrumbs');
+    if (crumbsContainer) {
+      crumbsContainer.innerHTML = '';
+      family.levels.forEach((lvl, idx) => {
+        if (idx > 0) {
+          const arrow = document.createElement('span');
+          arrow.className = 'hierarchy-crumb-arrow';
+          arrow.textContent = '➔';
+          crumbsContainer.appendChild(arrow);
+        }
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `hierarchy-crumb ${lvl.level === this.hierarchyState.level ? 'active' : ''}`;
+        btn.textContent = lvl.shortName;
+        btn.title = lvl.title;
+        btn.addEventListener('click', () => {
+          this.openHierarchyLevel(family.id, lvl.level);
+        });
+        crumbsContainer.appendChild(btn);
+      });
+    }
+  }
+
   addNodeOfType(type, customX, customY, customLabel) {
     const def = window.COMPONENT_DEFS[type];
     if (!def) return null;
@@ -1989,7 +2268,7 @@ class DigitalSimulator {
     };
 
     this.nodes.push(node);
-    this.selectedNodeId = node.id;
+    this.selectSingleNode(node.id);
     if (this.isSimulating) {
       this.evaluateCircuit();
     }
@@ -2001,42 +2280,70 @@ class DigitalSimulator {
   }
 
   rotateSelectedNode() {
-    const node = this.nodes.find((n) => n.id === this.selectedNodeId);
-    if (!node) {
-      this.showToast('Selecciona un componente en el lienzo para rotarlo.');
+    const selectedList = this.getSelectedNodesList();
+    if (selectedList.length === 0) {
+      this.showToast('Selecciona uno o varios componentes en el lienzo para rotarlos.');
       return;
     }
     this.pushUndoSnapshot();
-    node.rotation = ((node.rotation || 0) + 90) % 360;
+    selectedList.forEach((node) => {
+      node.rotation = ((node.rotation || 0) + 90) % 360;
+    });
     this.renderAll();
     this.updateInspector();
     this.saveCurrentTabState();
+    if (selectedList.length > 1) {
+      this.showToast(`⟳ ${selectedList.length} componentes rotados 90°.`);
+    }
   }
 
   duplicateSelectedNode() {
-    const node = this.nodes.find((n) => n.id === this.selectedNodeId);
-    if (!node) {
-      this.showToast('Selecciona un componente en el lienzo para duplicarlo.');
+    const selectedList = this.getSelectedNodesList();
+    if (selectedList.length === 0) {
+      this.showToast('Selecciona uno o varios componentes en el lienzo para duplicarlos.');
       return;
     }
     this.pushUndoSnapshot();
-    const copy = JSON.parse(JSON.stringify(node));
-    copy.id = `n_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-    copy.x += 30;
-    copy.y += 30;
 
-    let newLabel = `${node.label}_2`;
-    if (node.type === 'INPUT') {
-      newLabel = this.getNextAvailableInputLabel();
-    } else if (node.type === 'OUTPUT') {
-      newLabel = this.getNextAvailableOutputLabel();
-    } else if (node.label && /^U\d+$/i.test(node.label)) {
-      newLabel = this.getNextAvailableDesignator('U');
-    }
-    copy.label = newLabel;
+    const oldToNewIdMap = new Map();
+    const newIds = [];
 
-    this.nodes.push(copy);
-    this.selectedNodeId = copy.id;
+    selectedList.forEach((node, idx) => {
+      const copy = JSON.parse(JSON.stringify(node));
+      copy.id = `n_${Date.now()}_${idx}_${Math.floor(Math.random() * 1000)}`;
+      copy.x += 36;
+      copy.y += 36;
+
+      let newLabel = `${node.label}_2`;
+      if (node.type === 'INPUT') {
+        newLabel = this.getNextAvailableInputLabel();
+      } else if (node.type === 'OUTPUT') {
+        newLabel = this.getNextAvailableOutputLabel();
+      } else if (node.label && /^U\d+$/i.test(node.label)) {
+        newLabel = this.getNextAvailableDesignator('U');
+      }
+      copy.label = newLabel;
+
+      this.nodes.push(copy);
+      oldToNewIdMap.set(node.id, copy.id);
+      newIds.push(copy.id);
+    });
+
+    // Duplicar también los cables que conectan entre sí a los nodos seleccionados
+    const internalWires = this.wires.filter(
+      (w) => oldToNewIdMap.has(w.fromNode) && oldToNewIdMap.has(w.toNode)
+    );
+    internalWires.forEach((w, idx) => {
+      this.wires.push({
+        id: `w_${Date.now()}_${idx}_${Math.floor(Math.random() * 1000)}`,
+        fromNode: oldToNewIdMap.get(w.fromNode),
+        fromPin: w.fromPin,
+        toNode: oldToNewIdMap.get(w.toNode),
+        toPin: w.toPin
+      });
+    });
+
+    this.setMultipleSelectedNodes(newIds);
     if (this.isSimulating) {
       this.evaluateCircuit();
     }
@@ -2044,7 +2351,73 @@ class DigitalSimulator {
     this.generateTruthTable();
     this.updateInspector();
     this.saveCurrentTabState();
-    this.showToast(`Componente "${node.label}" duplicado como "${newLabel}".`);
+
+    if (selectedList.length === 1) {
+      this.showToast(`Componente "${selectedList[0].label}" duplicado.`);
+    } else {
+      this.showToast(`⧉ ${selectedList.length} componentes y ${internalWires.length} cables duplicados.`);
+    }
+  }
+
+  alignSelectedNodes(axis = 'x') {
+    const selectedList = this.getSelectedNodesList();
+    if (selectedList.length < 2) {
+      this.showToast('Selecciona al menos 2 componentes con la flecha para alinearlos.');
+      return;
+    }
+    this.pushUndoSnapshot();
+
+    if (axis === 'x') {
+      const avgX = Math.round(
+        selectedList.reduce((acc, n) => acc + n.x, 0) / selectedList.length / 6
+      ) * 6;
+      selectedList.forEach((n) => {
+        n.x = avgX;
+      });
+      this.showToast(`⫼ ${selectedList.length} componentes alineados verticalmente.`);
+    } else {
+      const avgY = Math.round(
+        selectedList.reduce((acc, n) => acc + n.y, 0) / selectedList.length / 6
+      ) * 6;
+      selectedList.forEach((n) => {
+        n.y = avgY;
+      });
+      this.showToast(`⫾ ${selectedList.length} componentes alineados horizontalmente.`);
+    }
+
+    this.renderAll();
+    this.generateTruthTable();
+    this.updateInspector();
+    this.saveCurrentTabState();
+  }
+
+  deleteSelectedNodes() {
+    const selectedList = this.getSelectedNodesList();
+    if (selectedList.length === 0) {
+      this.showToast('Selecciona al menos un componente para eliminarlo.');
+      return;
+    }
+    if (selectedList.length === 1) {
+      this.deleteNode(selectedList[0].id);
+      return;
+    }
+
+    const idsToRemove = new Set(selectedList.map((n) => n.id));
+    this.pushUndoSnapshot();
+    this.nodes = this.nodes.filter((n) => !idsToRemove.has(n.id));
+    this.wires = this.wires.filter(
+      (w) => !idsToRemove.has(w.fromNode) && !idsToRemove.has(w.toNode)
+    );
+    this.clearSelection();
+
+    if (this.isSimulating) {
+      this.evaluateCircuit();
+    }
+    this.renderAll();
+    this.generateTruthTable();
+    this.updateInspector();
+    this.saveCurrentTabState();
+    this.showToast(`🗑 ${selectedList.length} componentes eliminados.`, '↶ Deshacer', () => this.undoCanvasAction());
   }
 
   clearCurrentCanvasWithUndo() {
@@ -2064,7 +2437,7 @@ class DigitalSimulator {
     this.pushUndoSnapshot();
     this.nodes = [];
     this.wires = [];
-    this.selectedNodeId = null;
+    this.clearSelection();
     this.evaluateCircuit();
     this.renderAll();
     this.generateTruthTable();
@@ -2222,7 +2595,7 @@ class DigitalSimulator {
       if (!def) return;
 
       const el = document.createElement('div');
-      el.className = `circuit-node ${this.selectedNodeId === node.id ? 'selected' : ''}`;
+      el.className = `circuit-node ${this.isNodeSelected(node.id) ? 'selected' : ''}`;
       el.style.left = `${node.x}px`;
       el.style.top = `${node.y}px`;
       el.style.width = `${def.width}px`;
@@ -2374,19 +2747,47 @@ class DigitalSimulator {
       el.addEventListener('mousedown', (e) => {
         if (e.button !== 0) return;
         e.stopPropagation();
-        if (this.interactionMode === 'pan') {
+        if (this.interactionMode === 'pan' || this.isSpacePressed) {
           this.isPanning = true;
           this.panStart = { x: e.clientX - this.panX, y: e.clientY - this.panY };
           return;
         }
-        this.selectedNodeId = node.id;
+
+        // Selección múltiple con Shift+Clic
+        if (e.shiftKey) {
+          this.toggleNodeInSelection(node.id);
+          this.renderAll();
+          this.updateInspector();
+          return;
+        }
+
+        // Si el nodo ya forma parte de una selección múltiple, mantener el grupo seleccionado para moverlos juntos
+        if (!this.isNodeSelected(node.id)) {
+          this.selectSingleNode(node.id);
+        } else {
+          this.selectedNodeId = node.id;
+          this.updateSelectionUI();
+        }
+
         this.selectedWireId = null;
         this.draggingNode = node;
         this.dragMoved = false;
         const coords = this.clientToWorld(e.clientX, e.clientY);
+        this.dragStartWorld = { x: coords.x, y: coords.y };
         this.dragOffset = { x: coords.x - node.x, y: coords.y - node.y };
+        this.draggingGroupInitialPositions = new Map(
+          this.getSelectedNodesList().map((n) => [n.id, { x: n.x, y: n.y }])
+        );
         this.renderAll();
         this.updateInspector();
+      });
+
+      // Doble clic sobre cualquier Circuito Integrado o Bloque MSI: Explorar su interior (Mayor → Menor)
+      el.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        if (typeof window.canDrillDownNode === 'function' && window.canDrillDownNode(node.type)) {
+          this.drillDownIntoNode(node);
+        }
       });
 
       el.addEventListener('contextmenu', (e) => {
@@ -2707,7 +3108,12 @@ class DigitalSimulator {
     this.pushUndoSnapshot();
     this.nodes = this.nodes.filter((n) => n.id !== nodeId);
     this.wires = this.wires.filter((w) => w.fromNode !== nodeId && w.toNode !== nodeId);
-    if (this.selectedNodeId === nodeId) this.selectedNodeId = null;
+    this.selectedNodeIds.delete(nodeId);
+    if (this.selectedNodeId === nodeId) {
+      const rem = Array.from(this.selectedNodeIds);
+      this.selectedNodeId = rem.length > 0 ? rem[rem.length - 1] : null;
+    }
+    this.updateSelectionUI();
     if (this.isSimulating) {
       this.evaluateCircuit();
     }
@@ -2748,14 +3154,31 @@ class DigitalSimulator {
       .slice()
       .sort((a, b) => a.y - b.y || a.x - b.x);
 
-    const outputNodes = this.nodes
+    let outputNodes = this.nodes
       .filter((n) => n.type === 'OUTPUT')
       .slice()
-      .sort((a, b) => a.y - b.y || a.x - b.x);
+      .sort((a, b) => a.y - b.y || a.x - b.x)
+      .map((n) => ({ id: n.id, nodeId: n.id, pinIndex: 0, label: n.label }));
+
+    // Si el circuito usa un Display de 7 Segmentos sin LEDs de salida separados, mostrar sus segmentos a..g en la tabla
+    if (outputNodes.length === 0) {
+      const dispNode = this.nodes.find(
+        (n) => n.type === 'DISPLAY_7SEG_CC' || n.type === 'DISPLAY_7SEG_CA'
+      );
+      if (dispNode) {
+        const segNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+        outputNodes = segNames.map((seg, idx) => ({
+          id: `${dispNode.id}_seg_${seg}`,
+          nodeId: dispNode.id,
+          pinIndex: idx,
+          label: seg
+        }));
+      }
+    }
 
     if (inputNodes.length === 0 || outputNodes.length === 0) {
       if (switchWrap) switchWrap.style.display = 'none';
-      container.innerHTML = `<div style="padding:14px;color:var(--text-muted);font-size:0.76rem;">Añade al menos una <b>Entrada Binaria</b> y una <b>Salida LED</b> para generar la Tabla de Verdad automáticamente.</div>`;
+      container.innerHTML = `<div style="padding:14px;color:var(--text-muted);font-size:0.76rem;">Añade al menos una <b>Entrada Binaria</b> y una <b>Salida LED</b> (o <b>Display 7-Seg</b>) para generar la Tabla de Verdad automáticamente.</div>`;
       exprBox.innerHTML = `<div style="color:var(--text-muted);font-size:0.75rem;">Sin salidas conectadas para analizar.</div>`;
       return;
     }
@@ -3063,7 +3486,9 @@ class DigitalSimulator {
       });
 
       outputNodes.forEach((out) => {
-        const val = simResult.inputsMap[out.id] && simResult.inputsMap[out.id][0] ? 1 : 0;
+        const targetId = out.nodeId || out.id;
+        const pinIdx = out.pinIndex || 0;
+        const val = simResult.inputsMap[targetId] && simResult.inputsMap[targetId][pinIdx] ? 1 : 0;
         html += `<td class="${val === 1 ? 'val-1' : ''}">${val}</td>`;
         if (val === 1) {
           mintermsPerOutput[out.id].push({ index: vec.index, bits: vec.bits });
@@ -3182,8 +3607,8 @@ class DigitalSimulator {
     if (!box) return;
 
     const inputs = this.nodes.filter((n) => n.type === 'INPUT' || n.type === 'VCC' || n.type === 'GND');
-    const gates = this.nodes.filter((n) => !['INPUT', 'OUTPUT', 'VCC', 'GND'].includes(n.type));
-    const outputs = this.nodes.filter((n) => n.type === 'OUTPUT' || n.type === 'HEX_DISPLAY');
+    const gates = this.nodes.filter((n) => !['INPUT', 'OUTPUT', 'VCC', 'GND', 'DISPLAY_7SEG_CC', 'DISPLAY_7SEG_CA', 'HEX_DISPLAY'].includes(n.type));
+    const outputs = this.nodes.filter((n) => ['OUTPUT', 'HEX_DISPLAY', 'DISPLAY_7SEG_CC', 'DISPLAY_7SEG_CA'].includes(n.type));
 
     const renderRows = (list, isOutNode = false) => {
       if (list.length === 0) return `<div style="font-size:0.72rem;color:var(--text-muted);">Sin elementos</div>`;
@@ -3223,10 +3648,55 @@ class DigitalSimulator {
   // =========================================================================
   updateInspector() {
     const box = document.getElementById('inspectorContent');
+    if (!box) return;
+
+    const selectedList = this.getSelectedNodesList();
+
+    // Si hay múltiples elementos seleccionados con la flecha, mostrar panel de acciones en lote
+    if (selectedList.length >= 2) {
+      box.innerHTML = `
+        <div class="prop-header-card">
+          <div class="item-svg-icon" style="background:#fce7f3;border-radius:8px;color:#db2777;font-weight:800;">${selectedList.length}</div>
+          <div>
+            <h4 style="font-size:0.88rem;color:var(--text-dark);font-weight:800;">${selectedList.length} Elementos Seleccionados</h4>
+            <span style="font-size:0.7rem;color:var(--text-muted);">Selección múltiple activa (Arrastra para mover juntos)</span>
+          </div>
+        </div>
+
+        <div class="prop-section-subtitle" style="margin-top:0;padding-top:0;border-top:none;">▾ Acciones en Grupo</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
+          <button id="btnInspMultiRotate" class="btn btn-outline-soft" style="font-size:0.73rem;padding:6px 8px;justify-content:center;">⟳ Rotar 90° (R)</button>
+          <button id="btnInspMultiDup" class="btn btn-outline-soft" style="font-size:0.73rem;padding:6px 8px;justify-content:center;">⧉ Duplicar (Ctrl+D)</button>
+          <button id="btnInspMultiAlignX" class="btn btn-outline-soft" style="font-size:0.73rem;padding:6px 8px;justify-content:center;">⫼ Alinear Columna</button>
+          <button id="btnInspMultiAlignY" class="btn btn-outline-soft" style="font-size:0.73rem;padding:6px 8px;justify-content:center;">⫾ Alinear Fila</button>
+        </div>
+        <button id="btnInspMultiDelete" class="btn btn-danger-solid" style="width:100%;justify-content:center;font-size:0.74rem;padding:7px;">
+          🗑 Eliminar ${selectedList.length} componentes seleccionados
+        </button>
+
+        <div class="prop-section-subtitle">▾ Componentes en la Selección</div>
+        <div style="display:flex;flex-direction:column;gap:4px;max-height:190px;overflow-y:auto;">
+          ${selectedList.map((n) => `
+            <div style="display:flex;justify-content:space-between;font-size:0.72rem;padding:4px 6px;background:#fdf2f8;border-radius:5px;border:1px solid #fbcfe8;">
+              <strong style="color:#831843;">${n.label}</strong>
+              <span style="color:var(--text-muted);font-family:var(--font-mono);">${n.type} (${n.x}, ${n.y})</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      document.getElementById('btnInspMultiRotate')?.addEventListener('click', () => this.rotateSelectedNode());
+      document.getElementById('btnInspMultiDup')?.addEventListener('click', () => this.duplicateSelectedNode());
+      document.getElementById('btnInspMultiAlignX')?.addEventListener('click', () => this.alignSelectedNodes('x'));
+      document.getElementById('btnInspMultiAlignY')?.addEventListener('click', () => this.alignSelectedNodes('y'));
+      document.getElementById('btnInspMultiDelete')?.addEventListener('click', () => this.deleteSelectedNodes());
+      return;
+    }
+
     const node = this.nodes.find((n) => n.id === this.selectedNodeId);
 
     if (!node) {
-      box.innerHTML = `<p style="font-size:0.76rem;color:var(--text-muted);line-height:1.5;">Haz clic sobre cualquier compuerta, terminal o circuito integrado en el lienzo para inspeccionar sus propiedades, rotación y estado de pines.</p>`;
+      box.innerHTML = `<p style="font-size:0.76rem;color:var(--text-muted);line-height:1.5;">Haz clic sobre cualquier compuerta, display o circuito integrado para inspeccionar sus propiedades, o <b>arrastra con la flecha sobre el lienzo</b> para seleccionar varios elementos a la vez.</p>`;
       return;
     }
 
@@ -3235,6 +3705,35 @@ class DigitalSimulator {
     const outVals = this.nodeOutputs[node.id] || [];
     const iconSvg = window.getCatalogIconSvg(node.type);
     const currentRot = node.rotation || 0;
+    const hInfo = typeof window.getHierarchyInfoForNode === 'function' ? window.getHierarchyInfoForNode(node.type) : null;
+
+    let hierarchyHtml = '';
+    if (hInfo && hInfo.family) {
+      const fam = hInfo.family;
+      const activeLvl = this.hierarchyState && this.hierarchyState.familyId === fam.id ? this.hierarchyState.level : hInfo.startLevel;
+      hierarchyHtml = `
+        <div class="inspector-hierarchy-card">
+          <div class="inspector-hierarchy-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2.3"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            <span>Arquitectura Interna (Mayor ↔ Menor)</span>
+          </div>
+          <p style="font-size:0.69rem;color:#4a1d35;margin:0 0 6px;line-height:1.35;">
+            Explora el subcircuito interior desde el bloque MSI hasta las compuertas básicas:
+          </p>
+          <div class="inspector-hierarchy-levels">
+            ${fam.levels.map((lvl) => `
+              <button type="button" class="inspector-level-btn ${lvl.level === activeLvl ? 'current' : ''}" data-hfamily="${fam.id}" data-hlevel="${lvl.level}">
+                <span>${lvl.shortName}</span>
+                <span>${lvl.level === activeLvl ? '● Actual' : 'Ver →'}</span>
+              </button>
+            `).join('')}
+          </div>
+          <button type="button" id="btnInspectorDrillDown" class="btn btn-rose-solid" style="width:100%;justify-content:center;font-size:0.72rem;padding:6px;margin-top:4px;">
+            🔍 Ver Subcircuito Interior (Nivel ${hInfo.nextLevel})
+          </button>
+        </div>
+      `;
+    }
 
     box.innerHTML = `
       <div class="prop-header-card">
@@ -3280,6 +3779,8 @@ class DigitalSimulator {
         </select>
       </div>
 
+      ${hierarchyHtml}
+
       <div class="prop-section-subtitle">▾ Información</div>
       <table class="prop-info-table">
         <tr>
@@ -3314,6 +3815,16 @@ class DigitalSimulator {
         </button>
       </div>
     `;
+
+    box.querySelectorAll('.inspector-level-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        this.openHierarchyLevel(btn.dataset.hfamily, Number(btn.dataset.hlevel));
+      });
+    });
+
+    document.getElementById('btnInspectorDrillDown')?.addEventListener('click', () => {
+      this.drillDownIntoNode(node);
+    });
 
     document.getElementById('inspectorLabelInput')?.addEventListener('input', (e) => {
       node.label = e.target.value || def.name;
@@ -3646,12 +4157,29 @@ class DigitalSimulator {
     document.getElementById('subtoolAddOutput')?.addEventListener('click', () => this.addNodeOfType('OUTPUT'));
     document.getElementById('subtoolRotateNode')?.addEventListener('click', () => this.rotateSelectedNode());
     document.getElementById('subtoolDuplicateNode')?.addEventListener('click', () => this.duplicateSelectedNode());
-    document.getElementById('subtoolDeleteNode')?.addEventListener('click', () => {
-      if (this.selectedNodeId) {
-        this.deleteNode(this.selectedNodeId);
-      } else {
-        this.showToast('Selecciona un componente para eliminarlo.');
+    document.getElementById('subtoolDeleteNode')?.addEventListener('click', () => this.deleteSelectedNodes());
+    document.getElementById('subtoolDrillDown')?.addEventListener('click', () => this.drillDownIntoNode());
+
+    // Controles de la barra de navegación jerárquica (De Mayor a Menor y de Menor a Mayor)
+    document.getElementById('btnHierarchyExit')?.addEventListener('click', () => this.exitHierarchyView());
+    document.getElementById('btnHierarchyUp')?.addEventListener('click', () => this.stepHierarchy(-1));
+    document.getElementById('btnHierarchyDown')?.addEventListener('click', () => this.stepHierarchy(1));
+    document.getElementById('hierarchyFamilySelect')?.addEventListener('change', (e) => {
+      if (e.target.value) {
+        this.openHierarchyLevel(e.target.value, 1);
       }
+    });
+
+    // Controles de la barra flotante de selección múltiple (Flecha)
+    document.getElementById('btnMultiRotate')?.addEventListener('click', () => this.rotateSelectedNode());
+    document.getElementById('btnMultiDuplicate')?.addEventListener('click', () => this.duplicateSelectedNode());
+    document.getElementById('btnMultiAlignX')?.addEventListener('click', () => this.alignSelectedNodes('x'));
+    document.getElementById('btnMultiAlignY')?.addEventListener('click', () => this.alignSelectedNodes('y'));
+    document.getElementById('btnMultiDelete')?.addEventListener('click', () => this.deleteSelectedNodes());
+    document.getElementById('btnMultiClearSel')?.addEventListener('click', () => {
+      this.clearSelection();
+      this.renderNodes();
+      this.updateInspector();
     });
 
     // Botones de crear nueva pestaña (+ y Nuevo)
@@ -3681,13 +4209,31 @@ class DigitalSimulator {
       leftSidebar?.classList.remove('open');
     });
 
-    // Movimiento en el lienzo
+    // Movimiento en el lienzo (Arrastre grupal, Cableado, Selección por rectángulo y Panorámica)
     window.addEventListener('mousemove', (e) => {
       if (this.draggingNode) {
-        this.dragMoved = true;
         const coords = this.clientToWorld(e.clientX, e.clientY);
-        this.draggingNode.x = Math.max(10, Math.round((coords.x - this.dragOffset.x) / 6) * 6);
-        this.draggingNode.y = Math.max(10, Math.round((coords.y - this.dragOffset.y) / 6) * 6);
+        const dx = Math.round((coords.x - this.dragStartWorld.x) / 6) * 6;
+        const dy = Math.round((coords.y - this.dragStartWorld.y) / 6) * 6;
+
+        if (!this.dragMoved && (Math.abs(dx) >= 6 || Math.abs(dy) >= 6)) {
+          this.pushUndoSnapshot();
+          this.dragMoved = true;
+        }
+
+        if (this.draggingGroupInitialPositions && this.draggingGroupInitialPositions.size > 0) {
+          this.draggingGroupInitialPositions.forEach((initPos, nodeId) => {
+            const target = this.nodes.find((n) => n.id === nodeId);
+            if (target) {
+              target.x = Math.max(10, initPos.x + dx);
+              target.y = Math.max(10, initPos.y + dy);
+            }
+          });
+        } else {
+          this.draggingNode.x = Math.max(10, Math.round((coords.x - this.dragOffset.x) / 6) * 6);
+          this.draggingNode.y = Math.max(10, Math.round((coords.y - this.dragOffset.y) / 6) * 6);
+        }
+
         this.renderAll();
         const posXInput = document.getElementById('inspectorPosX');
         const posYInput = document.getElementById('inspectorPosY');
@@ -3698,6 +4244,47 @@ class DigitalSimulator {
       } else if (this.wiringStart) {
         const coords = this.clientToWorld(e.clientX, e.clientY);
         this.updateTempWire(coords.x, coords.y);
+      } else if (this.isMarqueeSelecting) {
+        const rect = this.viewport.getBoundingClientRect();
+        const currX = e.clientX - rect.left;
+        const currY = e.clientY - rect.top;
+        const boxX = Math.min(this.marqueeStartViewport.x, currX);
+        const boxY = Math.min(this.marqueeStartViewport.y, currY);
+        const boxW = Math.abs(currX - this.marqueeStartViewport.x);
+        const boxH = Math.abs(currY - this.marqueeStartViewport.y);
+
+        const marqueeEl = document.getElementById('marqueeSelectionBox');
+        if (marqueeEl) {
+          marqueeEl.classList.remove('hidden');
+          marqueeEl.style.left = `${boxX}px`;
+          marqueeEl.style.top = `${boxY}px`;
+          marqueeEl.style.width = `${boxW}px`;
+          marqueeEl.style.height = `${boxH}px`;
+        }
+
+        // Convertir rectángulo a coordenadas del mundo para detectar todos los nodos dentro del área
+        const worldX1 = (boxX - this.panX) / this.zoom;
+        const worldY1 = (boxY - this.panY) / this.zoom;
+        const worldX2 = (boxX + boxW - this.panX) / this.zoom;
+        const worldY2 = (boxY + boxH - this.panY) / this.zoom;
+
+        const hits = [];
+        this.nodes.forEach((n) => {
+          const def = window.COMPONENT_DEFS[n.type];
+          const nw = def ? def.width : 60;
+          const nh = def ? def.height : 40;
+          const intersects =
+            n.x < worldX2 &&
+            n.x + nw > worldX1 &&
+            n.y < worldY2 &&
+            n.y + nh > worldY1;
+          if (intersects) {
+            hits.push(n.id);
+          }
+        });
+
+        this.setMultipleSelectedNodes(hits);
+        this.renderNodes();
       } else if (this.isPanning) {
         this.panX = e.clientX - this.panStart.x;
         this.panY = e.clientY - this.panStart.y;
@@ -3710,7 +4297,14 @@ class DigitalSimulator {
         this.generateTruthTable();
         this.saveCurrentTabState();
       }
+      if (this.isMarqueeSelecting) {
+        this.isMarqueeSelecting = false;
+        document.getElementById('marqueeSelectionBox')?.classList.add('hidden');
+        this.updateSelectionUI();
+        this.updateInspector();
+      }
       this.draggingNode = null;
+      this.draggingGroupInitialPositions = null;
       this.isPanning = false;
       if (this.wiringStart) {
         this.wiringStart = null;
@@ -3721,11 +4315,26 @@ class DigitalSimulator {
 
     this.viewport.addEventListener('mousedown', (e) => {
       if (e.target === this.viewport || e.target === this.world || e.target === this.wiresSvg) {
-        this.isPanning = true;
-        this.panStart = { x: e.clientX - this.panX, y: e.clientY - this.panY };
-        this.selectedNodeId = null;
-        this.renderNodes();
-        this.updateInspector();
+        // Si está en modo mano ('pan'), clic central o presionando Espacio: desplazar pizarra
+        if (this.interactionMode === 'pan' || e.button === 1 || this.isSpacePressed) {
+          this.isPanning = true;
+          this.panStart = { x: e.clientX - this.panX, y: e.clientY - this.panY };
+          return;
+        }
+        // En modo flecha ('select') con clic izquierdo: iniciar selección rectangular múltiple
+        if (e.button === 0) {
+          const rect = this.viewport.getBoundingClientRect();
+          this.isMarqueeSelecting = true;
+          this.marqueeStartViewport = {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+          };
+          if (!e.shiftKey) {
+            this.clearSelection();
+          }
+          this.renderNodes();
+          this.updateInspector();
+        }
       }
     });
 
@@ -3750,10 +4359,14 @@ class DigitalSimulator {
     });
     document.getElementById('btnResetView')?.addEventListener('click', () => this.resetView());
 
-    // Atajos de teclado (Supr, Ctrl+Z, Ctrl+Y, Ctrl+D, R)
+    // Atajos de teclado (Supr, Ctrl+Z, Ctrl+Y, Ctrl+D, Ctrl+A, R, Espacio)
     window.addEventListener('keydown', (e) => {
       if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
         return;
+      }
+      if (e.code === 'Space') {
+        this.isSpacePressed = true;
+        this.viewport?.classList.add('pan-mode');
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
@@ -3764,12 +4377,32 @@ class DigitalSimulator {
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
         e.preventDefault();
         this.duplicateSelectedNode();
-      } else if (e.key.toLowerCase() === 'r' && this.selectedNodeId) {
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        this.setMultipleSelectedNodes(this.nodes.map((n) => n.id));
+        this.renderNodes();
+        this.updateInspector();
+      } else if (e.key.toLowerCase() === 'r' && this.selectedNodeIds.size > 0) {
         e.preventDefault();
         this.rotateSelectedNode();
-      } else if ((e.key === 'Delete' || e.key === 'Backspace') && this.selectedNodeId) {
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && this.selectedNodeIds.size > 0) {
         e.preventDefault();
-        this.deleteNode(this.selectedNodeId);
+        this.deleteSelectedNodes();
+      } else if (e.key === 'Escape') {
+        if (this.selectedNodeIds.size > 0) {
+          this.clearSelection();
+          this.renderNodes();
+          this.updateInspector();
+        }
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'Space') {
+        this.isSpacePressed = false;
+        if (this.interactionMode !== 'pan') {
+          this.viewport?.classList.remove('pan-mode');
+        }
       }
     });
 

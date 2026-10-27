@@ -52,22 +52,49 @@ window.FALLBACK_CATALOG = {
       ]
     },
     {
+      id: 'decoders_bcd',
+      name: 'Decodificadores y Conversores BCD',
+      items: [
+        { type: 'DEC_1_2', name: 'Decodificador 1 a 2', ic: 'DEC 1:2', desc: '1 entrada (A0) a 2 salidas (O0, O1)' },
+        { type: 'DEC_2_4', name: 'Decodificador 2 a 4', ic: 'DEC 2:4', desc: '2 entradas (A1, A0) a 4 salidas (O0..O3)' },
+        { type: 'DEC_2_4_EN', name: 'Decodificador 2 a 4 (con Enable)', ic: '74LS139', desc: '2 a 4 con pin Enable E para cascada' },
+        { type: 'DECO_3_8', name: 'Decodificador 3:8 (74LS138)', ic: '74LS138', desc: '3 entradas (X,Y,Z) a 8 minitérminos' },
+        { type: 'DEC_3_8_EN', name: 'Decodificador 3:8 (con Enable)', ic: '74LS138-EN', desc: '3 a 8 con pin CS para cascada 4:16' },
+        { type: 'IC_7442', name: 'Decodificador BCD a Decimal (74LS42)', ic: '74LS42', desc: '4 entradas BCD a 10 salidas (O0..O9)' },
+        { type: 'IC_74154', name: 'Decodificador 4 a 16 (74LS154)', ic: '74LS154', desc: '4 entradas (A3..A0) a 16 salidas (O0..O15)' },
+        { type: 'BCD_7SEG', name: 'Decodificador BCD a 7-Seg (74LS48)', ic: '74LS48', desc: 'Activo en ALTO (1) para Cátodo Común' },
+        { type: 'IC_7447', name: 'Decodificador BCD a 7-Seg (74LS47)', ic: '74LS47', desc: 'Activo en BAJO (0) para Ánodo Común' }
+      ]
+    },
+    {
+      id: 'encoders',
+      name: 'Codificadores y Prioridad (MSI)',
+      items: [
+        { type: 'ENC_4_2', name: 'Codificador 4 a 2', ic: 'ENC 4:2', desc: '4 entradas (I0..I3) a 2 bits (A1, A0)' },
+        { type: 'ENC_8_3', name: 'Codificador 8 a 3', ic: 'ENC 8:3', desc: '8 entradas (I0..I7) a 3 bits (A2..A0)' },
+        { type: 'ENC_PRIO_8_3', name: 'Codificador con Prioridad 8 a 3', ic: 'PRIO 8:3', desc: 'Prioridad I7 > I6 > ... > I0 (Activo Alto)' },
+        { type: 'IC_74148', name: 'Codificador Prioridad 8 a 3 (74LS148)', ic: '74LS148', desc: 'SN74LS148 8 a 3 (Nivel Activo Bajo)' },
+        { type: 'IC_74147', name: 'Codificador Prioridad 10 a 4 (74LS147)', ic: '74LS147', desc: 'SN74LS147 Decimal a BCD (Activo Bajo)' }
+      ]
+    },
+    {
       id: 'mux_demux',
-      name: 'Multiplexores y Decodificadores',
+      name: 'Multiplexores y Demultiplexores',
       items: [
         { type: 'MUX_2_1', name: 'MUX 2:1', ic: '74LS157', desc: 'Selector de 2 entradas (I0, I1)' },
         { type: 'MUX_4_1', name: 'MUX 4:1 (74LS153)', ic: '74LS153', desc: 'Selector de 4 entradas (I0..I3)' },
         { type: 'MUX_8_1', name: 'MUX 8:1 (74LS151)', ic: '74LS151', desc: 'Selector de 8 entradas (E0..E7)' },
-        { type: 'DEMUX_1_4', name: 'DEMUX 1:4', ic: '74LS139', desc: 'Distribuidor de 1 entrada a 4 salidas' },
-        { type: 'DECO_3_8', name: 'Decodificador 3:8 (74LS138)', ic: '74LS138', desc: '3 entradas (X,Y,Z) a 8 minitérminos' }
+        { type: 'DEMUX_1_4', name: 'DEMUX 1:4', ic: '74LS139', desc: 'Distribuidor de 1 entrada a 4 salidas' }
       ]
     },
     {
       id: 'io',
-      name: 'Entradas y Salidas',
+      name: 'Entradas, Salidas y Displays 7-Seg',
       items: [
         { type: 'INPUT', name: 'Entrada Binaria (A, B...)', ic: 'IN', desc: 'Terminal interactivo 0 / 1' },
         { type: 'OUTPUT', name: 'Salida LED (S, Y...)', ic: 'OUT', desc: 'Monitor luminoso de salida' },
+        { type: 'DISPLAY_7SEG_CC', name: 'Display 7-Seg (Cátodo Común)', ic: '7SEG-CC', desc: 'Enciende segmentos a..g con 1 lógico' },
+        { type: 'DISPLAY_7SEG_CA', name: 'Display 7-Seg (Ánodo Común)', ic: '7SEG-CA', desc: 'Enciende segmentos a..g con 0 lógico (74LS47)' },
         { type: 'HEX_DISPLAY', name: 'Display 4-Bits (Hex/Dec)', ic: 'HEX', desc: 'Visualizador numérico de 4 bits' },
         { type: 'VCC', name: 'Fuente +Vcc (1 Lógico)', ic: '+5V', desc: 'Nivel alto constante (1)' },
         { type: 'GND', name: 'Tierra GND (0 Lógico)', ic: '0V', desc: 'Nivel bajo constante (0)' }
@@ -77,6 +104,238 @@ window.FALLBACK_CATALOG = {
 };
 
 window.FALLBACK_PRESETS = [
+  {
+    id: 'bcd-7seg-7447',
+    title: 'Decodificador BCD a 7 Segmentos + Display (CI 74LS47 Ánodo Común)',
+    category: 'Decodificadores y Conversores BCD',
+    moduleTag: 'CI 74LS47 + Display',
+    description: 'Circuito 74LS47: decodificador BCD para display de ánodo común con salidas activas en bajo (0) conectado a un Display de 7 segmentos e indicadores a..g.',
+    formulas: [
+      '\\text{BCD } (D,C,B,A) \\implies \\text{Segmentos } \\overline{a}..\\overline{g} \\text{ (Ánodo Común)}'
+    ],
+    isPreset: true,
+    nodes: [
+      { id: 'inD', type: 'INPUT', label: 'D', x: 100, y: 65, state: [0] },
+      { id: 'inC', type: 'INPUT', label: 'C', x: 100, y: 115, state: [1] },
+      { id: 'inB', type: 'INPUT', label: 'B', x: 100, y: 165, state: [0] },
+      { id: 'inA', type: 'INPUT', label: 'A', x: 100, y: 215, state: [1] },
+      { id: 'ic7447', type: 'IC_7447', label: 'U1 (74LS47)', x: 280, y: 55 },
+      { id: 'dispCA', type: 'DISPLAY_7SEG_CA', label: 'Display Ánodo', x: 540, y: 55 },
+      { id: 'outA', type: 'OUTPUT', label: 'a', x: 730, y: 36 },
+      { id: 'outB', type: 'OUTPUT', label: 'b', x: 730, y: 74 },
+      { id: 'outC', type: 'OUTPUT', label: 'c', x: 730, y: 112 },
+      { id: 'outD', type: 'OUTPUT', label: 'd', x: 730, y: 150 },
+      { id: 'outE', type: 'OUTPUT', label: 'e', x: 730, y: 188 },
+      { id: 'outF', type: 'OUTPUT', label: 'f', x: 730, y: 226 },
+      { id: 'outG', type: 'OUTPUT', label: 'g', x: 730, y: 264 }
+    ],
+    wires: [
+      { id: 'wD', fromNode: 'inD', fromPin: 0, toNode: 'ic7447', toPin: 0 },
+      { id: 'wC', fromNode: 'inC', fromPin: 0, toNode: 'ic7447', toPin: 1 },
+      { id: 'wB', fromNode: 'inB', fromPin: 0, toNode: 'ic7447', toPin: 2 },
+      { id: 'wA', fromNode: 'inA', fromPin: 0, toNode: 'ic7447', toPin: 3 },
+      { id: 'wd0', fromNode: 'ic7447', fromPin: 0, toNode: 'dispCA', toPin: 0 },
+      { id: 'wd1', fromNode: 'ic7447', fromPin: 1, toNode: 'dispCA', toPin: 1 },
+      { id: 'wd2', fromNode: 'ic7447', fromPin: 2, toNode: 'dispCA', toPin: 2 },
+      { id: 'wd3', fromNode: 'ic7447', fromPin: 3, toNode: 'dispCA', toPin: 3 },
+      { id: 'wd4', fromNode: 'ic7447', fromPin: 4, toNode: 'dispCA', toPin: 4 },
+      { id: 'wd5', fromNode: 'ic7447', fromPin: 5, toNode: 'dispCA', toPin: 5 },
+      { id: 'wd6', fromNode: 'ic7447', fromPin: 6, toNode: 'dispCA', toPin: 6 },
+      { id: 'wo0', fromNode: 'ic7447', fromPin: 0, toNode: 'outA', toPin: 0 },
+      { id: 'wo1', fromNode: 'ic7447', fromPin: 1, toNode: 'outB', toPin: 0 },
+      { id: 'wo2', fromNode: 'ic7447', fromPin: 2, toNode: 'outC', toPin: 0 },
+      { id: 'wo3', fromNode: 'ic7447', fromPin: 3, toNode: 'outD', toPin: 0 },
+      { id: 'wo4', fromNode: 'ic7447', fromPin: 4, toNode: 'outE', toPin: 0 },
+      { id: 'wo5', fromNode: 'ic7447', fromPin: 5, toNode: 'outF', toPin: 0 },
+      { id: 'wo6', fromNode: 'ic7447', fromPin: 6, toNode: 'outG', toPin: 0 }
+    ]
+  },
+  {
+    id: 'bcd-7seg-cc',
+    title: 'Decodificador BCD a 7 Segmentos + Display (Cátodo Común / 74LS48)',
+    category: 'Decodificadores y Conversores BCD',
+    moduleTag: 'BCD a 7 Segmentos',
+    description: 'Decodificador BCD a 7 segmentos con salidas activas en alto (1) conectado a un Display de Cátodo Común (Pág. 11 del PDF).',
+    formulas: [
+      '\\text{BCD } (D,C,B,A) \\implies \\text{Segmentos } a..g \\text{ (Cátodo Común)}'
+    ],
+    isPreset: true,
+    nodes: [
+      { id: 'inD', type: 'INPUT', label: 'D', x: 100, y: 65, state: [0] },
+      { id: 'inC', type: 'INPUT', label: 'C', x: 100, y: 115, state: [0] },
+      { id: 'inB', type: 'INPUT', label: 'B', x: 100, y: 165, state: [1] },
+      { id: 'inA', type: 'INPUT', label: 'A', x: 100, y: 215, state: [1] },
+      { id: 'bcd48', type: 'BCD_7SEG', label: 'U1 (74LS48)', x: 280, y: 55 },
+      { id: 'dispCC', type: 'DISPLAY_7SEG_CC', label: 'Display Cátodo', x: 540, y: 55 },
+      { id: 'outA', type: 'OUTPUT', label: 'a', x: 730, y: 36 },
+      { id: 'outB', type: 'OUTPUT', label: 'b', x: 730, y: 74 },
+      { id: 'outC', type: 'OUTPUT', label: 'c', x: 730, y: 112 },
+      { id: 'outD', type: 'OUTPUT', label: 'd', x: 730, y: 150 },
+      { id: 'outE', type: 'OUTPUT', label: 'e', x: 730, y: 188 },
+      { id: 'outF', type: 'OUTPUT', label: 'f', x: 730, y: 226 },
+      { id: 'outG', type: 'OUTPUT', label: 'g', x: 730, y: 264 }
+    ],
+    wires: [
+      { id: 'wD', fromNode: 'inD', fromPin: 0, toNode: 'bcd48', toPin: 0 },
+      { id: 'wC', fromNode: 'inC', fromPin: 0, toNode: 'bcd48', toPin: 1 },
+      { id: 'wB', fromNode: 'inB', fromPin: 0, toNode: 'bcd48', toPin: 2 },
+      { id: 'wA', fromNode: 'inA', fromPin: 0, toNode: 'bcd48', toPin: 3 },
+      { id: 'wd0', fromNode: 'bcd48', fromPin: 0, toNode: 'dispCC', toPin: 0 },
+      { id: 'wd1', fromNode: 'bcd48', fromPin: 1, toNode: 'dispCC', toPin: 1 },
+      { id: 'wd2', fromNode: 'bcd48', fromPin: 2, toNode: 'dispCC', toPin: 2 },
+      { id: 'wd3', fromNode: 'bcd48', fromPin: 3, toNode: 'dispCC', toPin: 3 },
+      { id: 'wd4', fromNode: 'bcd48', fromPin: 4, toNode: 'dispCC', toPin: 4 },
+      { id: 'wd5', fromNode: 'bcd48', fromPin: 5, toNode: 'dispCC', toPin: 5 },
+      { id: 'wd6', fromNode: 'bcd48', fromPin: 6, toNode: 'dispCC', toPin: 6 },
+      { id: 'wo0', fromNode: 'bcd48', fromPin: 0, toNode: 'outA', toPin: 0 },
+      { id: 'wo1', fromNode: 'bcd48', fromPin: 1, toNode: 'outB', toPin: 0 },
+      { id: 'wo2', fromNode: 'bcd48', fromPin: 2, toNode: 'outC', toPin: 0 },
+      { id: 'wo3', fromNode: 'bcd48', fromPin: 3, toNode: 'outD', toPin: 0 },
+      { id: 'wo4', fromNode: 'bcd48', fromPin: 4, toNode: 'outE', toPin: 0 },
+      { id: 'wo5', fromNode: 'bcd48', fromPin: 5, toNode: 'outF', toPin: 0 },
+      { id: 'wo6', fromNode: 'bcd48', fromPin: 6, toNode: 'outG', toPin: 0 }
+    ]
+  },
+  {
+    id: 'taller-deco-4-16',
+    title: 'Taller: Decodificador 4 a 16 en base a Decodificadores 2 a 4',
+    category: 'Decodificadores y Conversores BCD',
+    moduleTag: 'Taller Pág. 18',
+    description: 'Desarrollo de un decodificador 4 a 16 utilizando 5 decodificadores 2 a 4: 1 maestro (A3, A2) que habilita a 4 esclavos (A1, A0).',
+    formulas: [
+      'E_m = \\text{DEC}_{2:4}(A_3, A_2)',
+      'O_{4m+k} = E_m \\cdot \\text{DEC}_{2:4}(A_1, A_0)'
+    ],
+    isPreset: true,
+    nodes: [
+      { id: 'inA3', type: 'INPUT', label: 'A3', x: 60, y: 50, state: [0] },
+      { id: 'inA2', type: 'INPUT', label: 'A2', x: 60, y: 100, state: [1] },
+      { id: 'inA1', type: 'INPUT', label: 'A1', x: 60, y: 240, state: [0] },
+      { id: 'inA0', type: 'INPUT', label: 'A0', x: 60, y: 290, state: [1] },
+      { id: 'decM', type: 'DEC_2_4', label: 'DEC_M (A3,A2)', x: 210, y: 50 },
+      { id: 'dec0', type: 'DEC_2_4_EN', label: 'DEC0 (0..3)', x: 430, y: 16 },
+      { id: 'dec1', type: 'DEC_2_4_EN', label: 'DEC1 (4..7)', x: 430, y: 180 },
+      { id: 'dec2', type: 'DEC_2_4_EN', label: 'DEC2 (8..11)', x: 430, y: 344 },
+      { id: 'dec3', type: 'DEC_2_4_EN', label: 'DEC3 (12..15)', x: 430, y: 508 },
+      { id: 'o0', type: 'OUTPUT', label: 'O0', x: 650, y: 20 },
+      { id: 'o1', type: 'OUTPUT', label: 'O1', x: 650, y: 56 },
+      { id: 'o4', type: 'OUTPUT', label: 'O4', x: 650, y: 184 },
+      { id: 'o5', type: 'OUTPUT', label: 'O5', x: 650, y: 220 },
+      { id: 'o8', type: 'OUTPUT', label: 'O8', x: 650, y: 348 },
+      { id: 'o12', type: 'OUTPUT', label: 'O12', x: 650, y: 512 },
+      { id: 'o15', type: 'OUTPUT', label: 'O15', x: 650, y: 600 }
+    ],
+    wires: [
+      { id: 'wm1', fromNode: 'inA3', fromPin: 0, toNode: 'decM', toPin: 0 },
+      { id: 'wm2', fromNode: 'inA2', fromPin: 0, toNode: 'decM', toPin: 1 },
+      { id: 'we0', fromNode: 'decM', fromPin: 0, toNode: 'dec0', toPin: 2 },
+      { id: 'we1', fromNode: 'decM', fromPin: 1, toNode: 'dec1', toPin: 2 },
+      { id: 'we2', fromNode: 'decM', fromPin: 2, toNode: 'dec2', toPin: 2 },
+      { id: 'we3', fromNode: 'decM', fromPin: 3, toNode: 'dec3', toPin: 2 },
+      { id: 'wa10', fromNode: 'inA1', fromPin: 0, toNode: 'dec0', toPin: 0 },
+      { id: 'wa00', fromNode: 'inA0', fromPin: 0, toNode: 'dec0', toPin: 1 },
+      { id: 'wa11', fromNode: 'inA1', fromPin: 0, toNode: 'dec1', toPin: 0 },
+      { id: 'wa01', fromNode: 'inA0', fromPin: 0, toNode: 'dec1', toPin: 1 },
+      { id: 'wa12', fromNode: 'inA1', fromPin: 0, toNode: 'dec2', toPin: 0 },
+      { id: 'wa02', fromNode: 'inA0', fromPin: 0, toNode: 'dec2', toPin: 1 },
+      { id: 'wa13', fromNode: 'inA1', fromPin: 0, toNode: 'dec3', toPin: 0 },
+      { id: 'wa03', fromNode: 'inA0', fromPin: 0, toNode: 'dec3', toPin: 1 },
+      { id: 'wo0', fromNode: 'dec0', fromPin: 0, toNode: 'o0', toPin: 0 },
+      { id: 'wo1', fromNode: 'dec0', fromPin: 1, toNode: 'o1', toPin: 0 },
+      { id: 'wo4', fromNode: 'dec1', fromPin: 0, toNode: 'o4', toPin: 0 },
+      { id: 'wo5', fromNode: 'dec1', fromPin: 1, toNode: 'o5', toPin: 0 },
+      { id: 'wo8', fromNode: 'dec2', fromPin: 0, toNode: 'o8', toPin: 0 },
+      { id: 'wo12', fromNode: 'dec3', fromPin: 0, toNode: 'o12', toPin: 0 },
+      { id: 'wo15', fromNode: 'dec3', fromPin: 3, toNode: 'o15', toPin: 0 }
+    ]
+  },
+  {
+    id: 'cascade-deco-3-8',
+    title: 'Conexión en Cascada: 2 Decodificadores 3 a 8 (S0..S15)',
+    category: 'Decodificadores y Conversores BCD',
+    moduleTag: 'Cascada Pág. 8',
+    description: 'Utilizando dos decodificadores 3 a 8 pequeños y un inversor en la entrada D se construye un decodificador de 16 salidas (Pág. 8 del PDF).',
+    formulas: ["CS_1 = D', \\quad CS_2 = D"],
+    isPreset: true,
+    nodes: [
+      { id: 'inA', type: 'INPUT', label: 'A', x: 70, y: 40, state: [0] },
+      { id: 'inB', type: 'INPUT', label: 'B', x: 70, y: 90, state: [1] },
+      { id: 'inC', type: 'INPUT', label: 'C', x: 70, y: 140, state: [0] },
+      { id: 'inD', type: 'INPUT', label: 'D', x: 70, y: 260, state: [0] },
+      { id: 'notD', type: 'NOT', label: 'INV_D', x: 210, y: 210 },
+      { id: 'dec1', type: 'DEC_3_8_EN', label: 'DEC1 (S0..S7)', x: 380, y: 20 },
+      { id: 'dec2', type: 'DEC_3_8_EN', label: 'DEC2 (S8..S15)', x: 380, y: 270 },
+      { id: 'outS0', type: 'OUTPUT', label: 'S0', x: 610, y: 30 },
+      { id: 'outS2', type: 'OUTPUT', label: 'S2', x: 610, y: 95 },
+      { id: 'outS7', type: 'OUTPUT', label: 'S7', x: 610, y: 210 },
+      { id: 'outS8', type: 'OUTPUT', label: 'S8', x: 610, y: 280 },
+      { id: 'outS10', type: 'OUTPUT', label: 'S10', x: 610, y: 345 },
+      { id: 'outS15', type: 'OUTPUT', label: 'S15', x: 610, y: 460 }
+    ],
+    wires: [
+      { id: 'w1', fromNode: 'inA', fromPin: 0, toNode: 'dec1', toPin: 0 },
+      { id: 'w2', fromNode: 'inB', fromPin: 0, toNode: 'dec1', toPin: 1 },
+      { id: 'w3', fromNode: 'inC', fromPin: 0, toNode: 'dec1', toPin: 2 },
+      { id: 'w4', fromNode: 'inA', fromPin: 0, toNode: 'dec2', toPin: 0 },
+      { id: 'w5', fromNode: 'inB', fromPin: 0, toNode: 'dec2', toPin: 1 },
+      { id: 'w6', fromNode: 'inC', fromPin: 0, toNode: 'dec2', toPin: 2 },
+      { id: 'w7', fromNode: 'inD', fromPin: 0, toNode: 'notD', toPin: 0 },
+      { id: 'w8', fromNode: 'notD', fromPin: 0, toNode: 'dec1', toPin: 3 },
+      { id: 'w9', fromNode: 'inD', fromPin: 0, toNode: 'dec2', toPin: 3 },
+      { id: 'ws0', fromNode: 'dec1', fromPin: 0, toNode: 'outS0', toPin: 0 },
+      { id: 'ws2', fromNode: 'dec1', fromPin: 2, toNode: 'outS2', toPin: 0 },
+      { id: 'ws7', fromNode: 'dec1', fromPin: 7, toNode: 'outS7', toPin: 0 },
+      { id: 'ws8', fromNode: 'dec2', fromPin: 0, toNode: 'outS8', toPin: 0 },
+      { id: 'ws10', fromNode: 'dec2', fromPin: 2, toNode: 'outS10', toPin: 0 },
+      { id: 'ws15', fromNode: 'dec2', fromPin: 7, toNode: 'outS15', toPin: 0 }
+    ]
+  },
+  {
+    id: 'encoder-8-3-or',
+    title: 'Codificador 8 a 3 con Compuertas OR (Pág. 14)',
+    category: 'Codificadores y Prioridad (MSI)',
+    moduleTag: 'Codificador 8:3',
+    description: 'Codificador octal a binario construido a partir de 3 compuertas OR de 4 entradas (A2, A1, A0).',
+    formulas: [
+      'A_2 = I_4 + I_5 + I_6 + I_7',
+      'A_1 = I_2 + I_3 + I_6 + I_7',
+      'A_0 = I_1 + I_3 + I_5 + I_7'
+    ],
+    isPreset: true,
+    nodes: [
+      { id: 'i0', type: 'INPUT', label: 'I0', x: 100, y: 24, state: [0] },
+      { id: 'i1', type: 'INPUT', label: 'I1', x: 100, y: 66, state: [0] },
+      { id: 'i2', type: 'INPUT', label: 'I2', x: 100, y: 108, state: [0] },
+      { id: 'i3', type: 'INPUT', label: 'I3', x: 100, y: 150, state: [0] },
+      { id: 'i4', type: 'INPUT', label: 'I4', x: 100, y: 192, state: [0] },
+      { id: 'i5', type: 'INPUT', label: 'I5', x: 100, y: 234, state: [1] },
+      { id: 'i6', type: 'INPUT', label: 'I6', x: 100, y: 276, state: [0] },
+      { id: 'i7', type: 'INPUT', label: 'I7', x: 100, y: 318, state: [0] },
+      { id: 'orA2', type: 'OR4', label: 'OR_A2', x: 380, y: 40 },
+      { id: 'orA1', type: 'OR4', label: 'OR_A1', x: 380, y: 150 },
+      { id: 'orA0', type: 'OR4', label: 'OR_A0', x: 380, y: 260 },
+      { id: 'outA2', type: 'OUTPUT', label: 'A2', x: 580, y: 67 },
+      { id: 'outA1', type: 'OUTPUT', label: 'A1', x: 580, y: 177 },
+      { id: 'outA0', type: 'OUTPUT', label: 'A0', x: 580, y: 287 }
+    ],
+    wires: [
+      { id: 'w1', fromNode: 'i4', fromPin: 0, toNode: 'orA2', toPin: 0 },
+      { id: 'w2', fromNode: 'i5', fromPin: 0, toNode: 'orA2', toPin: 1 },
+      { id: 'w3', fromNode: 'i6', fromPin: 0, toNode: 'orA2', toPin: 2 },
+      { id: 'w4', fromNode: 'i7', fromPin: 0, toNode: 'orA2', toPin: 3 },
+      { id: 'w5', fromNode: 'i2', fromPin: 0, toNode: 'orA1', toPin: 0 },
+      { id: 'w6', fromNode: 'i3', fromPin: 0, toNode: 'orA1', toPin: 1 },
+      { id: 'w7', fromNode: 'i6', fromPin: 0, toNode: 'orA1', toPin: 2 },
+      { id: 'w8', fromNode: 'i7', fromPin: 0, toNode: 'orA1', toPin: 3 },
+      { id: 'w9', fromNode: 'i1', fromPin: 0, toNode: 'orA0', toPin: 0 },
+      { id: 'w10', fromNode: 'i3', fromPin: 0, toNode: 'orA0', toPin: 1 },
+      { id: 'w11', fromNode: 'i5', fromPin: 0, toNode: 'orA0', toPin: 2 },
+      { id: 'w12', fromNode: 'i7', fromPin: 0, toNode: 'orA0', toPin: 3 },
+      { id: 'wo2', fromNode: 'orA2', fromPin: 0, toNode: 'outA2', toPin: 0 },
+      { id: 'wo1', fromNode: 'orA1', fromPin: 0, toNode: 'outA1', toPin: 0 },
+      { id: 'wo0', fromNode: 'orA0', fromPin: 0, toNode: 'outA0', toPin: 0 }
+    ]
+  },
   {
     id: 'adder-4bit-modular',
     title: 'Sumador de 4 bits en Cascada (M.S. + 3 S.C.)',

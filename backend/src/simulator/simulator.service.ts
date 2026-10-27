@@ -424,22 +424,49 @@ export class SimulatorService implements OnModuleInit {
           ]
         },
         {
+          id: 'decoders_bcd',
+          name: 'Decodificadores y Conversores BCD',
+          items: [
+            { type: 'DEC_1_2', name: 'Decodificador 1 a 2', ic: 'DEC 1:2', desc: '1 entrada (A0) a 2 salidas (O0, O1)' },
+            { type: 'DEC_2_4', name: 'Decodificador 2 a 4', ic: 'DEC 2:4', desc: '2 entradas (A1, A0) a 4 salidas (O0..O3)' },
+            { type: 'DEC_2_4_EN', name: 'Decodificador 2 a 4 (con Enable)', ic: '74LS139', desc: '2 a 4 con pin Enable E para cascada' },
+            { type: 'DECO_3_8', name: 'Decodificador 3:8 (74LS138)', ic: '74LS138', desc: '3 entradas (X,Y,Z) a 8 minitérminos' },
+            { type: 'DEC_3_8_EN', name: 'Decodificador 3:8 (con Enable)', ic: '74LS138-EN', desc: '3 a 8 con pin CS para cascada 4:16' },
+            { type: 'IC_7442', name: 'Decodificador BCD a Decimal (74LS42)', ic: '74LS42', desc: '4 entradas BCD a 10 salidas (O0..O9)' },
+            { type: 'IC_74154', name: 'Decodificador 4 a 16 (74LS154)', ic: '74LS154', desc: '4 entradas (A3..A0) a 16 salidas (O0..O15)' },
+            { type: 'BCD_7SEG', name: 'Decodificador BCD a 7-Seg (74LS48)', ic: '74LS48', desc: 'Activo en ALTO (1) para Cátodo Común' },
+            { type: 'IC_7447', name: 'Decodificador BCD a 7-Seg (74LS47)', ic: '74LS47', desc: 'Activo en BAJO (0) para Ánodo Común' }
+          ]
+        },
+        {
+          id: 'encoders',
+          name: 'Codificadores y Prioridad (MSI)',
+          items: [
+            { type: 'ENC_4_2', name: 'Codificador 4 a 2', ic: 'ENC 4:2', desc: '4 entradas (I0..I3) a 2 bits (A1, A0)' },
+            { type: 'ENC_8_3', name: 'Codificador 8 a 3', ic: 'ENC 8:3', desc: '8 entradas (I0..I7) a 3 bits (A2..A0)' },
+            { type: 'ENC_PRIO_8_3', name: 'Codificador con Prioridad 8 a 3', ic: 'PRIO 8:3', desc: 'Prioridad I7 > I6 > ... > I0 (Activo Alto)' },
+            { type: 'IC_74148', name: 'Codificador Prioridad 8 a 3 (74LS148)', ic: '74LS148', desc: 'SN74LS148 8 a 3 (Nivel Activo Bajo)' },
+            { type: 'IC_74147', name: 'Codificador Prioridad 10 a 4 (74LS147)', ic: '74LS147', desc: 'SN74LS147 Decimal a BCD (Activo Bajo)' }
+          ]
+        },
+        {
           id: 'mux_demux',
-          name: 'Multiplexores y Decodificadores',
+          name: 'Multiplexores y Demultiplexores',
           items: [
             { type: 'MUX_2_1', name: 'MUX 2:1', ic: '74LS157', desc: 'Selector de 2 entradas (I0, I1)' },
             { type: 'MUX_4_1', name: 'MUX 4:1 (74LS153)', ic: '74LS153', desc: 'Selector de 4 entradas (I0..I3)' },
             { type: 'MUX_8_1', name: 'MUX 8:1 (74LS151)', ic: '74LS151', desc: 'Selector de 8 entradas (E0..E7)' },
-            { type: 'DEMUX_1_4', name: 'DEMUX 1:4', ic: '74LS139', desc: 'Distribuidor de 1 entrada a 4 salidas' },
-            { type: 'DECO_3_8', name: 'Decodificador 3:8 (74LS138)', ic: '74LS138', desc: '3 entradas (X,Y,Z) a 8 minitérminos' }
+            { type: 'DEMUX_1_4', name: 'DEMUX 1:4', ic: '74LS139', desc: 'Distribuidor de 1 entrada a 4 salidas' }
           ]
         },
         {
           id: 'io',
-          name: 'Entradas y Salidas',
+          name: 'Entradas, Salidas y Displays 7-Seg',
           items: [
             { type: 'INPUT', name: 'Entrada Binaria (A, B...)', ic: 'IN', desc: 'Terminal interactivo 0 / 1' },
             { type: 'OUTPUT', name: 'Salida LED (S, Y...)', ic: 'OUT', desc: 'Monitor luminoso de salida' },
+            { type: 'DISPLAY_7SEG_CC', name: 'Display 7-Seg (Cátodo Común)', ic: '7SEG-CC', desc: 'Enciende segmentos a..g con 1 lógico' },
+            { type: 'DISPLAY_7SEG_CA', name: 'Display 7-Seg (Ánodo Común)', ic: '7SEG-CA', desc: 'Enciende segmentos a..g con 0 lógico (74LS47)' },
             { type: 'HEX_DISPLAY', name: 'Display 4-Bits (Hex/Dec)', ic: 'HEX', desc: 'Visualizador numérico de 4 bits' },
             { type: 'VCC', name: 'Fuente +Vcc (1 Lógico)', ic: '+5V', desc: 'Nivel alto constante (1)' },
             { type: 'GND', name: 'Tierra GND (0 Lógico)', ic: '0V', desc: 'Nivel bajo constante (0)' }

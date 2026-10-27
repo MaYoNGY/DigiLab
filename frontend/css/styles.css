@@ -3507,3 +3507,320 @@ kbd {
     display: none;
   }
 }
+
+/* =========================================================================
+   CONTROLES DE ZOOM FLOTANTES DIRECTOS EN LA PIZARRA (ESQUINA INFERIOR DERECHA)
+   ========================================================================= */
+.canvas-zoom-floating {
+  position: absolute;
+  bottom: 14px;
+  right: 16px;
+  z-index: 22;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid #f472b6;
+  border-radius: 10px;
+  padding: 4px 7px;
+  box-shadow: 0 6px 20px rgba(157, 23, 77, 0.14);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.canvas-zoom-floating:hover {
+  box-shadow: 0 8px 24px rgba(219, 39, 119, 0.22);
+}
+
+/* =========================================================================
+   SELECCIÓN MÚLTIPLE CON RECTÁNGULO (FLECHA) Y BARRA DE ACCIONES EN LOTE
+   ========================================================================= */
+.marquee-selection-box {
+  position: absolute;
+  border: 1.8px dashed #db2777;
+  background: rgba(219, 39, 119, 0.11);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 28;
+  box-shadow: 0 0 12px rgba(219, 39, 119, 0.18);
+}
+
+.multiselect-floating-bar {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 26;
+  background: rgba(46, 9, 30, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid #f472b6;
+  border-radius: 99px;
+  padding: 5px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 10px 28px rgba(131, 24, 67, 0.32);
+  animation: toastSlideDown 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.multiselect-badge {
+  font-family: var(--font-sans);
+  font-size: 0.73rem;
+  font-weight: 800;
+  color: #fbcfe8;
+  background: rgba(219, 39, 119, 0.32);
+  border: 1px solid #f472b6;
+  padding: 2px 9px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.multiselect-action-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(249, 168, 212, 0.3);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 99px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.14s ease;
+  white-space: nowrap;
+}
+
+.multiselect-action-btn:hover {
+  background: #db2777;
+  border-color: #f472b6;
+  transform: translateY(-1px);
+}
+
+.multiselect-action-btn.danger:hover {
+  background: #e11d48;
+  border-color: #fda4af;
+}
+
+/* =========================================================================
+   NAVEGACIÓN JERÁRQUICA DE CIRCUITOS (DE MAYOR A MENOR Y DE MENOR A MAYOR)
+   ========================================================================= */
+.hierarchy-nav-bar {
+  background: linear-gradient(90deg, #500724 0%, #831843 55%, #9d174d 100%);
+  border-bottom: 2px solid #f472b6;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  z-index: 24;
+  flex-wrap: wrap;
+  box-shadow: 0 4px 14px rgba(80, 7, 36, 0.22);
+}
+
+.hierarchy-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-hierarchy-back {
+  background: #ffffff;
+  color: #831843;
+  border: 1.5px solid #f9a8d4;
+  border-radius: 7px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.14s ease;
+}
+
+.btn-hierarchy-back:hover {
+  background: #fdf2f8;
+  border-color: #db2777;
+  transform: translateX(-1px);
+}
+
+.hierarchy-sep {
+  width: 1px;
+  height: 18px;
+  background: rgba(251, 207, 232, 0.35);
+  margin: 0 2px;
+}
+
+.btn-hierarchy-step {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border: 1px solid rgba(249, 168, 212, 0.45);
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-size: 0.71rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.btn-hierarchy-step:hover:not(:disabled) {
+  background: #db2777;
+  border-color: #fbcfe8;
+}
+
+.btn-hierarchy-step:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-hierarchy-step.btn-step-down {
+  background: #ec4899;
+  border-color: #fbcfe8;
+  font-weight: 800;
+}
+
+.btn-hierarchy-step.btn-step-down:hover:not(:disabled) {
+  background: #db2777;
+}
+
+.hierarchy-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  flex: 1;
+  justify-content: center;
+}
+
+.hierarchy-crumb {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fce7f3;
+  border: 1px solid rgba(251, 207, 232, 0.35);
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.14s ease;
+}
+
+.hierarchy-crumb:hover {
+  background: rgba(255, 255, 255, 0.24);
+  color: #ffffff;
+}
+
+.hierarchy-crumb.active {
+  background: #ffffff;
+  color: #831843;
+  border-color: #f472b6;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+.hierarchy-crumb-arrow {
+  color: #f9a8d4;
+  font-size: 0.72rem;
+  font-weight: 800;
+  user-select: none;
+}
+
+.hierarchy-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hierarchy-family-label {
+  font-size: 0.69rem;
+  font-weight: 700;
+  color: #fbcfe8;
+}
+
+.hierarchy-family-select {
+  background: rgba(46, 9, 30, 0.85);
+  color: #ffffff;
+  border: 1px solid #f472b6;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.71rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  outline: none;
+  cursor: pointer;
+}
+
+.subtool-drill-btn {
+  width: auto !important;
+  padding: 0 9px !important;
+  gap: 5px;
+  background: #fdf2f8 !important;
+  border: 1px solid #f472b6 !important;
+  color: #9d174d !important;
+  font-size: 0.71rem;
+  font-weight: 800;
+}
+
+.subtool-drill-btn:hover {
+  background: #db2777 !important;
+  color: #ffffff !important;
+}
+
+.inspector-hierarchy-card {
+  margin-top: 12px;
+  background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+  border: 1.5px solid #f472b6;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.inspector-hierarchy-title {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #831843;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inspector-hierarchy-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.inspector-level-btn {
+  background: #ffffff;
+  border: 1px solid #f9a8d4;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 0.71rem;
+  font-weight: 700;
+  color: #4a1d35;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.13s ease;
+}
+
+.inspector-level-btn:hover {
+  background: #db2777;
+  color: #ffffff;
+  border-color: #db2777;
+}
+
+.inspector-level-btn.current {
+  background: #fce7f3;
+  border-color: #db2777;
+  color: #9d174d;
+  font-weight: 800;
+}
+
