@@ -1230,21 +1230,29 @@ html.in-workspace-mode #simulatorView {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 4px 12px;
-  gap: 7px;
+  padding: 4px 10px;
+  gap: 6px;
   flex-wrap: nowrap;
   overflow-x: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #fbcfe8 transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   z-index: 30;
 }
 
 .app-toolbar::-webkit-scrollbar {
-  height: 4px;
+  display: none;
+  width: 0;
+  height: 0;
 }
-.app-toolbar::-webkit-scrollbar-thumb {
-  background: #fbcfe8;
-  border-radius: 4px;
+
+.sidebar-toggle-toolbar-btn {
+  flex-shrink: 0;
+}
+
+.sidebar-toggle-toolbar-btn.active {
+  background: #fce7f3;
+  border-color: #f472b6;
+  color: #9d174d;
 }
 
 .toolbar-group {

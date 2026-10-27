@@ -4844,19 +4844,19 @@ class DigitalSimulator {
     });
 
     // =========================================================================
-    // BOTÓN DE 3 LÍNEAS (☰) JUNTO AL LOGO DIGILAB PARA MOSTRAR/OCULTAR COMPONENTES
+    // BOTÓN DE PANEL [◧] JUNTO A SIMULAR PARA MOSTRAR/OCULTAR COMPONENTES
     // E INSPECTOR AUTOMÁTICO AL SELECCIONAR UN COMPONENTE
     // =========================================================================
     const workspace = document.querySelector('.eda-workspace');
-    const btnHamburgerLeft = document.getElementById('btnToggleLeftSidebar');
+    const btnToggleLeftDesktop = document.getElementById('btnToggleLeftSidebarDesktop');
     const btnCollapseRight = document.getElementById('btnCollapseRightSidebar');
 
     const applyLeftSidebarState = (leftCollapsed) => {
       if (!workspace) return;
       workspace.classList.toggle('left-collapsed', leftCollapsed);
-      btnHamburgerLeft?.classList.toggle('panel-hidden', leftCollapsed);
-      if (btnHamburgerLeft) {
-        btnHamburgerLeft.title = leftCollapsed
+      btnToggleLeftDesktop?.classList.toggle('active', !leftCollapsed);
+      if (btnToggleLeftDesktop) {
+        btnToggleLeftDesktop.title = leftCollapsed
           ? 'Mostrar panel de Componentes y Mis Lienzos'
           : 'Ocultar panel de Componentes y Mis Lienzos';
       }
@@ -4869,11 +4869,9 @@ class DigitalSimulator {
       applyLeftSidebarState(true);
     }
 
-    btnHamburgerLeft?.addEventListener('click', () => {
-      if (window.innerWidth > 1100) {
-        const isCurrentlyCollapsed = workspace?.classList.contains('left-collapsed') || false;
-        applyLeftSidebarState(!isCurrentlyCollapsed);
-      }
+    btnToggleLeftDesktop?.addEventListener('click', () => {
+      const isCurrentlyCollapsed = workspace?.classList.contains('left-collapsed') || false;
+      applyLeftSidebarState(!isCurrentlyCollapsed);
     });
 
     // Cerrar el Inspector deselecciona el componente actual (vuelve a abrirse automáticamente al hacer clic en cualquier componente)
