@@ -33,7 +33,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Librería KaTeX para renderizado tipográfico de Expresiones Algebraicas y Booleanas -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="./css/styles.css?v=4.8.1" />
+  <link rel="stylesheet" href="./css/styles.css?v=4.8.2" />
 </head>
 <body>
 
@@ -65,7 +65,10 @@
       <div class="nav-links">
         <a href="#featuresSection">Módulos</a>
         <a href="#chipsSection">Familia 74LS</a>
-        <button id="btnLandingHelp" class="btn btn-outline-soft" style="padding:6px 14px;" type="button">¿Cómo funciona?</button>
+        <button id="btnLandingHelp" class="btn btn-outline-soft" style="padding:6px 14px;" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.4-2.7 4"/><circle cx="12" cy="17.2" r="1.2" fill="currentColor" stroke="none"/></svg>
+          <span>¿Cómo funciona?</span>
+        </button>
         <button id="btnLandingOpenLogin" class="btn btn-outline-soft" style="padding:6px 14px;" type="button">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span>Iniciar Sesión</span>
@@ -156,8 +159,14 @@
 
           <div class="preview-body">
             <div class="preview-sidebar">
-              <div class="preview-side-title">⊞ Componentes</div>
-              <div class="preview-search">🔍 Buscar CI...</div>
+              <div class="preview-side-title" style="display:flex;align-items:center;gap:5px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#be185d" stroke-width="2.4"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                <span>Componentes</span>
+              </div>
+              <div class="preview-search" style="display:flex;align-items:center;gap:4px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9d174d" stroke-width="2.3"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>Buscar CI...</span>
+              </div>
               <div class="preview-cat-label">▾ Puertas TTL</div>
               <div class="preview-gates-grid">
                 <div class="mini-gate-box">
@@ -272,7 +281,10 @@
           </div>
 
           <div class="preview-interactive-bar">
-            <span class="preview-hint-pill">👉 Haz clic en A, B o Cin para probar la propagación</span>
+            <span class="preview-hint-pill">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5"/></svg>
+              <span>Haz clic en A, B o Cin para probar la propagación</span>
+            </span>
             <span id="heroLiveFormulaState" class="hero-formula-live">A=1, B=0, Cin=1 ➔ S=0, Cout=1</span>
           </div>
         </div>
@@ -493,7 +505,7 @@
           </div>
 
           <button class="menu-link btn-menu-help" id="btnHeaderHelp" title="Ver guía de uso y tutorial interactivo">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:4px;"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.4-2.7 4"/><circle cx="12" cy="17.2" r="1.2" fill="currentColor" stroke="none"/></svg>
             <span>Ayuda</span>
           </button>
         </nav>
@@ -567,10 +579,11 @@
       <!-- 2. HISTORIAL & EDICIÓN -->
       <div class="toolbar-group">
         <button id="btnUndoToolbar" class="tool-action-btn" title="Deshacer último cambio en el lienzo (Ctrl+Z)">
-          <span>↶ Deshacer</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+          <span>Deshacer</span>
         </button>
         <button id="btnRedoToolbar" class="tool-action-btn" title="Rehacer cambio en el lienzo (Ctrl+Y)">
-          <span>↷</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
         </button>
         <button id="btnClearCanvas" class="tool-action-btn danger-soft" title="Vaciar los componentes del lienzo actual (puedes deshacer con Ctrl+Z)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
@@ -1152,7 +1165,18 @@
           </div>
 
           <div class="help-step-card">
-            <div class="help-step-badge">⌨️</div>
+            <div class="help-step-badge">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="2.5"/>
+                <circle cx="6.5" cy="9.5" r="0.9" fill="currentColor" stroke="none"/>
+                <circle cx="10.2" cy="9.5" r="0.9" fill="currentColor" stroke="none"/>
+                <circle cx="13.8" cy="9.5" r="0.9" fill="currentColor" stroke="none"/>
+                <circle cx="17.5" cy="9.5" r="0.9" fill="currentColor" stroke="none"/>
+                <circle cx="6.5" cy="13" r="0.9" fill="currentColor" stroke="none"/>
+                <circle cx="17.5" cy="13" r="0.9" fill="currentColor" stroke="none"/>
+                <line x1="8.5" y1="15" x2="15.5" y2="15"/>
+              </svg>
+            </div>
             <div class="help-step-content">
               <h4>Atajos de Teclado del Laboratorio</h4>
               <ul class="help-shortcuts-list">
@@ -1187,7 +1211,7 @@
       <div class="modal-body">
         <p style="font-size:0.86rem;color:var(--text-body);line-height:1.5;">Esta acción eliminará todos los componentes y cables del circuito actual en esta pestaña.</p>
         <p style="font-size:0.78rem;color:var(--text-muted);margin-top:6px;display:flex;align-items:center;gap:6px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><circle cx="12" cy="8" r="1.15" fill="#db2777" stroke="none"/></svg>
           <span>Si lo confirmas por error, podrás restaurarlo inmediatamente pulsando <kbd>Ctrl+Z</kbd> o el botón <b>Deshacer</b>.</span>
         </p>
       </div>
@@ -1204,8 +1228,8 @@
   <!-- Librería KaTeX para renderizar ecuaciones algebraicas y expresiones booleanas -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
-  <script src="./js/components.js?v=4.8.1"></script>
-  <script src="./js/presets.js?v=4.8.1"></script>
-  <script src="./js/simulator.js?v=4.8.1"></script>
+  <script src="./js/components.js?v=4.8.2"></script>
+  <script src="./js/presets.js?v=4.8.2"></script>
+  <script src="./js/simulator.js?v=4.8.2"></script>
 </body>
 </html>

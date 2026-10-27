@@ -908,6 +908,7 @@ html.in-workspace-mode #simulatorView {
    ========================================================================= */
 .simulator-view {
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--bg-page);
@@ -1298,11 +1299,13 @@ html.in-workspace-mode #simulatorView {
   font-weight: 700;
   font-size: 0.76rem;
   font-family: var(--font-sans);
-  padding: 4px 4px;
+  padding: 4px 2px;
   outline: none;
   cursor: pointer;
-  min-width: 265px;
-  max-width: 450px;
+  width: 235px;
+  max-width: 235px;
+  min-width: 0;
+  text-overflow: ellipsis;
 }
 
 .toolbar-divider {
@@ -3552,6 +3555,9 @@ kbd {
 .btn-menu-help {
   color: var(--rose-primary) !important;
   font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
 }
 
 .btn-menu-help:hover {
@@ -3559,7 +3565,7 @@ kbd {
   color: var(--rose-deep) !important;
 }
 
-/* RESPONSIVE TOOLBAR COMPACTION */
+/* RESPONSIVE MULTIDISPOSITIVO COMPLETO (DESKTOP, LAPTOP, TABLET Y MÓVIL) */
 @media (max-width: 1440px) {
   .app-toolbar {
     gap: 5px;
@@ -3571,7 +3577,17 @@ kbd {
     gap: 4px;
   }
   .toolbar-select {
-    min-width: 140px;
+    width: 228px;
+    max-width: 228px;
+  }
+  .eda-workspace {
+    grid-template-columns: 245px 1fr 275px;
+  }
+  .eda-workspace.left-collapsed {
+    grid-template-columns: 1fr 275px;
+  }
+  .eda-workspace.right-collapsed {
+    grid-template-columns: 245px 1fr;
   }
 }
 
@@ -3584,16 +3600,18 @@ kbd {
   #btnExportJson {
     padding: 5px 8px;
   }
-  .preset-prefix {
-    display: none;
-  }
 }
 
-/* RESPONSIVE */
 @media (max-width: 1160px) {
+  .landing-nav {
+    padding: 16px 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
   .landing-hero {
     grid-template-columns: 1fr;
     gap: 28px;
+    padding: 0 20px;
   }
   .hero-visual-stage {
     min-height: auto;
@@ -3601,14 +3619,22 @@ kbd {
   .simulator-preview-window {
     width: 100%;
   }
-  .floating-realtime-card, .handwritten-note {
+  .floating-realtime-card,
+  .handwritten-note {
     display: none;
   }
   .landing-bottom-features {
     grid-template-columns: repeat(2, 1fr);
+    padding: 20px;
   }
-  .eda-workspace {
-    grid-template-columns: 1fr;
+  .landing-chips-strip {
+    padding: 14px 20px;
+  }
+  .eda-workspace,
+  .eda-workspace.left-collapsed,
+  .eda-workspace.right-collapsed,
+  .eda-workspace.left-collapsed.right-collapsed {
+    grid-template-columns: 1fr !important;
   }
   .mobile-only {
     display: inline-flex;
@@ -3616,44 +3642,174 @@ kbd {
   .hide-md {
     display: none;
   }
-  .eda-sidebar-left {
+  .eda-sidebar-left,
+  .eda-workspace.left-collapsed .eda-sidebar-left {
+    display: flex;
     position: absolute;
     top: 0;
     left: 0;
     bottom: 0;
     width: 280px;
+    max-width: 86vw;
+    z-index: 40;
     transform: translateX(-100%);
     transition: transform 0.25s ease;
     box-shadow: 12px 0 30px rgba(76, 5, 25, 0.2);
   }
-  .eda-sidebar-left.open {
+  .eda-sidebar-left.open,
+  .eda-workspace.left-collapsed .eda-sidebar-left.open {
     transform: translateX(0);
   }
-  .eda-sidebar-right {
+  .eda-sidebar-right,
+  .eda-workspace.right-collapsed .eda-sidebar-right {
+    display: flex;
     position: absolute;
     top: 0;
     right: 0;
     bottom: 0;
-    width: 310px;
+    width: 300px;
+    max-width: 88vw;
+    z-index: 40;
     transform: translateX(100%);
     transition: transform 0.25s ease;
     box-shadow: -12px 0 30px rgba(76, 5, 25, 0.2);
   }
-  .eda-sidebar-right.open {
+  .eda-sidebar-right.open,
+  .eda-workspace:not(.right-collapsed) .eda-sidebar-right {
     transform: translateX(0);
+  }
+  .canvas-subtoolbar {
+    max-width: calc(100% - 24px);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .canvas-subtoolbar::-webkit-scrollbar {
+    display: none;
   }
   .dock-split-grid {
     grid-template-columns: 1fr;
     overflow-y: auto;
   }
+  .dock-truth-col {
+    border-right: none;
+    border-bottom: 1px solid var(--border-light);
+    min-height: 170px;
+  }
+  .reference-cards-grid,
+  .sim-results-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-@media (max-width: 680px) {
-  .landing-bottom-features, .reference-cards-grid, .help-cards-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 768px) {
+  .brand-Pipe,
+  .brand-sub-pill {
+    display: none;
+  }
+  .nav-links {
+    gap: 8px;
+    flex-wrap: wrap;
   }
   .nav-links a {
     display: none;
+  }
+  .preview-body {
+    grid-template-columns: 1fr;
+  }
+  .preview-sidebar {
+    display: none;
+  }
+  .preview-topbar {
+    height: auto;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .app-menubar {
+    padding: 0 10px;
+    height: 42px;
+  }
+  .app-brand-text span,
+  #backendStatusText {
+    display: none;
+  }
+  .realtime-indicator {
+    padding: 5px;
+  }
+  .canvas-tabs-bar {
+    padding: 0 8px;
+    gap: 5px;
+  }
+  .work-tabs-list {
+    max-width: 100%;
+    flex: 1;
+  }
+  #bannerModuleTag {
+    display: none;
+  }
+  .work-tab-title-inline {
+    width: 120px;
+    font-size: 0.71rem;
+  }
+  .dock-tabs-bar {
+    padding: 0 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 6px;
+  }
+  .dock-tabs-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .dock-tabs-left {
+    flex-shrink: 0;
+  }
+  .dock-actions-right {
+    flex-shrink: 0;
+  }
+  #truthTableHintText {
+    display: none;
+  }
+  .multiselect-floating-bar {
+    max-width: calc(100% - 20px);
+    overflow-x: auto;
+    bottom: 56px;
+  }
+}
+
+@media (max-width: 680px) {
+  .landing-bottom-features,
+  .reference-cards-grid,
+  .sim-results-grid,
+  .help-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero-actions .btn,
+  .hero-actions .hero-secondary-btn {
+    justify-content: center;
+    width: 100%;
+  }
+  .hero-stats {
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .minterm-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .modal-backdrop {
+    padding: 8px;
+  }
+  .modal-card {
+    max-height: 92dvh;
+  }
+  .modal-header {
+    padding: 12px 14px;
+  }
+  .modal-body {
+    padding: 14px;
   }
 }
 

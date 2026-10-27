@@ -2891,6 +2891,31 @@ class DigitalSimulator {
         this.updateInspector();
       });
 
+      // Soporte táctil (móviles y tablets) para arrastrar y seleccionar componentes
+      el.addEventListener('touchstart', (e) => {
+        if (!e.touches || e.touches.length !== 1) return;
+        if (e.target.closest('.pin') || e.target.closest('.io-in-circle')) return;
+        e.stopPropagation();
+        const touch = e.touches[0];
+        if (!this.isNodeSelected(node.id)) {
+          this.selectSingleNode(node.id);
+        } else {
+          this.selectedNodeId = node.id;
+          this.updateSelectionUI();
+        }
+        this.selectedWireId = null;
+        this.draggingNode = node;
+        this.dragMoved = false;
+        const coords = this.clientToWorld(touch.clientX, touch.clientY);
+        this.dragStartWorld = { x: coords.x, y: coords.y };
+        this.dragOffset = { x: coords.x - node.x, y: coords.y - node.y };
+        this.draggingGroupInitialPositions = new Map(
+          this.getSelectedNodesList().map((n) => [n.id, { x: n.x, y: n.y }])
+        );
+        this.renderAll();
+        this.updateInspector();
+      }, { passive: true });
+
       // Doble clic sobre cualquier Circuito Integrado o Bloque MSI: Explorar su interior (Mayor → Menor)
       el.addEventListener('dblclick', (e) => {
         e.stopPropagation();
@@ -4533,6 +4558,47 @@ class DigitalSimulator {
       }
     });
 
+    // Soporte táctil en la pizarra (arrastre de nodos y paneo con un dedo en pantallas táctiles)
+    window.addEventListener('touchmove', (e) => {
+      if (!e.touches || e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      if (this.draggingNode) {
+        const coords = this.clientToWorld(touch.clientX, touch.clientY);
+        const dx = Math.round((coords.x - this.dragStartWorld.x) / 6) * 6;
+        const dy = Math.round((coords.y - this.dragStartWorld.y) / 6) * 6;
+        if (!this.dragMoved && (Math.abs(dx) >= 6 || Math.abs(dy) >= 6)) {
+          this.pushUndoSnapshot();
+          this.dragMoved = true;
+        }
+        this.draggingNode.x = Math.max(10, Math.round((coords.x - this.dragOffset.x) / 6) * 6);
+        this.draggingNode.y = Math.max(10, Math.round((coords.y - this.dragOffset.y) / 6) * 6);
+        this.renderAll();
+      } else if (this.isPanning) {
+        this.panX = touch.clientX - this.panStart.x;
+        this.panY = touch.clientY - this.panStart.y;
+        this.updateWorldTransform();
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+      if (this.draggingNode && this.dragMoved) {
+        this.generateTruthTable();
+        this.saveCurrentTabState();
+      }
+      this.draggingNode = null;
+      this.draggingGroupInitialPositions = null;
+      this.isPanning = false;
+    });
+
+    this.viewport.addEventListener('touchstart', (e) => {
+      if (!e.touches || e.touches.length !== 1) return;
+      if (e.target === this.viewport || e.target === this.world || e.target === this.wiresSvg) {
+        const touch = e.touches[0];
+        this.isPanning = true;
+        this.panStart = { x: touch.clientX - this.panX, y: touch.clientY - this.panY };
+      }
+    }, { passive: true });
+
     this.viewport.addEventListener('mousedown', (e) => {
       if (e.target === this.viewport || e.target === this.world || e.target === this.wiresSvg) {
         // Si está en modo mano ('pan'), clic central o presionando Espacio: desplazar pizarra
@@ -4870,12 +4936,20 @@ class DigitalSimulator {
     }
 
     btnToggleLeftDesktop?.addEventListener('click', () => {
+      const leftPanel = document.getElementById('leftSidebar');
+      if (window.innerWidth <= 1160 && leftPanel) {
+        const isOpen = leftPanel.classList.toggle('open');
+        document.getElementById('rightSidebar')?.classList.remove('open');
+        btnToggleLeftDesktop.classList.toggle('active', isOpen);
+        return;
+      }
       const isCurrentlyCollapsed = workspace?.classList.contains('left-collapsed') || false;
       applyLeftSidebarState(!isCurrentlyCollapsed);
     });
 
     // Cerrar el Inspector deselecciona el componente actual (vuelve a abrirse automáticamente al hacer clic en cualquier componente)
     btnCollapseRight?.addEventListener('click', () => {
+      document.getElementById('rightSidebar')?.classList.remove('open');
       this.clearSelection();
       this.renderNodes();
       this.updateInspector();
